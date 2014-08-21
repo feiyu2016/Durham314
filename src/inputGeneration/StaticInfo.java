@@ -21,9 +21,7 @@ public class StaticInfo {
 			int fieldCount = Integer.parseInt(in.readLine().split(",")[1]);
 			for (int i = 0; i < fieldCount; i++) in.readLine();
 			String line;
-			while ((line = in.readLine())!=null) {
-				results.add(line.split(",")[5]);
-			}
+			while ((line = in.readLine())!=null)	results.add(line.split(",")[5]);
 			in.close();
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
