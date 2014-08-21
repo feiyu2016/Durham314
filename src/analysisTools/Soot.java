@@ -45,7 +45,6 @@ public class Soot {
 										/AppData/(file name)/(class name)/ClassInfo.csv
 											/AppData/(file name)/(class name)/(method name).csv
 											/AppData/(file name)/(class name)/(method name).jimple
-											 * aaaa
 											......
 											......
 										......
@@ -54,6 +53,7 @@ public class Soot {
 		PackManager.v().getPack("wjtp").add(new Transform("wjtp.myTransform", new SceneTransformer() {
 			protected void internalTransform(String phaseName, Map options) {
 				try {
+					System.out.println("test");
 					CHATransformer.v().transform();
 					Chain<SootClass> classes = Scene.v().getApplicationClasses();
 					File cgFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
