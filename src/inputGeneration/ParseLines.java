@@ -1,24 +1,24 @@
 package inputGeneration;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
 import main.Paths;
 
 public class ParseLines {
 	
-	private String path;
-	
-	public ParseLines(String p) {
-		path = p;
-	}
-	
-	public void parseLines() {
-		ArrayList<String> al = new StaticInfo().getClassNames(new File(path));
+	public void parseLines(File path) {
+		ArrayList<String> al = StaticInfo.getClassNames(path);
 		
 		for(String string:al){
-			System.out.println(string);
+			String newPath = Paths.appDataDir + path.getName() + "/apktool/smali/" + string.replace(".", "/") + ".smali";
+			System.out.println(newPath);
 		}
+	}
+	
+	public static void main(String args[]) {
+		try {	
+			new ParseLines().parseLines(new File("astro.apk"));
+		} catch (Exception e) {}
 	}
 }
