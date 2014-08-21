@@ -9,6 +9,14 @@ import main.Paths;
 
 public class StaticInfo {
 	
+	public static ArrayList<String> getClassNames(File file) {
+		ArrayList<String> results = new ArrayList<String>();
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + ));
+		}	catch (Exception e) {e.printStackTrace();}
+		return results;
+	}
+	
 	
 	public static String getPackageName(File file) {
 		String result = "";
