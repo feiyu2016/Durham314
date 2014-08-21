@@ -40,15 +40,14 @@ import soot.util.Chain;
 public class Soot {
 
 	public static void generateAPKData(final File file) {
-	/* this method writes App data to 	/AppData/(file name)/CallGraph.csv
-										/AppData/(file name)/ApkInfo.csv
-										/AppData/(file name)/(class name)/ClassInfo.csv
-											/AppData/(file name)/(class name)/(method name).csv
-											/AppData/(file name)/(class name)/(method name).jimple
-											......
-											......
-										......
-										......
+	/* this method writes App data to:
+	 *  	/AppData/(file name)/CallGraph.csv
+	 *  	/AppData/(file name)/ApkInfo.csv
+	 *  	/AppData/(file name)/(class name)/ClassInfo.csv
+	 *  	/AppData/(file name)/(class name)/(method name).csv
+	 *  	/AppData/(file name)/(class name)/(method name).jimple
+	 *  	....
+	 *  	....
 	*/
 		PackManager.v().getPack("wjtp").add(new Transform("wjtp.myTransform", new SceneTransformer() {
 			protected void internalTransform(String phaseName, Map options) {
