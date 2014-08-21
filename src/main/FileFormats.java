@@ -16,12 +16,12 @@ public class FileFormats {
  * 
  * 
  * --------Class Info (~/ClassesInfo/(Class Name)/ClassInfo.csv)---------
- * 		Line1(0,1,2): Class Name, Field Number, Method Number
+ * 		Line1(0,1,2): Class Name, Field Count, Method Count
  * 		Line2(0,1,2,3): "Field", Field Name, Field Type, Field Modifiers Value
  * 		...
  * 		...
  * 		LineX(0,1,2,3,4,5): "Method", Method Name, Return Type, Method Modifiers Value, Method File Name, Method SubSignature
- * 											(note: sometimes method signature is too long for a file name, that's why some methods' file name != sub signature)
+ * 			(note: sometimes method signature is too long to be used as a file name, that's why some methods' file name != sub signature)
  * 		...
  * 		...
  * 
