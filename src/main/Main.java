@@ -20,12 +20,8 @@ public class Main {
 			jdb.initJDB(file);
 			jdb.setMonitorStatus(true);
 			jdb.setBreakPointLine("com.example.helloworld.MainActivity", 321);
-			//jdb.setBreakPointLine("com.example.helloworld.MainActivity", 321);
 			while (true) {}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (Exception e) {	e.printStackTrace();}
 	}
 	
 	private static void initAnalysis(File file) {
