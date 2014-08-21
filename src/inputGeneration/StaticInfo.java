@@ -9,6 +9,7 @@ import main.Paths;
 
 public class StaticInfo {
 	
+	
 	public static String getPackageName(File file) {
 		String result = "";
 		try {
@@ -53,7 +54,7 @@ public class StaticInfo {
 		for (int i = 0; i < results.size(); i++) {
 			String thisActivity = results.get(i).trim();
 			String[] lines = thisActivity.trim().split("\n");
-			// line 0 gets the activity name, line 2 gets action name(is used to find mainActivity)
+			// line 0 gets the activity name, line 2 gets first action name
 			System.out.println(thisActivity);
 			String activityName = lines[0].substring(lines[0].indexOf("android:name=\"")+"android:name=\"".length());
 			activityName = activityName.substring(0, activityName.indexOf("\""));
