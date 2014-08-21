@@ -14,16 +14,10 @@ public class Main {
 		//File file = new File("/home/wenhaoc/AppStorage/Fast.apk");
 		//File file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
 		File file = new File("/home/wenhaoc/Downloads/HelloWorld.apk");
-		//initAnalysis(file);
-		JDBStuff jdb = new JDBStuff();
-		try {
-			jdb.initJDB(file);
-			jdb.setMonitorStatus(true);
-			// hahaha
-			jdb.setBreakPointLine("com.example.helloworld.MainActivity", 321);
-			while (true) {}
-		} catch (Exception e) {	e.printStackTrace();}
+		initAnalysis(file);
+		//testJDB(file);
 	}
+	
 	
 	private static void initAnalysis(File file) {
 		analysisTools.ApkTool.extractAPK(file);
@@ -31,4 +25,14 @@ public class Main {
 		//StaticInfo.process_Intents_And_setContentView(file);
 	}
 	
+	
+	private static void testJDB(File file) {
+		JDBStuff jdb = new JDBStuff();
+		try {
+			jdb.initJDB(file);
+			jdb.setMonitorStatus(true);
+			jdb.setBreakPointLine("com.example.helloworld.MainActivity", 321);
+			while (true) {}
+		} catch (Exception e) {	e.printStackTrace();}
+	}
 }
