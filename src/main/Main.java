@@ -15,6 +15,7 @@ public class Main {
 		//File file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
 		File file = new File("/home/wenhaoc/Downloads/HelloWorld.apk");
 		//initAnalysis(file);
+		//zhiming;
 		JDBStuff jdb = new JDBStuff();
 		try {
 			jdb.initJDB(file);
