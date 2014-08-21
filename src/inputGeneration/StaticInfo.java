@@ -9,10 +9,41 @@ import main.Paths;
 
 public class StaticInfo {
 	
+	public static ArrayList<String> getMethodSigs(File file, String className) {
+		ArrayList<String> results = new ArrayList<String>();
+		try {
+			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/" + className + "/ClassInfo.csv");
+			if (!classInfoFile.exists())	{
+				System.out.println("can't find ApkInfo file! Did you call 'analysisTools.Soot.generateAPKData(file)' before this?");
+				return results;
+			}
+			BufferedReader in = new BufferedReader(new FileReader(classInfoFile));
+			int fieldCount = Integer.parseInt(in.readLine().split(",")[1]);
+			for (int i = 0; i < fieldCount; i++) in.readLine();
+			String line;
+			while ((line = in.readLine())!=null) {
+				results.add(line.split(",")[5]);
+			}
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return results;
+	}
+	
+	
 	public static ArrayList<String> getClassNames(File file) {
 		ArrayList<String> results = new ArrayList<String>();
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + ));
+			File apkInfoFile = new File(Paths.appDataDir + file.getName() + "/ApkInfo.csv");
+			if (!apkInfoFile.exists())	{
+				System.out.println("can't find ApkInfo file! Did you call 'analysisTools.Soot.generateAPKData(file)' before this?");
+				return results;
+			}
+			BufferedReader in = new BufferedReader(new FileReader(apkInfoFile));
+			in.readLine();
+			String line;
+			while ((line = in.readLine())!=null)
+				results.add(line.split(",")[1]);
+			in.close();
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
 	}
