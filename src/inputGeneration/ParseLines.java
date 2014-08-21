@@ -1,19 +1,24 @@
 package inputGeneration;
 
+import java.io.File;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 import main.Paths;
 
 public class ParseLines {
 	
-	//private String folderName;
-	private Process pc;
-	private OutputStream out;
+	private String path;
 	
-	public void getFileNames(String pathToFolder) throws Exception {
-		pc = Runtime.getRuntime().exec("grep -rl \"\\.lines\"" + pathToFolder + "/*");
-		pc.waitFor();
+	public ParseLines(String p) {
+		path = p;
+	}
+	
+	public void parseLines() {
+		ArrayList<String> al = new StaticInfo().getClassNames(new File(path));
 		
-		out = pc.getOutputStream();
+		for(String string:al){
+			System.out.println(string);
+		}
 	}
 }
