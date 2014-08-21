@@ -19,6 +19,7 @@ public class Main {
 		try {
 			jdb.initJDB(file);
 			jdb.setMonitorStatus(true);
+			// hahaha
 			jdb.setBreakPointLine("com.example.helloworld.MainActivity", 321);
 			while (true) {}
 		} catch (Exception e) {	e.printStackTrace();}
