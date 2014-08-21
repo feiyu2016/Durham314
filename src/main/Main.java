@@ -5,8 +5,6 @@ import inputGeneration.StaticInfo;
 
 import java.io.File;
 
-import analysisTools.Soot;
-
 public class Main {
 
 	public static void main(String[] args) {
@@ -16,16 +14,6 @@ public class Main {
 		File file = new File("/home/wenhaoc/Downloads/HelloWorld.apk");
 		initAnalysis(file);
 		//testJDB(file);
-		//initAnalysis(file);
-		//zhiming;
-		JDBStuff jdb = new JDBStuff();
-		try {
-			jdb.initJDB(file);
-			jdb.setMonitorStatus(true);
-			// hahaha
-			jdb.setBreakPointLine("com.example.helloworld.MainActivity", 321);
-			while (true) {}
-		} catch (Exception e) {	e.printStackTrace();}
 	}
 	
 	

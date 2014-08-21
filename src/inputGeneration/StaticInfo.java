@@ -52,9 +52,11 @@ public class StaticInfo {
 		int mainActivityPos = 0;
 		for (int i = 0; i < results.size(); i++) {
 			String thisActivity = results.get(i).trim();
-			String[] lines = thisActivity.split("\n");
+			String[] lines = thisActivity.trim().split("\n");
 			// line 0 gets the activity name, line 2 gets action name(is used to find mainActivity)
-			String activityName = lines[0].substring(lines[0].indexOf("android:name=\"")+"android:name=\"".length(), lines[0].lastIndexOf("\">"));
+			System.out.println(thisActivity);
+			String activityName = lines[0].substring(lines[0].indexOf("android:name=\"")+"android:name=\"".length());
+			activityName = activityName.substring(0, activityName.indexOf("\""));
 			String actionName = lines[2].substring(lines[2].indexOf("<action android:name=\"")+"<action android:name=\"".length() , lines[2].lastIndexOf("\" />"));
 			if (actionName.equals("android.intent.action.MAIN"))	mainActivityPos = i;
 			String packageName = getPackageName(file);
