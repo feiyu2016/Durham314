@@ -81,6 +81,8 @@ public class Soot {
 							else if (method.isNative())	methodType = "NativeMethod,";
 							String methodFileName = method.getSubSignature().replace(",", " ");
 							if (methodFileName.length() > 100) {methodFileName = method.getName() + "_" + longMethodNameID; longMethodNameID++;}
+							if ((System.getProperty("os.name").startsWith("Windows")))
+								methodFileName = methodFileName.replace("<", "[").replace(">", "]");
 							out_Class.write(methodType + method.getName() + "," + method.getReturnType().toString() + "," + 
 											method.getModifiers() + "," + methodFileName + "," + method.getSubSignature().replace(",", " ") + "\n");
 							if (method.isAbstract() || method.isNative())
