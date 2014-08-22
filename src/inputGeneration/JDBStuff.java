@@ -77,8 +77,7 @@ public class JDBStuff {
 	}
 	
 	public void getMethodCoverage() {
-		System.out.println(String.format("Total of %d break points was set, %d was reached. ", breakPoints.size(), nonDupe_bPHitLog.size() ));
-		System.out.println(String.format(""));
+		System.out.println(String.format("Total of %d break points was set, %d was reached: %s", breakPoints.size(), nonDupe_bPHitLog.size(), (float)nonDupe_bPHitLog.size()/(float)breakPoints.size() ));
 	}
 	
 }
