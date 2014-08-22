@@ -14,11 +14,13 @@ public class JDBStuff {
 	private OutputStream out;
 	private int tcpPort = 7772;
 	private String srcPath = "src";
-	public ArrayList<String> breakPoints = new ArrayList<String>();
+	public static ArrayList<String> breakPoints = new ArrayList<String>();
+	public static ArrayList<String> bPHitLog = new ArrayList<String>();
+	public static ArrayList<String> nonDupe_bPHitLog = new ArrayList<String>();
 	
 	
 	public void initJDB(File file) throws Exception{
-		String pID = findPID(file);
+		String pID = RunTimeInfo.getPID(file);
 		
 		//pc = Runtime.getRuntime().exec(Paths.adbPath + " shell am start -n com.example.helloworld/.MainActivity");
 		//pc.waitFor();
@@ -35,13 +37,13 @@ public class JDBStuff {
 	public void setBreakPointLine(String className, int lineNumber) throws Exception{
 		out.write(("stop at " + className + ":" + lineNumber + "\n").getBytes());
 		out.flush();
-		breakPoints.add("line," + className + "," + lineNumber);
+		addBreakPoints("line," + className + "," + lineNumber);
 	}
 	
 	public void setBreakPointMethod(String className, String methodName) throws Exception{
 		out.write(("stop in " + className + "." + methodName + "\n").getBytes());
 		out.flush();
-		breakPoints.add("method," + className + "," + methodName);
+		addBreakPoints("method," + className + "," + methodName);
 	}
 	
 	public void setMonitorStatus(boolean OnOrOff) throws Exception{
@@ -63,22 +65,20 @@ public class JDBStuff {
 	}
 	
 	private void printStreams() throws Exception{
-		(new Thread(new OutputMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))))).start();
-		(new Thread(new OutputMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))))).start();
 	}
 	
-	private String findPID(File file) throws Exception{
-		Process prc = Runtime.getRuntime().exec(Paths.adbPath + " shell ps |grep " + StaticInfo.getPackageName(file));
-		BufferedReader in = new BufferedReader(new InputStreamReader(prc.getInputStream()));
-		String line;
-		while ((line = in.readLine())!=null) {
-			String[] parts = line.split(" ");
-			for (int i = 1; i < parts.length; i++) {
-				if (parts[i].equals(""))	continue;
-				return parts[i].trim();
-			}
-		}
-		return "";
+	private void addBreakPoints(String newBP) {
+		boolean exists = false;
+		for (String oldBP: breakPoints)
+			if (oldBP.equals(newBP))	exists = true;
+		if (!exists)	breakPoints.add(newBP);
+	}
+	
+	public void getMethodCoverage() {
+		System.out.println(String.format("Total of %d break points was set, %d was reached. ", breakPoints.size(), nonDupe_bPHitLog.size() ));
+		System.out.println(String.format(""));
 	}
 	
 }

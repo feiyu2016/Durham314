@@ -20,7 +20,7 @@ public class Main {
 	private static void initAnalysis(File file) {
 		analysisTools.ApkTool.extractAPK(file);
 		analysisTools.Soot.generateAPKData(file);
-		//StaticInfo.process_Intents_And_setContentView(file);
+		StaticInfo.process_Intents_And_setContentView(file);
 	}
 	
 	
