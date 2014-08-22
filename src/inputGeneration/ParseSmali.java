@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import main.Paths;
 
-public class ParseLines {
+public class ParseSmali {
 	
 	public ArrayList<String> parseLines(File path) {
 		ArrayList<String> al = StaticInfo.getClassNames(path);
@@ -30,6 +30,11 @@ public class ParseLines {
 		}
 		
 		return ret;
+	}
+	
+	public ArrayList<String> parseMethodLines(File path) {
+		// TODO
+		return new ArrayList<String>();
 	}
 
 }
