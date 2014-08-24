@@ -10,6 +10,8 @@ import main.Paths;
 public class StaticInfo {
 	
 	public static ArrayList<String> getMethodSigs(File file, String className) {
+		// returns all method signature within a class (jimple format)
+		// e.g.   void myMethod(java.lang.String int java.lang.String)
 		ArrayList<String> results = new ArrayList<String>();
 		try {
 			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/" + className + "/ClassInfo.csv");
@@ -29,6 +31,7 @@ public class StaticInfo {
 	
 	
 	public static ArrayList<String> getClassNames(File file) {
+		// return all class names within an app
 		ArrayList<String> results = new ArrayList<String>();
 		try {
 			File apkInfoFile = new File(Paths.appDataDir + file.getName() + "/ApkInfo.csv");
@@ -48,6 +51,7 @@ public class StaticInfo {
 	
 	
 	public static String getPackageName(File file) {
+		// return the package name of an app, this can be used to uninstall, search for pid,etc
 		String result = "";
 		try {
 			File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
@@ -73,6 +77,8 @@ public class StaticInfo {
 	
 	
 	public static ArrayList<String> getActivityNames(File file) {
+		// TO DO: some apps does not have main activity
+		// get all activity names of an app, and put the main activity first
 		ArrayList<String> results = new ArrayList<String>();
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
 		String whole = readDatFile(manifestFile);
@@ -114,14 +120,25 @@ public class StaticInfo {
 	}
 	
 	private static boolean validateActivity(File file, String activityName) {
-		// the activity name in AndroiManifest might be false, e.g., zhiming's Bugatti and bug
+		// the activity name in AndroiManifest might be false, e.g., zhiming's Bugatti and bug.
 		boolean result = false;
 		File classFile = new File(Paths.appDataDir + file.getName() + "/apktool/smali/" + activityName.replace(".", "/") + ".smali");
 		if (classFile.exists())	result = true;
 		return result;
 	}
 	
+	public static void parseXMLLayouts() {
+		// parse xml layouts and add widgets
+		
+	}
+	
+	public static void parseJavaLayouts() {
+		// parse java layouts and add widgets
+	}
+	
+
 	public static ArrayList<String> getLeavingWidgets(File file, String activityName, String layoutName) {
+		// given layout and activity, search widgets' event handlers and see if they change layout/activity
 		ArrayList<String> results = new ArrayList<String>();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/layout_info/" + layoutName + ".csv"));
