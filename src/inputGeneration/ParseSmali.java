@@ -13,7 +13,7 @@ public class ParseSmali {
 		ArrayList<String> al = StaticInfo.getClassNames(path);
 		ArrayList<String> ret = new ArrayList<String>();
 		
-		for(String string:al){
+		for (String string:al) {
 			String newPath = Paths.appDataDir + path.getName() + "/apktool/smali/" + string.replace(".", "/") + ".smali";
 			
 			try {
@@ -33,8 +33,39 @@ public class ParseSmali {
 	}
 	
 	public ArrayList<String> parseMethodLines(File path) {
-		// TODO
-		return new ArrayList<String>();
+		ArrayList<String> al = StaticInfo.getClassNames(path);
+		ArrayList<String> ret = new ArrayList<String>();
+		
+		for (String string:al) {
+			String newPath = Paths.appDataDir + path.getName() + "/apktool/smali/" + string.replace(".", "/") + ".smali";
+			
+			try {
+	            BufferedReader input = new BufferedReader(new FileReader(newPath));
+	            String line;
+	            while ((line = input.readLine()) != null) {
+	            	if (line.trim().startsWith(".method")) {
+						String temp = (string + "," + line.trim().split(" ")[line.trim().split(" ").length -1]);
+						ret.add(temp);
+						while ((line = input.readLine()) != null){
+							if (line.trim().startsWith(".line")) {
+								temp = temp + "," + line.trim().split(" ")[1];
+							}
+							else if (line.trim().startsWith(".end method")) {
+								ret.add(temp);
+								break;
+							}
+						}
+					}
+				
+				
+				}
+	            input.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return ret;
 	}
 
 }
