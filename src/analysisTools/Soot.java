@@ -41,11 +41,11 @@ public class Soot {
 
 	public static void generateAPKData(final File file) {
 	/* this method writes App data to:
-	 *  	/AppData/(file name)/CallGraph.csv
-	 *  	/AppData/(file name)/ApkInfo.csv
-	 *  	/AppData/(file name)/(class name)/ClassInfo.csv
-	 *  	/AppData/(file name)/(class name)/(method name).csv
-	 *  	/AppData/(file name)/(class name)/(method name).jimple
+	 *  	../AppData/(file name)/CallGraph.csv
+	 *  	../AppData/(file name)/ApkInfo.csv
+	 *  	../AppData/(file name)/(class name)/ClassInfo.csv
+	 *  	../AppData/(file name)/(class name)/(method name).csv
+	 *  	../AppData/(file name)/(class name)/(method name).jimple
 	 *  	....
 	 *  	....
 	*/
@@ -201,7 +201,7 @@ public class Soot {
 	
 	public static void InstrumentEveryMethod(File file) throws Exception{
 		
-		File instrumentLog = new File(Paths.appDataDir + file.getName() + "/soot/Instrumentation/Instrument_Method.csv");
+		File instrumentLog = new File(Paths.appDataDir + file.getName() + "/soot/Instrumentation/methodLevelLog.csv");
 		instrumentLog.getParentFile().mkdirs();
 		final PrintWriter out = new PrintWriter(new FileWriter(instrumentLog));
 		PackManager.v().getPack("jtp").add(new Transform("jtp.myTransform", new BodyTransformer() {
