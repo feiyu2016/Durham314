@@ -52,7 +52,6 @@ public class ViewPositionData {
 	}
 	
 	public ArrayList<String> retrieveViewInformation(){
-		init();
 		if(debug) System.out.println("Connecting Device");
 		Device device = connectDevice();
 		if(device == null){
@@ -98,7 +97,7 @@ public class ViewPositionData {
 		return null;
 	}
 	
-	private void init(){
+	public void init(){
 		System.setProperty("hierarchyviewer.adb", System.getProperty("user.dir") + "/libs");
 		DeviceBridge.initDebugBridge();
 	}
