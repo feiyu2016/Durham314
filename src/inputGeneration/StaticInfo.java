@@ -134,7 +134,7 @@ public class StaticInfo {
 		//0.    match the NodeName to every class name in the apk, spot out the custom layouts
 		//1.    for each childNode in rootNode:
 		//2.        if childNode has attribute 'android:id', record its information
-		//3.		if childNode is 'include', don't need to add that layout's node, but need to record the inclusion of that layout
+		//3.	    if childNode is 'include', don't need to add that layout's node, but need to record the inclusion of that layout
 		//4.        if childNode has children, for each of its children, do the same thing from 1
 		
 	}
