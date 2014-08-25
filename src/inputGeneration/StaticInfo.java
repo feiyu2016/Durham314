@@ -9,7 +9,7 @@ import main.Paths;
 
 public class StaticInfo {
 	
-	public static ArrayList<String> getMethodSigs(File file, String className) {
+	public static ArrayList<String> getAllMethodSignatures(File file, String className) {
 		// returns all method signature within a class (jimple format)
 		// e.g.   void myMethod(java.lang.String int java.lang.String)
 		ArrayList<String> results = new ArrayList<String>();
@@ -98,7 +98,6 @@ public class StaticInfo {
 			String thisActivity = results.get(i).trim();
 			String[] lines = thisActivity.trim().split("\n");
 			// line 0 gets the activity name, line 2 gets first action name
-			System.out.println(thisActivity);
 			String activityName = lines[0].substring(lines[0].indexOf("android:name=\"")+"android:name=\"".length());
 			activityName = activityName.substring(0, activityName.indexOf("\""));
 			String actionName = lines[2].substring(lines[2].indexOf("<action android:name=\"")+"<action android:name=\"".length() , lines[2].lastIndexOf("\" />"));
@@ -127,18 +126,35 @@ public class StaticInfo {
 		return result;
 	}
 	
+	
 	public static void parseXMLLayouts() {
-		// parse xml layouts and add widgets
+		// parse xml layouts and add views
+		// for each layout.xml: 
+		//    there should be only 1 root level node.
+		//0.    match the NodeName to every class name in the apk, spot out the custom layouts
+		//1.    for each childNode in rootNode:
+		//2.        if childNode has attribute 'android:id', record its information
+		//3.		if childNode is 'include', don't need to add that layout's node, but need to record the inclusion of that layout
+		//4.        if childNode has children, for each of its children, do the same thing from 1
 		
 	}
 	
 	public static void parseJavaLayouts() {
-		// parse java layouts and add widgets
+		// parse java layouts and add views
+		// first read the code of those custom layouts, then scan the others
+		// 
 	}
 	
+	public static void findViewNameByID(String ID) {
+		// takes a hex ID string as input, look for the view Name in /res/values/public.xml
+		// this is to deal with 'findViewById()' in the jimple code
+		
+	}
 
+	
 	public static ArrayList<String> getLeavingWidgets(File file, String activityName, String layoutName) {
 		// given layout and activity, search widgets' event handlers and see if they change layout/activity
+		// need to solve Intent and setContentView first
 		ArrayList<String> results = new ArrayList<String>();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/layout_info/" + layoutName + ".csv"));
@@ -172,6 +188,7 @@ public class StaticInfo {
 		return result;
 	}
 	
+	
 	public static void process_Intents_And_setContentView(File file) {
 		File[] classFolders = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/").listFiles();
 		try {
@@ -198,14 +215,28 @@ public class StaticInfo {
 	}
 	
 	private static void solveIntent(File file, String className, String methodFileName, int lineNumber) throws Exception{
+		// scan each method, look for startActivity()
+		// if found, need to find two things:
+		//   1. target activity
+		//   2. Which event handler of which view in which activity will possibly call this method
+		//      also need to consider some special places like onCreate.
 		BufferedReader in_mJ = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/" + methodFileName + ".jimple"));
 		
 		in_mJ.close();
 	}
 	
 	private static void solveSetContentView(File file, String className, String methodFileName, int lineNumber) throws Exception{
+		// scan each method, look for setContentView()
+		// if found, need to find two things:
+		//   1. target layout
+		//   2. Which event handler of which view in which activity will possibly call this method
+		//      also need to consider some special places like onCreate.
+		BufferedReader in_mJ = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/" + methodFileName + ".jimple"));
 		
+		in_mJ.close();
 	}
+	
+	
 	
 	private static String readDatFile(File file) {
 		String result = "", currentLine = "";
