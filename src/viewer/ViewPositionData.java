@@ -35,7 +35,6 @@ public class ViewPositionData {
 	}
 	
 	public ArrayList<String> retrieveViewInformation(){
-		init();
 		if(debug) System.out.println("Connecting Device");
 		Device device = connectDevice();
 		if(device == null){

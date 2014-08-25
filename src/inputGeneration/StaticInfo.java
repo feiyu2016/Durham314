@@ -77,7 +77,7 @@ public class StaticInfo {
 	
 	
 	public static ArrayList<String> getActivityNames(File file) {
-		// TO DO: some apps does not have main activity
+		// TODO: some apps does not have main activity
 		// get all activity names of an app, and put the main activity first
 		ArrayList<String> results = new ArrayList<String>();
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
@@ -237,8 +237,8 @@ public class StaticInfo {
 	}
 	
 	
-	
-	static String readDatFile(File file) {
+	// Should be public?
+	public static String readDatFile(File file) {
 		String result = "", currentLine = "";
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(file));
