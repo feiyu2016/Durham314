@@ -99,6 +99,7 @@ public class ViewPositionData {
 	}
 	
 	private void init(){
+		System.setProperty("hierarchyviewer.adb", System.getProperty("user.dir") + "/libs");
 		DeviceBridge.initDebugBridge();
 	}
 	
