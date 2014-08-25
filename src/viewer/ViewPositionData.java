@@ -18,23 +18,6 @@ import com.android.hierarchyviewer.scene.ViewManager;
 import com.android.hierarchyviewer.scene.ViewNode;
 import com.android.hierarchyviewer.scene.WindowsLoader;
 
-/**
- * Tries to retrieve the view tree information
- * from the android device. 
- * 
- * Procedure:
- * 1. Connect device
- * 2. Select device
- * 3. Check view server
- * 4. Retrieve window information
- * 5. Select window
- * 6. Invalidate layout
- * 7. Retrieve view tree information
- * 8. Filter data
- * 
- * @author zhenxu
- *
- */
 public class ViewPositionData {
 	private ArrayList<Device> devices = new ArrayList<Device>();
 	private SelectDevice deviceSelecter = null;
@@ -52,7 +35,6 @@ public class ViewPositionData {
 	}
 	
 	public ArrayList<String> retrieveViewInformation(){
-		init();
 		if(debug) System.out.println("Connecting Device");
 		Device device = connectDevice();
 		if(device == null){
@@ -98,7 +80,7 @@ public class ViewPositionData {
 		return null;
 	}
 	
-	private void init(){
+	public void init(){
 		DeviceBridge.initDebugBridge();
 	}
 	

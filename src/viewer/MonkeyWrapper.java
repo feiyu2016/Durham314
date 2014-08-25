@@ -28,7 +28,7 @@ import java.net.URL;
  */
 public class MonkeyWrapper {
 	public static String PROGRAM_LOCATION 
-		= "libs/monkeyrunner";
+		= "/home/zhenxu/tools/adt-bundle-linux-x86_64-20140702/sdk/tools/monkeyrunner";
 	public static final String UP = "UP";
 	public static final String DOWN = "DOWN";
 	public static final String DOWN_AND_UP = "DOWN_AND_UP";

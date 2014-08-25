@@ -1,6 +1,7 @@
 package main;
 
 import inputGeneration.JDBStuff;
+import inputGeneration.SimpleTesting;
 import inputGeneration.StaticInfo;
 
 import java.io.File;
@@ -11,9 +12,16 @@ public class Main {
 		
 		//File file = new File("/home/wenhaoc/AppStorage/Fast.apk");
 		//File file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
-		File file = new File("/home/wenhaoc/Downloads/HelloWorld.apk");
+		File file = new File("/home/zhenxu/workspace/ExperimentalApp/bin/ExperimentalApp.apk");
 		initAnalysis(file);
 		//testJDB(file);
+		
+		try {
+			SimpleTesting.clickAll(file);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	

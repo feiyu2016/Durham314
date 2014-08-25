@@ -8,12 +8,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import main.Paths;
+
 public class OldStaticInfo {
 
 	public static String getDefaultLayout(File file, String activityName) {
 		String result = "";
 		try {
-			File intentFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Intents.csv");
+			File intentFile = new File(Paths.appDataDir+ file.getName() + "/Activities/Intents.csv");
 			// 1st step, get activity's onCreate layout name
 			BufferedReader in_Intent = new BufferedReader(new FileReader(intentFile));
 			String line_Intent;
@@ -30,7 +32,7 @@ public class OldStaticInfo {
 	public static String getOnClickMethodName(File file, String layoutName, String widgetID) {
 		String result = " ";
 		try {
-			BufferedReader in_layout = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Layouts/" + layoutName + ".csv"));
+			BufferedReader in_layout = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/Activities/Layouts/" + layoutName + ".csv"));
 			String line_layout;
 			while ((line_layout = in_layout.readLine())!=null) {
 				String thisWidgetID = line_layout.split(",")[1];
@@ -46,7 +48,7 @@ public class OldStaticInfo {
 		ArrayList<String> results = new ArrayList<String>();
 		if (layoutName.equals(""))	return results;
 		try {
-			BufferedReader in_layout = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Layouts/" + layoutName + ".csv"));
+			BufferedReader in_layout = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/Activities/Layouts/" + layoutName + ".csv"));
 			String line_layout;
 			while ((line_layout = in_layout.readLine())!=null) {
 				String widgetID = line_layout.split(",")[1];
@@ -56,7 +58,7 @@ public class OldStaticInfo {
 				if (onClick.equals(" "))	{
 					//results.add(line_layout); 
 					continue;}
-				BufferedReader in_Intent = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Intents.csv"));
+				BufferedReader in_Intent = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/Activities/Intents.csv"));
 				String line_Intent;
 				boolean isLeaving = false;
 				while ((line_Intent = in_Intent.readLine())!=null) {
@@ -80,14 +82,14 @@ public class OldStaticInfo {
 		ArrayList<String> results = new ArrayList<String>();
 		if (layoutName.equals(""))	return results;
 		try {
-			BufferedReader in_layout = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Layouts/" + layoutName + ".csv"));
+			BufferedReader in_layout = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/Activities/Layouts/" + layoutName + ".csv"));
 			String line_layout;
 			while ((line_layout = in_layout.readLine())!=null) {
 				String widgetID = line_layout.split(",")[1];
 				String onClick = line_layout.split(",")[2];
 				if (widgetID.equals(" "))	continue;
 				if (onClick.equals(" "))	continue;
-				BufferedReader in_Intent = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Intents.csv"));
+				BufferedReader in_Intent = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/Activities/Intents.csv"));
 				String line_Intent;
 				while ((line_Intent = in_Intent.readLine())!=null) {
 					if (line_Intent.startsWith("setContentView,onClick,"))	{
@@ -111,14 +113,14 @@ public class OldStaticInfo {
 
 	public static void getIntentInfo(File file) {
 		try {
-			BufferedReader in_apkInfo = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/ApkInfo.csv"));
-			PrintWriter out_widgets = new PrintWriter(new FileWriter("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Intents.csv"));
+			BufferedReader in_apkInfo = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/ApkInfo.csv"));
+			PrintWriter out_widgets = new PrintWriter(new FileWriter(Paths.appDataDir + file.getName() + "/Activities/Intents.csv"));
 			in_apkInfo.readLine();
 			String line_apkInfo;
 			while ((line_apkInfo = in_apkInfo.readLine())!=null) {
 				String className = line_apkInfo.split(",")[1];
 				if (className.startsWith("android.support.v")) continue;
-				BufferedReader in_classInfo = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv"));
+				BufferedReader in_classInfo = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv"));
 				int fieldCount = Integer.parseInt(in_classInfo.readLine().split(",")[1]);
 				for (int i = 0; i < fieldCount; i++)	in_classInfo.readLine();
 				String line_classInfo;
@@ -127,7 +129,7 @@ public class OldStaticInfo {
 					String methodFileName = line_classInfo.split(",")[4];
 					String methodSubSig = line_classInfo.split(",")[5];
 					String methodName = line_classInfo.split(",")[1];
-					File methodJimpleFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/ClassesInfo/" + className + "/" + methodFileName + ".jimple");
+					File methodJimpleFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/" + methodFileName + ".jimple");
 					BufferedReader in_methodJimple = new BufferedReader(new FileReader(methodJimpleFile));
 					String line_methodJimple;
 					int jimpleLineNo = 1;
@@ -166,7 +168,7 @@ public class OldStaticInfo {
 							viewString = Integer.toHexString(Integer.parseInt(viewString));
 							while (viewString.length()<8)	viewString = viewString + "0";
 							viewString = "id=\"0x" + viewString + "\"";
-							BufferedReader in_viewID = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/apktool/res/values/public.xml"));
+							BufferedReader in_viewID = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/apktool/res/values/public.xml"));
 							String viewLine;
 							while ((viewLine = in_viewID.readLine())!=null) {
 								// look at res/values/public.xml, use view id to get layout name
@@ -204,7 +206,7 @@ public class OldStaticInfo {
 	public static ArrayList<String> findWidgetsOnClickThatMightCallThisMethod_fromCallGraph(String methodName, String className, File file) {
 		ArrayList<String> result = new ArrayList<String>();
 		try {
-			BufferedReader in_CG = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/CallGraph.csv"));
+			BufferedReader in_CG = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/CallGraph.csv"));
 			String line_CG;
 			while ((line_CG = in_CG.readLine())!=null) {
 				if (!line_CG.startsWith("MethodCall"))	continue;
@@ -223,7 +225,7 @@ public class OldStaticInfo {
 	public static ArrayList<String> matchWidgetOnClickMethods(String methodName, String className, File file) {
 		ArrayList<String> result = new ArrayList<String>();
 		// if the class is not an activity, it's impossible to be onClick method
-		File activityFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/Activities/" + className + ".csv");
+		File activityFile = new File(Paths.appDataDir + file.getName() + "/Activities/" + className + ".csv");
 		if (!activityFile.exists())	return null;
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(activityFile));
@@ -281,10 +283,10 @@ public class OldStaticInfo {
 			for (int i = 0; i < activitiesInfo.size(); i++) {
 				String singleActivity = activitiesInfo.get(i);
 				String className = singleActivity.split(",")[0].split("/")[1];
-				File jimpleFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/Jimples/" + className + ".jimple");
+				File jimpleFile = new File(Paths.appDataDir + file.getName() + "/Jimples/" + className + ".jimple");
 				if (!jimpleFile.exists()) {System.out.println("can't find class file: " + className); continue;}
 				BufferedReader in = new BufferedReader(new FileReader(jimpleFile));
-				File outFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/Activities/" + className + ".csv");
+				File outFile = new File(Paths.appDataDir + file.getName() + "/Activities/" + className + ".csv");
 				outFile.getParentFile().mkdirs();
 				PrintWriter out = new PrintWriter(new FileWriter(outFile));
 				String line;
@@ -296,7 +298,7 @@ public class OldStaticInfo {
 					viewString = Integer.toHexString(Integer.parseInt(viewString));
 					while (viewString.length()<8)	viewString = viewString + "0";
 					viewString = "id=\"0x" + viewString + "\"";
-					BufferedReader in_viewID = new BufferedReader(new FileReader("/home/wenhaoc/AppData/" + file.getName() + "/apktool/res/values/public.xml"));
+					BufferedReader in_viewID = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/apktool/res/values/public.xml"));
 					String viewLine;
 					while ((viewLine = in_viewID.readLine())!=null) {
 						// look at res/values/public.xml, use view id to get layout name
@@ -304,9 +306,9 @@ public class OldStaticInfo {
 						if (viewLine.contains(viewString)) {
 							String layoutName = viewLine.substring(viewLine.indexOf("name=\"")+"name=\"".length());
 							layoutName = layoutName.substring(0, layoutName.indexOf("\""));
-							File layoutFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/apktool/res/layout/" + layoutName + ".xml");
+							File layoutFile = new File(Paths.appDataDir + file.getName() + "/apktool/res/layout/" + layoutName + ".xml");
 							BufferedReader in_layout = new BufferedReader(new FileReader(layoutFile));
-							File layoutOutFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/Activities/Layouts/" + layoutName + ".csv");
+							File layoutOutFile = new File(Paths.appDataDir + file.getName() + "/Activities/Layouts/" + layoutName + ".csv");
 							PrintWriter out_layout = new PrintWriter(new FileWriter(layoutOutFile));
 							out_layout.write("");
 							in_layout.readLine(); in_layout.readLine(); in_layout.readLine();
@@ -348,7 +350,7 @@ public class OldStaticInfo {
 	// read AndroidManifest.xml, get activity info: (Name1,Action1), (Name2,Action2), ...
 	public static ArrayList<String> getActivitiesInfo(File file) {
 		ArrayList<String> results = new ArrayList<String>();
-		File manifestFile = new File("/home/wenhaoc/AppData/"+file.getName()+"/apktool/AndroidManifest.xml");
+		File manifestFile = new File(Paths.appDataDir+file.getName()+"/apktool/AndroidManifest.xml");
 		String whole = readDatFile(manifestFile);
 		String activitySection = whole.substring(whole.indexOf("<application"), whole.indexOf("</application>"));
 		int start = activitySection.indexOf("<activity");
@@ -389,7 +391,7 @@ public class OldStaticInfo {
 	public static String getPackageName(File file) {
 		String result = "";
 		try {
-			File manifestFile = new File("/home/wenhaoc/AppData/"+file.getName()+"/apktool/AndroidManifest.xml");
+			File manifestFile = new File(Paths.appDataDir+file.getName()+"/apktool/AndroidManifest.xml");
 			BufferedReader in = new BufferedReader(new FileReader(manifestFile));
 			boolean found = false;
 			while (!found) {
