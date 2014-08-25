@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import main.Paths;
 import viewer.MonkeyWrapper;
 import viewer.ViewPositionData;
 
@@ -20,7 +21,7 @@ import viewer.ViewPositionData;
 		public static void clickAll(File file) throws Exception{
 
 			
-			RunTimeInfo.startApp(file);	// adb am start -n package/activity
+//			RunTimeInfo.startApp(file);	// adb am start -n package/activity
 			
 			initRuntimeEnv();		// initiate HierarchyViewer and MonkeyRunner
 			
@@ -50,7 +51,7 @@ import viewer.ViewPositionData;
 					"layout:mLeft" ,"layout:mTop" ,"layout:mRight", "layout:mBottom"
 					));
 			view.debug = true;
-			view.init();
+			
 			System.out.println("HierarchyView initiated.");
 			m = new MonkeyWrapper();
 			m.startInteractiveModel();
@@ -118,7 +119,7 @@ import viewer.ViewPositionData;
 		public static void updateViewData() {
 			currentViewData = view.retrieveViewInformation();
 			try {
-				PrintWriter out = new PrintWriter(new FileWriter("/home/wenhaoc/aaa.txt", true));
+				PrintWriter out = new PrintWriter(new FileWriter("/home/zhenxu/workspace/result/aaa.txt", true));
 				out.write("---------------------\n");
 				for (String s: currentViewData) {
 					out.write(s + "\n");
@@ -171,7 +172,7 @@ import viewer.ViewPositionData;
 		}
 		
 		public static String getClickedEvents(File file) {
-			File inFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/TestRecorder/clickedWidgets.csv");
+			File inFile = new File(Paths.appDataDir + file.getName() + "/TestRecorder/clickedWidgets.csv");
 			if (!inFile.exists())	return "";
 			return StaticInfo.readDatFile(inFile);
 		}
@@ -179,7 +180,8 @@ import viewer.ViewPositionData;
 		public static void updateClickedEvents(File file, String eventCombo) {
 			try {
 				String oldClickedEvents = getClickedEvents(file);
-				File outFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/TestRecorder/clickedWidgets.csv");
+				File outFile = new File(Paths.appDataDir + file.getName() + "/TestRecorder/clickedWidgets.csv");
+				outFile.getParentFile().mkdirs();
 				PrintWriter out = new PrintWriter(new FileWriter(outFile));
 				out.write(oldClickedEvents + eventCombo + "\n");
 				out.close();
@@ -188,7 +190,8 @@ import viewer.ViewPositionData;
 		
 		public static void clearClickingRecord(File file) {
 			try {
-				File outFile = new File("/home/wenhaoc/AppData/" + file.getName() + "/TestRecorder/clickedWidgets.csv");
+				File outFile = new File(Paths.appDataDir + file.getName() + "/TestRecorder/clickedWidgets.csv");
+				outFile.getParentFile().mkdirs();
 				PrintWriter out = new PrintWriter(new FileWriter(outFile));
 				out.write("");
 				out.close();

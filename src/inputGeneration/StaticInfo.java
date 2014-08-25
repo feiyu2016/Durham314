@@ -238,7 +238,7 @@ public class StaticInfo {
 	
 	
 	
-	private static String readDatFile(File file) {
+	static String readDatFile(File file) {
 		String result = "", currentLine = "";
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(file));

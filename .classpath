@@ -7,7 +7,6 @@
 	<classpathentry kind="lib" path="libs/dexlib2-2.0b5-dev.jar"/>
 	<classpathentry kind="lib" path="libs/guava-16.0.jar"/>
 	<classpathentry kind="lib" path="libs/heros.jar"/>
-	<classpathentry kind="lib" path="libs/hierarchyviewer2lib.jar"/>
 	<classpathentry kind="lib" path="libs/jasminclasses.jar"/>
 	<classpathentry kind="lib" path="libs/java_cup.jar"/>
 	<classpathentry kind="lib" path="libs/javax.mail.jar"/>
