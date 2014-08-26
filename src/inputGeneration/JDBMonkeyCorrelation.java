@@ -21,13 +21,11 @@ public class JDBMonkeyCorrelation implements Runnable {
 	{
 		String line;
 		long time;
-		JDBStuff.cBPFinished = false;
 		try {
 			time = System.currentTimeMillis();
 			while ((line = in.readLine())!=null) {
 				// read that file, see if any of those break points are reached
 				if ((System.currentTimeMillis() - time) > 100) {
-					JDBStuff.cBPFinished = true;
 					return;
 				}
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
