@@ -17,7 +17,7 @@ public class JDBStuff {
 	public static ArrayList<String> breakPoints = new ArrayList<String>();
 	public static ArrayList<String> bPHitLog = new ArrayList<String>();
 	public static ArrayList<String> nonDupe_bPHitLog = new ArrayList<String>();
-	
+	public static ArrayList<String> clicksAndBreakPoints;
 	
 	public void initJDB(File file) throws Exception{
 		String pID = RunTimeInfo.getPID(file);
@@ -73,6 +73,12 @@ public class JDBStuff {
 	private void printStreams() throws Exception{
 		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))))).start();
 		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))))).start();
+	}
+	
+	public void getClickBreakPoints() throws Exception {
+		Thread nT = new Thread(new JDBMonkeyCorrelation(new BufferedReader(new InputStreamReader(pc.getInputStream()))));
+		nT.start();
+		nT.join();
 	}
 	
 	private void addBreakPoints(String newBP) {
