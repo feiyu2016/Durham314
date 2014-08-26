@@ -5,23 +5,42 @@ import inputGeneration.SimpleTesting;
 import inputGeneration.StaticInfo;
 
 import java.io.File;
+import java.util.ArrayList;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class Main {
 
+	public static ArrayList<Node> nodes = new ArrayList<Node>();
+	
 	public static void main(String[] args) {
-		
-		//File file = new File("/home/wenhaoc/AppStorage/Fast.apk");
+		//File file = new File("/home/wenhaoc/AppStorage/TestThreads.apk");
 		//File file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
-		File file = new File("/home/zhenxu/workspace/ExperimentalApp/bin/ExperimentalApp.apk");
-		initAnalysis(file);
-		//testJDB(file);
+		//initAnalysis(file);
+		
+		File file = new File("/home/wenhaoc/AppStorage/Fast.apk");
+		StaticInfo.getActivityNames(file);
+		for (Node node: nodes) {
+			Element e = (Element) node;
+			System.out.println(e.getAttributes().getLength());
+			e.setAttribute("LOL", "aaa");
+		}
+		System.out.println("---------------");
+		for (Node node: nodes) {
+			Element e = (Element) node;
+			System.out.println(e.getAttributes().getLength());
+			System.out.println(node.getAttributes().getNamedItem("LOL").getNodeValue());
+			
+		}
+		//initAnalysis(file);
+		try {
+			
+		} catch (Exception e1) {e1.printStackTrace();}
 		
 		try {
 			SimpleTesting.clickAll(file);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (Exception e) {	e.printStackTrace();}
 	}
 	
 	

@@ -252,9 +252,9 @@ public class StaticInfo {
 					int lineNumber = 1;
 					String line;
 					while ((line = in_mJ.readLine())!=null) {
-						if (line.contains("void startActivity(android.content.Intent)>") && line.contains("virtualinvoke"))
+						if (EventHandlers.isStartActivity(line) && line.contains("virtualinvoke"))
 							solveIntent(file, className, methodFileName, lineNumber);
-						else if (line.contains("void setContentView(int)>") && line.contains("virtualinvoke"))
+						else if (EventHandlers.isSetContentView(line) && line.contains("virtualinvoke"))
 							solveSetContentView(file, className, methodFileName, lineNumber);
 						lineNumber++;
 					}
@@ -263,6 +263,8 @@ public class StaticInfo {
 			}
 		}	catch (Exception e) {e.printStackTrace();}
 	}
+	
+	
 	
 	private static void solveIntent(File file, String className, String methodFileName, int lineNumber) throws Exception{
 		// scan each method, look for startActivity()

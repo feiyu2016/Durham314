@@ -39,4 +39,20 @@ public class EventHandlers {
 		return result;
 	}
 	
+	public static boolean isStartActivity(String line) {
+		boolean result = false;
+		for (String sA: intentSigs)
+			if (line.contains(sA))
+				result = true;
+		return result;
+	}
+	
+	public static boolean isSetContentView(String line) {
+		boolean result = false;
+		for (String scV: setContentViewSigs)
+			if (line.contains(scV))
+				result = true;
+		return result;
+	}
+	
 }
