@@ -3,19 +3,15 @@ package inputGeneration;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+
+import main.Paths;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import main.Main;
-import main.Paths;
 
 public class StaticInfo {
 	
@@ -178,7 +174,7 @@ public class StaticInfo {
 						ViewNode thisNode = new ViewNode(type, ID, node, isCustom);
 						thisLayout.addNode(thisNode);
 					} else {
-						// TODO need to add solution to node that has event handlers but no id
+						// TODO need to add solution to nodes that has event handlers but no id
 					}
 				}
 			}	catch (Exception e) {e.printStackTrace();}
@@ -196,6 +192,7 @@ public class StaticInfo {
 	public static void parseJavaLayouts() {
 		// parse java layouts and add views
 		// first read the code of those custom layouts, then scan the others
+		
 	}
 	
 	public static void findViewNameByID(String ID) {
