@@ -13,7 +13,7 @@ public class Main {
 		//File file = new File("/home/wenhaoc/AppStorage/Fast.apk");
 		//File file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
 		File file = new File("/home/zhenxu/workspace/ExperimentalApp/bin/ExperimentalApp.apk");
-		initAnalysis(file);
+//		initAnalysis(file);
 		//testJDB(file);
 		
 		try {

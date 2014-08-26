@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 
+import main.Paths;
+
 /**
  * 	This class wrap MonkeyRunner inside. The location of the program 
  * needs to be specified. A process for monkey runner will be created.
@@ -28,7 +30,7 @@ import java.net.URL;
  */
 public class MonkeyWrapper {
 	public static String PROGRAM_LOCATION 
-		= "libs/monkeyrunner";
+		= Paths.androidToolPath+"/monkeyrunner";
 	public static final String UP = "UP";
 	public static final String DOWN = "DOWN";
 	public static final String DOWN_AND_UP = "DOWN_AND_UP";
