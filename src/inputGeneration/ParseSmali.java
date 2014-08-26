@@ -15,13 +15,13 @@ public class ParseSmali {
 		
 		for (String string:al) {
 			String newPath = Paths.appDataDir + path.getName() + "/apktool/smali/" + string.replace(".", "/") + ".smali";
-			
+			if(string.startsWith("android.support.v")) continue;
 			try {
 	            BufferedReader input = new BufferedReader(new FileReader(newPath));
 	            String line;
 	            while ((line = input.readLine()) != null) {
 	               if (line.trim().startsWith(".line"))
-	                	ret.add(string.replace("/", ".")+ ":" + line.trim().split(" ")[1]);
+	                	ret.add(string + ":" + line.trim().split(" ")[1]);
 	            }
 	            input.close();
 	        } catch (Exception e) {
