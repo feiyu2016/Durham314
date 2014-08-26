@@ -29,7 +29,7 @@ public class JDBStuff {
 		pc.waitFor();
 		
 		pc = Runtime.getRuntime().exec("jdb -sourcepath " + srcPath + " -attach localhost:" + tcpPort);
-		printStreams();
+		//printStreams();
 		
 		out = pc.getOutputStream();
 	}

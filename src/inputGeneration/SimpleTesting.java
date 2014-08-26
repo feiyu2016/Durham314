@@ -25,8 +25,19 @@ import viewer.ViewPositionData;
 			
 			initRuntimeEnv();		// initiate HierarchyViewer and MonkeyRunner
 			
+			ArrayList<String> buttonIDs = new ArrayList<String>();
+			buttonIDs.add("bug");
+			buttonIDs.add("ford");
+			buttonIDs.add("por");
+			buttonIDs.add("chry");
 			
-			String mainActivityName = StaticInfo.getMainActivityName(file);
+			for(String string:buttonIDs) {
+				System.out.println("CLICKING " + string);
+				updateViewData();
+				clickWidget(file, "activity_main", string);
+			}
+			
+			/*String mainActivityName = StaticInfo.getMainActivityName(file);
 			clearClickingRecord(file);
 			clickWidgetsOfActivity(file, mainActivityName, mainActivityName, "activity");
 			ArrayList<String> allActivities = StaticInfo.getActivityNames(file);
@@ -38,7 +49,8 @@ import viewer.ViewPositionData;
 					RunTimeInfo.startActivity(file, actvt.split(",")[0]);
 					clickWidgetsOfActivity(file, actvt.split(",")[0].split("/")[1], actvt.split(",")[0].split("/")[1], "activity");
 				}
-			}
+			}*/
+			
 			System.out.println("-Testing Finished");
 		}
 		
@@ -119,7 +131,7 @@ import viewer.ViewPositionData;
 		public static void updateViewData() {
 			currentViewData = view.retrieveViewInformation();
 			try {
-				PrintWriter out = new PrintWriter(new FileWriter("/home/zhenxu/workspace/result/aaa.txt", true));
+				PrintWriter out = new PrintWriter(new FileWriter("/home/john/workspace/result/aaa.txt", true));
 				out.write("---------------------\n");
 				for (String s: currentViewData) {
 					out.write(s + "\n");
