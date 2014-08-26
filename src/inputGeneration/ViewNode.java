@@ -1,19 +1,35 @@
 package inputGeneration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-public class LayoutNode {
+public class ViewNode {
 
 	private String ID;
 	private String Type;
 	private Node Node;
+	private Map<String, String> eventHandlers;
 	
-	public LayoutNode(String type, String id, Node node) {
+	public ViewNode(String type, String id, Node node) {
 		ID = id;
 		Type = type;
 		Node = node;
+		eventHandlers = new HashMap<String, String>();
+		parseEventHandlers();
+	}
+	
+	private void parseEventHandlers() {
+		NamedNodeMap attrs = Node.getAttributes();
+		for (int i = 0, len = attrs.getLength(); i < len; i++) {
+			String attrName = attrs.item(i).getNodeName();
+			String attrValue = attrs.item(i).getNodeValue();
+			if (EventHandlers.isEventHandler(attrName))
+				eventHandlers.put(attrName, attrValue);
+		}
 	}
 	
 	public String getID() {	
