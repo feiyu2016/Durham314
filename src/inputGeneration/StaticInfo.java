@@ -3,7 +3,16 @@ package inputGeneration;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import main.Paths;
 
@@ -49,74 +58,72 @@ public class StaticInfo {
 		return results;
 	}
 	
-	
 	public static String getPackageName(File file) {
-		// return the package name of an app, this can be used to uninstall, search for pid,etc
 		String result = "";
+		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
+		if (!manifestFile.exists()) {
+			System.out.println("can't find /apktool/AndroidManifest.xml! Run apktool first.");
+			return result;
+		}
 		try {
-			File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
-			BufferedReader in = new BufferedReader(new FileReader(manifestFile));
-			boolean found = false;
-			while (!found) {
-				String line = in.readLine();
-				if (line.startsWith("<manifest")) {
-					line = line.substring(line.indexOf("package=\"")+"package=\"".length());
-					line = line.substring(0, line.indexOf("\""));
-					result = line;
-					found = true;
-				}
-			}
-			in.close();
-		}	catch (Exception e) {e.printStackTrace();}
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifestFile);
+			Node manifestNode = doc.getFirstChild();
+			result = manifestNode.getAttributes().getNamedItem("package").getNodeValue();
+		} catch (Exception e) {	e.printStackTrace();}		
 		return result;
 	}
+
 	
 	public static String getMainActivityName(File file) {
 		return getActivityNames(file).get(0);
 	}
 	
-	
 	public static ArrayList<String> getActivityNames(File file) {
-		// TODO: some apps does not have main activity
-		// get all activity names of an app, and put the main activity first
 		ArrayList<String> results = new ArrayList<String>();
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
-		String whole = readDatFile(manifestFile);
-		String activitySection = whole.substring(whole.indexOf("<application"), whole.indexOf("</application>"));
-		// first step: get each block of activity information
-		int start = activitySection.indexOf("<activity");
-		int end = activitySection.indexOf("</activity>");
-		while (start!=-1 && end!=-1) {
-			results.add(activitySection.substring(start, end));
-			activitySection = activitySection.substring(end + "</activity>".length());
-			start = activitySection.indexOf("<activity");
-			end = activitySection.indexOf("</activity>");
+		if (!manifestFile.exists()) {
+			System.out.println("can't find /apktool/AndroidManifest.xml! Run apktool first.");
+			return results;
 		}
-		// second step: get activity name from each block information
-		int mainActivityPos = 0;
-		for (int i = 0; i < results.size(); i++) {
-			String thisActivity = results.get(i).trim();
-			String[] lines = thisActivity.trim().split("\n");
-			// line 0 gets the activity name, line 2 gets first action name
-			String activityName = lines[0].substring(lines[0].indexOf("android:name=\"")+"android:name=\"".length());
-			activityName = activityName.substring(0, activityName.indexOf("\""));
-			String actionName = lines[2].substring(lines[2].indexOf("<action android:name=\"")+"<action android:name=\"".length() , lines[2].lastIndexOf("\" />"));
-			if (actionName.equals("android.intent.action.MAIN"))	mainActivityPos = i;
-			String packageName = getPackageName(file);
-			if (activityName.startsWith("."))	activityName = activityName.substring(1, activityName.length());
-			if (!activityName.startsWith(packageName))	activityName = packageName + "." + activityName;
-			if (validateActivity(file,activityName))
-				results.set(i, activityName);
-			else System.out.println("Error: activity " + activityName + " doesn't exist!");
-		}
-		// put MainActivity in the first slot
-		if (mainActivityPos!=0) {
-			String temp = results.get(mainActivityPos);
-			results.set(mainActivityPos, results.get(0));
-			results.set(0, temp);
-		}
+		try {
+			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifestFile);
+			doc.getDocumentElement().normalize();
+			NodeList activityList = doc.getElementsByTagName("activity");
+			for (int i = 0; i < activityList.getLength(); i++) {
+				Node activityNode = activityList.item(i);
+				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
+				if (activityName.startsWith("."))	
+					activityName = activityName.substring(1, activityName.length());
+				if (!activityName.startsWith(StaticInfo.getPackageName(file)))
+					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+				if (validateActivity(file, activityName))
+					results.add(activityName);
+			}
+			// check if it's main activity
+			String mainActvtName = "";
+			NodeList actionList = doc.getElementsByTagName("action");
+			for (int i = 0; i < activityList.getLength(); i++) {
+				Node actionNode = actionList.item(i);
+				if (actionNode.getAttributes().getNamedItem("android:name").getNodeValue().equals("android.intent.action.MAIN")) {
+					Node mainActvtNode = actionNode.getParentNode().getParentNode();
+					mainActvtName = mainActvtNode.getAttributes().getNamedItem("android:name").getNodeValue();
+					if (mainActvtName.startsWith("."))	
+						mainActvtName = mainActvtName.substring(1, mainActvtName.length());
+					if (!mainActvtName.startsWith(StaticInfo.getPackageName(file)))
+						mainActvtName = StaticInfo.getPackageName(file) + "." + mainActvtName;
+					break;
+				}
+			}
+			for (int i = 0; i < results.size(); i++)
+				if (results.get(i).equals(mainActvtName)) {
+					String temp = results.get(0);
+					results.set(0, results.get(i));
+					results.set(i, temp);
+				}
+		}	catch (Exception e) {e.printStackTrace();}
 		return results;
 	}
+	
 	
 	private static boolean validateActivity(File file, String activityName) {
 		// the activity name in AndroiManifest might be false, e.g., zhiming's Bugatti and bug.
@@ -237,7 +244,6 @@ public class StaticInfo {
 	}
 	
 	
-	// Should be public?
 	public static String readDatFile(File file) {
 		String result = "", currentLine = "";
 		try {
