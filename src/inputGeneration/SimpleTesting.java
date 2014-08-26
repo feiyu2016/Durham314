@@ -1,12 +1,9 @@
 package inputGeneration;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 import main.Paths;
 import viewer.MonkeyWrapper;
