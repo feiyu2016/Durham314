@@ -17,6 +17,7 @@ public class Main {
 	public static void main(String[] args) {
 		//File file = new File("/home/wenhaoc/AppStorage/TestThreads.apk");
 		//File file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
+
 		//initAnalysis(file);
 		
 		File file = new File("/home/wenhaoc/AppStorage/Fast.apk");
@@ -37,6 +38,11 @@ public class Main {
 		try {
 			
 		} catch (Exception e1) {e1.printStackTrace();}
+
+
+//		initAnalysis(file);
+		//testJDB(file);
+
 		
 		try {
 			SimpleTesting.clickAll(file);
