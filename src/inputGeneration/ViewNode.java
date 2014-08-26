@@ -13,11 +13,13 @@ public class ViewNode {
 	private String Type;
 	private Node Node;
 	private Map<String, String> eventHandlers;
+	private boolean isCustomView;
 	
-	public ViewNode(String type, String id, Node node) {
+	public ViewNode(String type, String id, Node node, boolean isCustom) {
 		ID = id;
 		Type = type;
 		Node = node;
+		isCustomView = isCustom;
 		eventHandlers = new HashMap<String, String>();
 		parseEventHandlers();
 	}
