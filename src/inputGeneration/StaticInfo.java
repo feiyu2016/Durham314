@@ -19,6 +19,7 @@ import main.Paths;
 
 public class StaticInfo {
 	
+	
 	public static ArrayList<String> getAllMethodSignatures(File file, String className) {
 		// returns all method signature within a class (jimple format)
 		// e.g.   void myMethod(java.lang.String int java.lang.String)
@@ -57,6 +58,15 @@ public class StaticInfo {
 			in.close();
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
+	}
+	
+	public static boolean hasClass(File file, String className) {
+		boolean result = false;
+		ArrayList<String> classNames = getClassNames(file);
+		for (String c: classNames)
+			if (c.equals(className))
+				result = true;
+		return result;
 	}
 	
 	public static String getPackageName(File file) {
@@ -135,22 +145,53 @@ public class StaticInfo {
 	}
 	
 	
-	public static void parseXMLLayouts() {
-		// parse xml layouts and add views
-		// for each layout.xml: 
-		//    there should be only 1 root level node.
-		//0.    match the NodeName to every class name in the apk, spot out the custom layouts
-		//1.    for each childNode in rootNode:
-		//2.        if childNode has attribute 'android:id', record its information
-		//3.	    if childNode is 'include', don't need to add that layout's node, but need to record the inclusion of that layout
-		//4.        if childNode has children, for each of its children, do the same thing from 1
-		
+	public static void parseXMLLayouts(File file) {
+		// create a Layout Object for each layout xml, also spot out the custom layouts
+		// create ViewNodes from components that has 'andriod:id' in each layout
+		File layoutFolder = new File(Paths.appDataDir + file.getName() + "/apktool/res/layout/");
+		if (!layoutFolder.exists()) {
+			System.out.println("can't find /apktool/res/layout folder! Run apktool first.");
+			return;
+		}
+		File[] layoutFiles = layoutFolder.listFiles();
+		for (File layoutFile: layoutFiles){
+			try {
+				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(layoutFile);
+				Node layoutNode = doc.getFirstChild();
+				String layoutType = layoutNode.getNodeName();
+				ArrayList<String> classNames = getClassNames(file);
+				boolean isCustom = false;
+				for (String c: classNames)
+					if (c.equals(layoutType))
+						isCustom = true;
+				Layout thisLayout = new Layout(layoutNode, isCustom);
+				NodeList nodes = layoutNode.getChildNodes();
+				for (int i = 0; i < nodes.getLength(); i++) {
+					Node node = nodes.item(i);
+					if (hasID(node)) {
+						String ID = node.getAttributes().getNamedItem("android:id").getNodeValue();
+						String type = node.getNodeName();
+						ViewNode thisNode = new ViewNode(type, ID, node);
+						thisLayout.addNode(thisNode);
+					} else {
+						// TODO need to add solution to node that has event handlers but no id
+					}
+				}
+			}	catch (Exception e) {e.printStackTrace();}
+		}
+	}
+	
+	private static boolean hasID(Node node) {
+		// if this view has ID, then it's worth keeping
+		boolean result = false;
+		Node idNode = node.getAttributes().getNamedItem("android:id");
+		if (idNode!=null)	result = true;
+		return result;
 	}
 	
 	public static void parseJavaLayouts() {
 		// parse java layouts and add views
 		// first read the code of those custom layouts, then scan the others
-		// 
 	}
 	
 	public static void findViewNameByID(String ID) {
