@@ -35,7 +35,7 @@ public class JDBMonkeyCorrelation implements Runnable {
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());
 				int lineNumber = Integer.parseInt(line.split(",")[2].trim().split(" ")[0].split("=")[1]);
 				long timeStamp = System.currentTimeMillis();
-				JDBStuff.clicksAndBreakPoints.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				JDBStuff.clicksAndBreakPoints.add("BreakPoint," + timeStamp + "," + className + "," + methodSig + "," + lineNumber);
 				
 			}
 			System.out.println("WARNING: BufferedReader ended. This shouldn't have happened.");

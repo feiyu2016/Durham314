@@ -158,7 +158,7 @@ import viewer.ViewPositionData;
 			String x = (Integer.parseInt(widgetLocation[0]) + Integer.parseInt(widgetLocation[2]))/2 + "";
 			String y = (Integer.parseInt(widgetLocation[1]) + Integer.parseInt(widgetLocation[3]))/2 + "";
 			System.out.println(widgetLocation[0] + "," + widgetLocation[1] + "," + widgetLocation[2] + "," + widgetLocation[3] + "," + "  " + x + "," + y);
-			JDBStuff.clicksAndBreakPoints.add(layoutName + "," + widgetID + "," + x + "," + y);
+			JDBStuff.clicksAndBreakPoints.add("Click," + layoutName + "," + widgetID + "," + x + "," + y);
 			m.interactiveModelTouch(x, y, MonkeyWrapper.DOWN_AND_UP);
 			new JDBStuff().getClickBreakPoints();
 			//Thread.sleep(10);
