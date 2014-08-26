@@ -165,7 +165,6 @@ import viewer.ViewPositionData;
 			//checkCodeCoverage(file, layoutName, widgetID);
 		}
 		
-		
 		public static boolean alreadyClicked(File file, String eventCombo) {
 			boolean result = false;
 			String clickedEvents = getClickedEvents(file);
