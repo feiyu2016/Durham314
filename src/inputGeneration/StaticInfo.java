@@ -171,7 +171,11 @@ public class StaticInfo {
 					if (hasID(node)) {
 						String ID = node.getAttributes().getNamedItem("android:id").getNodeValue();
 						String type = node.getNodeName();
-						ViewNode thisNode = new ViewNode(type, ID, node);
+						isCustom = false;
+						for (String c: classNames)
+							if (c.equals(layoutType))
+								isCustom = true;
+						ViewNode thisNode = new ViewNode(type, ID, node, isCustom);
 						thisLayout.addNode(thisNode);
 					} else {
 						// TODO need to add solution to node that has event handlers but no id
