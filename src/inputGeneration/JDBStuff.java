@@ -40,9 +40,12 @@ public class JDBStuff {
 		addBreakPoints("line," + className + "," + lineNumber);
 	}
 	
-	public void setBreakPointsAllLines(ArrayList<String> breakpointList) throws Exception {
-		for (String string:breakpointList) {
+	public void setBreakPointsAllLines(ArrayList<String> breakPointList) throws Exception {
+		int i = 0;
+		for (String string:breakPointList) {
+			i++;
 			setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
+			System.out.println("Set breakpoint " + i + "/" + breakPointList.size());
 		}
 	}
 	
