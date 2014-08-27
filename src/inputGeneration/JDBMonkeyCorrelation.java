@@ -25,7 +25,8 @@ public class JDBMonkeyCorrelation implements Runnable {
 			time = System.currentTimeMillis();
 			while ((line = in.readLine())!=null) {
 				// read that file, see if any of those break points are reached
-				if ((System.currentTimeMillis() - time) > 100) {
+				if ((System.currentTimeMillis() - time) > 1000) {
+					System.out.println("Returning from getBreakPointsFromClick()");
 					return;
 				}
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
@@ -36,9 +37,13 @@ public class JDBMonkeyCorrelation implements Runnable {
 				int lineNumber = Integer.parseInt(line.split(",")[2].trim().split(" ")[0].split("=")[1]);
 				long timeStamp = System.currentTimeMillis();
 				JDBStuff.clicksAndBreakPoints.add("BreakPoint," + timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				System.out.println("Should've added");
 				
 			}
 			System.out.println("WARNING: BufferedReader ended. This shouldn't have happened.");
-		} catch (IOException e) {e.printStackTrace();}
+		} catch (IOException e) {
+			System.out.println("Exception");
+			e.printStackTrace();
+		}
 	}
 }

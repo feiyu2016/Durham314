@@ -10,14 +10,15 @@ import main.Paths;
 
 public class JDBStuff {
 	
-	private Process pc;
-	private OutputStream out;
-	private int tcpPort = 7772;
-	private String srcPath = "src";
+	public static boolean flag = false;
+	private static Process pc;
+	private static OutputStream out;
+	private static int tcpPort = 7772;
+	private static String srcPath = "src";
 	public static ArrayList<String> breakPoints = new ArrayList<String>();
 	public static ArrayList<String> bPHitLog = new ArrayList<String>();
 	public static ArrayList<String> nonDupe_bPHitLog = new ArrayList<String>();
-	public static ArrayList<String> clicksAndBreakPoints;
+	public static ArrayList<String> clicksAndBreakPoints = new ArrayList<String>();
 	
 	public void initJDB(File file) throws Exception{
 		String pID = RunTimeInfo.getPID(file);
@@ -29,9 +30,10 @@ public class JDBStuff {
 		pc.waitFor();
 		
 		pc = Runtime.getRuntime().exec("jdb -sourcepath " + srcPath + " -attach localhost:" + tcpPort);
-		//printStreams();
+		printStreams();
 		
 		out = pc.getOutputStream();
+		if (pc == null) System.out.println("pc is null");
 	}
 	
 	public void setBreakPointLine(String className, int lineNumber) throws Exception{
@@ -74,15 +76,16 @@ public class JDBStuff {
 	}
 	
 	private void printStreams() throws Exception{
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))))).start();
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream())), true))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream())), false))).start();
 	}
 	
-	public void getClickBreakPoints() throws Exception {
+	/*public static void getClickBreakPoints() throws Exception {
+		if(pc == null) System.out.println("pc is null");
 		Thread nT = new Thread(new JDBMonkeyCorrelation(new BufferedReader(new InputStreamReader(pc.getInputStream()))));
 		nT.start();
 		nT.join();
-	}
+	}*/
 	
 	private void addBreakPoints(String newBP) {
 		boolean exists = false;

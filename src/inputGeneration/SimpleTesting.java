@@ -28,13 +28,16 @@ import viewer.ViewPositionData;
 			ArrayList<String> buttonIDs = new ArrayList<String>();
 			buttonIDs.add("bug");
 			buttonIDs.add("ford");
-			buttonIDs.add("por");
-			buttonIDs.add("chry");
+			//buttonIDs.add("por");
+			//buttonIDs.add("chry");
 			
 			for(String string:buttonIDs) {
-				System.out.println("CLICKING " + string);
 				updateViewData();
 				clickWidget(file, "activity_main", string);
+				System.out.println("CLICKED " + string);
+				for(String string1:JDBStuff.clicksAndBreakPoints) {
+					System.out.println(string1);
+				}
 			}
 			
 			/*String mainActivityName = StaticInfo.getMainActivityName(file);
@@ -172,7 +175,8 @@ import viewer.ViewPositionData;
 			System.out.println(widgetLocation[0] + "," + widgetLocation[1] + "," + widgetLocation[2] + "," + widgetLocation[3] + "," + "  " + x + "," + y);
 			JDBStuff.clicksAndBreakPoints.add("Click," + layoutName + "," + widgetID + "," + x + "," + y);
 			m.interactiveModelTouch(x, y, MonkeyWrapper.DOWN_AND_UP);
-			new JDBStuff().getClickBreakPoints();
+			while (!JDBStuff.flag) {};
+			JDBStuff.flag = false;
 			//Thread.sleep(10);
 			//checkCodeCoverage(file, layoutName, widgetID);
 		}
