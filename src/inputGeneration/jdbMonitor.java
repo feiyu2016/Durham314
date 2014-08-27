@@ -5,10 +5,12 @@ import java.io.IOException;
 
 public class jdbMonitor implements Runnable{
 
-	public BufferedReader in;
+	private BufferedReader in;
+	private boolean inStream;
 	
-	public jdbMonitor(BufferedReader bR) {
+	public jdbMonitor(BufferedReader bR, boolean iS) {
 		in = bR;
+		inStream = iS;
 	}
 	
 	@Override
@@ -18,17 +20,25 @@ public class jdbMonitor implements Runnable{
 
 	private void startsMonitoring() {
 		String line;
+		long time;
+		
 		try {
+			time = System.currentTimeMillis();
 			while ((line = in.readLine())!=null) {
 				// read that file, see if any of those break points are reached
+				if ((System.currentTimeMillis() - time) > 1000) {
+					if(inStream) JDBStuff.flag = true;
+				}
 				System.out.println(line);
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
+				time = System.currentTimeMillis();
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());
 				int lineNumber = Integer.parseInt(line.split(",")[2].trim().split(" ")[0].split("=")[1]);
 				long timeStamp = System.currentTimeMillis();
 				JDBStuff.bPHitLog.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				JDBStuff.clicksAndBreakPoints.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
 				addNonDupeBPHit(className + "," + methodSig + "," + lineNumber);
 			}
 			System.out.println("WARNING: BufferedReader ended. This shouldn't have happened.");
