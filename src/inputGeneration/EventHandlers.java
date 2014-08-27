@@ -5,7 +5,7 @@ public class EventHandlers {
 
 	public static final String[] eventHandlers = {
 		// the name should be in the same format with xml layouts
-		"android:OnClick"
+		"android:onClick",
 	};
 	
 	public static final String[] intentSigs = {
@@ -39,19 +39,19 @@ public class EventHandlers {
 		return result;
 	}
 	
-	public static boolean isStartActivity(String line) {
-		boolean result = false;
-		for (String sA: intentSigs)
-			if (line.contains(sA))
-				result = true;
+	public static int isStartActivity(String line) {
+		int result = -1;
+		for (int i = 0, len = intentSigs.length; i < len; i++)
+			if (line.contains(intentSigs[i]))
+				result = i;
 		return result;
 	}
 	
-	public static boolean isSetContentView(String line) {
-		boolean result = false;
-		for (String scV: setContentViewSigs)
-			if (line.contains(scV))
-				result = true;
+	public static int isSetContentView(String line) {
+		int result = -1;
+		for (int i = 0, len = setContentViewSigs.length; i < len; i++)
+			if (line.contains(setContentViewSigs[i]))
+				result = i;
 		return result;
 	}
 	
