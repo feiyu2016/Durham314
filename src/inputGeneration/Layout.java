@@ -15,8 +15,8 @@ public class Layout {
 	private boolean isCustomLayout;
 	private boolean hasInclude;
 	
-	public Layout(Node layoutNode, boolean isCustom) {
-		Name = "";
+	public Layout(String name, Node layoutNode, boolean isCustom) {
+		Name = name;
 		viewNodes = new ArrayList<ViewNode>();
 		Node = layoutNode;
 		isCustomLayout = isCustom;
@@ -53,5 +53,8 @@ public class Layout {
 	public Node getNode() {
 		return Node;
 	}
-	
+
+	public String getName() {
+		return Name;
+	}
 }
