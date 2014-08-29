@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import com.android.hierarchyviewer.device.Window;
@@ -22,7 +23,7 @@ public class CommandlineViewPositionTest {
 		ViewPositionData viewData = new ViewPositionData();
 		
 
-		viewData.setDataFilter(new ViewPositionData.UnfilteredData());
+//		viewData.setDataFilter(new ViewPositionData.UnfilteredData());
 		
 		ViewPositionData.SelectWindow inputMethodWindow = new ViewPositionData.SelectWindow() {
 			@Override
@@ -60,11 +61,15 @@ public class CommandlineViewPositionTest {
 				if(arg_num < 0){ break; }
 				String viewInfo = infoBundle.get(arg_num);
 				String[] parts = viewInfo.split(";");
+				System.out.println("parts:"+Arrays.toString(parts));
 				double x = Double.parseDouble(parts[1]) + 50;
 				double y = Double.parseDouble(parts[2]) + 50;
 				monkey.interactiveModelTouch(x+"", y+"", MonkeyWrapper.DOWN_AND_UP);
-			}else{
+			}else if(command.equals("0")){
 				break;
+			}else if (command.endsWith("3")){
+				System.out.println(
+						viewData.getFocusedActivityName());;
 			}
 		}
 		monkey.stopInteractiveModle();
@@ -74,9 +79,9 @@ public class CommandlineViewPositionTest {
 	static int count = 0;
 	private ArrayList<String> showInformation(ViewPositionData viewData){
 		ArrayList<String> infoBundle = viewData.retrieveViewInformation();
-//		for(int i=0;i<infoBundle.size();i++){
-//			System.out.println(i+":\t"+infoBundle.get(i));
-//		}
+		for(int i=0;i<infoBundle.size();i++){
+			System.out.println(i+":\t"+infoBundle.get(i));
+		}
 		File towrite = new File("result/"+count+".txt");
 		count += 1;
 		try {

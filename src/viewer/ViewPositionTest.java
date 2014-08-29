@@ -2,6 +2,7 @@ package viewer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ViewPositionTest {
 	public static void main(String[] args){
@@ -24,7 +25,7 @@ public class ViewPositionTest {
 		
 		
 		
-		ArrayList<String> info = v.retrieveViewInformation();
+		List<String> info = v.retrieveViewInformation();
 //		String result = ViewPositionData.selectRecordWithKey(info,1,"mID=id/button1");
 //		System.out.println(result);
 		

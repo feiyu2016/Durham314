@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import ZhensPackaget.ADBControl;
@@ -71,7 +72,9 @@ public class ViewPositionData {
 		return result;
 	}
 	
-	
+	public String getFocusedActivityName(){
+		return retrieveWindow(currentDevice,focusedWindowSelecter).getTitle();
+	}
 	
 	public List<String> retrieveFocusedActivityInformation(){
 		Window selected = retrieveWindow(currentDevice,focusedWindowSelecter);
@@ -101,7 +104,7 @@ public class ViewPositionData {
 		ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,win);
 		
 		if(debug) System.out.println("Filtering Data");
-		ArrayList<String> result = filter.process(arrlist);
+		List result = filter.process(arrlist);
 		
 		return result;
 	}
@@ -184,7 +187,7 @@ public class ViewPositionData {
 			initialized = false;
 			return false;
 		}
-		
+		DeviceBridge.setupDeviceForward(this.currentDevice);
 		
 //		if(currentWindow == null){
 //			System.out.println("Cannot find window.");
@@ -219,7 +222,6 @@ public class ViewPositionData {
 	}
 	
 	private Window retrieveWindow(Device device){
-		DeviceBridge.setupDeviceForward(device);
 		if(debug_1) System.out.println("Loading window");
 		Window[] wins = WindowsLoader.loadWindows(device);
 		Window selected = windowSelecter.select(wins);
@@ -227,7 +229,6 @@ public class ViewPositionData {
 	}
 	
 	private Window retrieveWindow(Device device, SelectWindow selecter){
-		DeviceBridge.setupDeviceForward(device);
 		if(debug_1) System.out.println("Loading window");
 		Window[] wins = WindowsLoader.loadWindows(device);
 		Window selected = selecter.select(wins);
@@ -445,13 +446,18 @@ public class ViewPositionData {
 	public static class SelectFocusedWindow implements SelectWindow{
 		@Override
 		public Window select(Window[] wins) {
-			System.out.println(Arrays.toString(wins));
+//			System.out.println(Arrays.toString(wins));
 			if(wins == null || wins.length <=0){
 				System.out.println("No input window");
 				return null;
 			}
 			int count = wins.length - 7;
-			return wins[count];
+			Window result = wins[count];
+			if(result.getTitle().equalsIgnoreCase("inputmethod")){
+				return wins[wins.length-4];
+			}
+			
+			return result;
 		}
 		
 	}

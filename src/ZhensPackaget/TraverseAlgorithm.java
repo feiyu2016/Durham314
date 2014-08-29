@@ -11,7 +11,6 @@ import java.util.List;
 
 import viewer.MonkeyWrapper;
 import viewer.ViewPositionData;
-import viewer.ViewPositionData.StringValueRetriever;
 
 /**
  * 
@@ -28,16 +27,12 @@ public abstract class TraverseAlgorithm {
 	protected List<String> activityNames;
 	protected List<Layout> staticLayout;
 	protected boolean[] actMark;
-	private String[] layoutKeywords = {
-			"drawing:getX()",
-			"drawing:getY()",
-			"drawing:mLayerType",
-			
-	};
+	protected ViewPositionData.NodeDataFilter dataFilter;
 	
 	public boolean enableAPKTool = false, enableStaticInfo = true, enableJDB = false, 
-			showStaticInfo = true, enableDynamicInit = true;
-	
+			showStaticInfo = true, enableDynamicInit = true , enablePostRun = true,
+			enablePreRun = true, enableExcute = true;
+			
 	public TraverseAlgorithm(String apkPath){
 		this.apkFile = new File(apkPath);
 		this.apkPath = apkPath;
@@ -47,9 +42,9 @@ public abstract class TraverseAlgorithm {
 		}
 	}
 	public void start(){
-		preRun();
-		execute();
-		afterRun();
+		if(enablePreRun)preRun();
+		if(enableExcute)execute();
+		if(enablePostRun) postRun();
 	}
 	
 	public abstract void execute();
@@ -69,7 +64,7 @@ public abstract class TraverseAlgorithm {
 			actMark = new boolean[activityNames.size()];
 			
 			packageName = StaticInfo.getPackageName(apkFile);
-			List<Layout> staticLayout = StaticInfo.getLayoutList(apkFile);
+			staticLayout = StaticInfo.getLayoutList(apkFile);
 		}
 		
 		//init JDB and setup break points at ALL Lines!?
@@ -89,7 +84,7 @@ public abstract class TraverseAlgorithm {
 		if(enableDynamicInit){
 			viewData = new ViewPositionData();
 			//TODO change the filter to calculate the x,y
-			viewData.setDataFilter(new ViewPositionData.StringValueRetriever(layoutKeywords));
+			if(dataFilter != null) viewData.setDataFilter(dataFilter);
 			viewData.debug = true;
 			if(!viewData.init()){
 				throw new IllegalStateException("Cannot init viewPositionData");
@@ -111,7 +106,7 @@ public abstract class TraverseAlgorithm {
 		if(showStaticInfo)showStaticInfo();
 	}
 	
-	private void afterRun(){
+	private void postRun(){
 		monkey.stopInteractiveModle();
 		if(jdb != null){
 			jdb.getMethodCoverage();

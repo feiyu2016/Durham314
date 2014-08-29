@@ -107,6 +107,10 @@ public class MonkeyWrapper {
 		started = false;
 	}
 	
+	public void inteactiveModelClick(String x, String y){
+		interactiveModelTouch(x,y,DOWN_AND_UP);
+	}
+	
 	public void interactiveModelTouch(String x, String y, String type){
 		if(enableTouchOffset){
 			x = (Integer.parseInt(x)+offset_x)+"";
@@ -141,7 +145,11 @@ public class MonkeyWrapper {
 	// http://developer.android.com/reference/android/view/KeyEvent.html
 	// all string name begins with "KEYCODE_"
 	public void interactiveModelPress(String keyCode){
-		sendCommand("device.press('"+keyCode+"',MonkeyDevice.DOWN_AND_UP");
+		sendCommand("device.press('"+keyCode+"',MonkeyDevice.DOWN_AND_UP)\n");
+	}
+	
+	public void interactiveModelPress(int keyCode){
+		sendCommand("device.press('"+keyCode+"',MonkeyDevice.DOWN_AND_UP)\n");
 	}
 	
 	public void interactiveModelSleep(int sec){
