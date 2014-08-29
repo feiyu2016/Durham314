@@ -31,9 +31,14 @@ import main.Paths;
 public class MonkeyWrapper {
 	public static String PROGRAM_LOCATION 
 		= Paths.androidToolPath+"/monkeyrunner";
-	public static final String UP = "UP";
-	public static final String DOWN = "DOWN";
-	public static final String DOWN_AND_UP = "DOWN_AND_UP";
+	public static final String UP = "MonkeyDevice.UP";
+	public static final String DOWN = "MonkeyDevice.DOWN";
+	public static final String DOWN_AND_UP = "MonkeyDevice.DOWN_AND_UP";
+	public static boolean showMonkeyStdout = true;
+	public static boolean showMonkeyStderr = true;
+	public boolean enableTouchOffset = false;
+	private int offset_x = 50, offset_y = 50;
+	
 	
 	public void setProgramLocation(String loc){
 		PROGRAM_LOCATION = loc; 
@@ -41,7 +46,7 @@ public class MonkeyWrapper {
 	
 	private File tmp = null;
 	private PrintWriter pw = null;
-	private static String name = "testCase";
+	private static String tempFileName = "testCase";
 	private StringBuilder sb = null;
 	private Process monkeyProcess = null;
 	private BufferedOutputStream ostream = null;
@@ -67,6 +72,12 @@ public class MonkeyWrapper {
 			started = true;
 			interactiveModleImport();
 			interactiveModleConnectDevice();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) { }
+			readString(estream);
+			readString(istream);
+			System.out.println("MonkeyRunner starts sucessfully");
 		} catch (IOException e) {
 			e.printStackTrace();
 			try {
@@ -76,6 +87,7 @@ public class MonkeyWrapper {
 			} catch (IOException e1) { }
 			if(monkeyProcess != null) monkeyProcess.destroy();
 			started = false;
+			System.out.println("MonkeyWrapper fails to start");
 		}
 	}
 	
@@ -96,7 +108,12 @@ public class MonkeyWrapper {
 	}
 	
 	public void interactiveModelTouch(String x, String y, String type){
-		String toWrite =  "device.touch("+x+","+y+",MonkeyDevice."+type+")\n";
+		if(enableTouchOffset){
+			x = (Integer.parseInt(x)+offset_x)+"";
+			y = (Integer.parseInt(y)+offset_y)+"";
+		}
+
+		String toWrite =  "device.touch("+x+","+y+","+type+")\n";
 		try {
 			ostream.write(toWrite.getBytes());
 			ostream.flush();
@@ -104,6 +121,27 @@ public class MonkeyWrapper {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void interactiveModelType(String msg){
+		String toWrite =  "device.type('"+msg+"')\n";
+		try {
+			ostream.write(toWrite.getBytes());
+			ostream.flush();
+			sleepForMonekyReady();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void interactiveModelWakeUp(){
+		sendCommand("device.wake(\n)");
+	}
+	
+	// http://developer.android.com/reference/android/view/KeyEvent.html
+	// all string name begins with "KEYCODE_"
+	public void interactiveModelPress(String keyCode){
+		sendCommand("device.press('"+keyCode+"',MonkeyDevice.DOWN_AND_UP");
 	}
 	
 	public void interactiveModelSleep(int sec){
@@ -162,20 +200,6 @@ public class MonkeyWrapper {
 		}
 	}
 	
-	
-//	http://developer.android.com/reference/android/view/KeyEvent.html
-	//all string name begins with "KEYCODE_"
-	public void interactiveModelPress(String button){
-		String toWrite = "device.press("+button+"DOWN_AND_UP.DOWN_AND_UP)";
-		try {
-			ostream.write(toWrite.getBytes());
-			ostream.flush();
-			sleepForMonekyReady();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	private boolean isNotReadyForNextInput(String msg){
 		if(msg == null){ return true;
 		}else{ return !msg.trim().endsWith(">>>");}
@@ -185,14 +209,20 @@ public class MonkeyWrapper {
 		String output = null;
 		do{
 			output = getMonkeyOutput();
-			if(output != null) System.out.println("stdout:"+output);
+			if(showMonkeyStdout && output != null) {
+				output.replace("\n", "\n\t");
+				System.out.print("MonkeyRunner stdout:\n"+output);
+			}
 			
 			try {Thread.sleep(500);
 			} catch (InterruptedException e) {}
 			
 			String error = getMonkeyError();
 			if(error != null){
-				System.out.println("stderr:"+error);
+				if(showMonkeyStderr){
+					error.replace("\n", "\n\t");
+					System.out.print("MonkeyRunner stderr:\n"+error);
+				}
 				break;
 			}
 		}while(isNotReadyForNextInput(output));
@@ -251,10 +281,20 @@ public class MonkeyWrapper {
 		}
 		return null;
 	}
-	
-	
-	
-	
+
+	private void sendCommand(String command){
+		if(!command.endsWith("\n")){
+			command = command+"\n";
+		}
+		try {
+			ostream.write(command.getBytes());
+			ostream.flush();
+			sleepForMonekyReady();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	// ------------------------ Interaction Procedure ends ------------------------
 	
 	
 	public void testWithScript(String path){
@@ -272,7 +312,7 @@ public class MonkeyWrapper {
 	public void createTestCase(){
 //		URL location = Test.class.getProtectionDomain().getCodeSource().getLocation();
 //		location.getFile()+"/"+
-		tmp = new File(name);
+		tmp = new File(tempFileName);
 		try { pw = new PrintWriter(tmp);
 		} catch (FileNotFoundException e) { 
 			e.printStackTrace();
@@ -321,12 +361,29 @@ public class MonkeyWrapper {
 	}
 	
 	public void appendTouchString(String x, String y, String type){
-		sb.append("device.touch("+x+","+y+",MonkeyDevice."+type+")");sb.append("\n");
+		sb.append("device.touch("+x+","+y+","+type+")");sb.append("\n");
 	}
 	
 	public void appendSleepString(int sec){
 		sb.append("MonkeyRunner.sleep("+sec+")\n");sb.append("\n");
 	}
 	 
+	
+	// --------- private helper metods ------------
+	private static String readString(InputStream in){
+		int count;
+		try {
+			count = in.available();
+			if(count > 0){
+				byte[] buffer = new byte[count];
+				in.read(buffer);
+				return new String(buffer);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 			
 }

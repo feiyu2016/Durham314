@@ -19,9 +19,7 @@ import viewer.ViewPositionData;
 		public static ArrayList<String> visitedActivities;
 
 		public static void clickAll(File file) throws Exception{
-
-			
-//			RunTimeInfo.startApp(file);	// adb am start -n package/activity
+			RunTimeInfo.startApp(file);	// adb am start -n package/activity
 			
 			initRuntimeEnv();		// initiate HierarchyViewer and MonkeyRunner
 			
@@ -66,7 +64,6 @@ import viewer.ViewPositionData;
 					"layout:mLeft" ,"layout:mTop" ,"layout:mRight", "layout:mBottom"
 					));
 			view.debug = true;
-			
 			System.out.println("HierarchyView initiated.");
 			m = new MonkeyWrapper();
 			m.startInteractiveModel();
@@ -134,7 +131,7 @@ import viewer.ViewPositionData;
 		public static void updateViewData() {
 			currentViewData = view.retrieveViewInformation();
 			try {
-				PrintWriter out = new PrintWriter(new FileWriter("/home/john/workspace/result/aaa.txt", true));
+				PrintWriter out = new PrintWriter(new FileWriter(Paths.viewDataFile, true));
 				out.write("---------------------\n");
 				for (String s: currentViewData) {
 					out.write(s + "\n");

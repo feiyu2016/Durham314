@@ -8,7 +8,11 @@ import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Stack;
+
+import ZhensPackaget.ADBControl;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Device;
@@ -23,66 +27,172 @@ public class ViewPositionData {
 	private SelectDevice deviceSelecter = null;
 	private SelectWindow windowSelecter = null;
 	private NodeDataFilter filter = null;
+	private Device currentDevice;
+	private Window currentWindow;
+	private boolean initialized = false;
 	private boolean terminating = false;
 	public static boolean debug = false;
 	public static boolean debug_1 = false;
 	public static boolean debug_2 = false;
 	
+	public static SelectWindow inputMehodWindowSelecter = new ViewPositionData.SelectWindowWithName("InputMethod");
+	public static SelectWindow focusedWindowSelecter = new ViewPositionData.SelectFocusedWindow();
+	
 	public ViewPositionData(){
 		deviceSelecter = new ViewPositionData.SelectFirstDevice();
-		windowSelecter = new ViewPositionData.SelectActivityNamedMain();
+		windowSelecter = focusedWindowSelecter;
 		filter = new ViewPositionData.FilterDrawingData();
 	}
 	
+	
+	//deprecated
+	/**
+	 * By Default this function will select the current activity that runs on 
+	 * the device. Therefore, the device must be awaken and the target activity
+	 * must be running.
+	 * @return
+	 */
 	public ArrayList<String> retrieveViewInformation(){
 		init();
-		if(debug) System.out.println("Connecting Device");
-		Device device = connectDevice();
-		if(device == null){
-			System.out.println("Cannot find device.");
-			return null;
-		}
 		
-		if(debug) System.out.println("Checking Device");
-		if(checkViewServer(device)) {
-			System.out.println("Checking window failure.");
-			return null;
-		}
+//		ADBControl.sendADBCommand(ADBControl.unlockScreenCommand);
 		
 		if(debug) System.out.println("Retrieving window info");
-		Window win = retrieveWindow(device);
-		if(win == null){
-			System.out.println("Cannot find window.");
-			return null;
-		}
+		currentWindow = retrieveWindow(currentDevice);
 		
 		if(debug)System.out.println("Request layout");
-		invalidateLayout(device, win);
+		invalidateLayout(currentDevice, currentWindow);
 		
 		if(debug) System.out.println("Retrieving view info");
-		ArrayList<ViewNode> arrlist = retrieveViewData(device,win);
+		ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,currentWindow);
 		
 		if(debug) System.out.println("Filtering Data");
 		ArrayList<String> result = processData(arrlist);
 		return result;
 	}
 	
+	
+	
+	public List<String> retrieveFocusedActivityInformation(){
+		Window selected = retrieveWindow(currentDevice,focusedWindowSelecter);
+		List<String> list = retrieveWindowInfomation(selected);
+		this.currentWindow = selected;
+		return list;
+	}
+	
+	public List<String> retrieveInputMethodViewInformation(){
+		Window selected = retrieveWindow(currentDevice,inputMehodWindowSelecter);
+		List<String> list = retrieveWindowInfomation(selected, new 
+				ViewPositionData.StringValueRetriever(new String[]{
+						"getVisibility()"
+				}));
+		return list;
+	}
+	
+	public List<String> retrieveWindowInfomation(Window win){
+		return retrieveWindowInfomation(win, this.filter);
+	}
+	
+	public List<String> retrieveWindowInfomation(Window win, NodeDataFilter filter){
+		if(debug)System.out.println("Request layout");
+		invalidateLayout(currentDevice, win);
+		
+		if(debug) System.out.println("Retrieving view info");
+		ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,win);
+		
+		if(debug) System.out.println("Filtering Data");
+		ArrayList<String> result = filter.process(arrlist);
+		
+		return result;
+	}
+	
+	public boolean isInputMethodVisible(){
+		List<String> viewInfomation = retrieveInputMethodViewInformation();
+		String[] parts = viewInfomation.get(0).split("=");
+		if(parts.length >1 ){
+			return parts[1].startsWith("VISIBLE");
+		}else{
+			System.out.println("retrive keyborad info fails");
+		}
+		return false;
+	}
+	public static void main(String[] args){
+		ViewPositionData view = new ViewPositionData();
+		view.init();
+		System.out.println(view.isInputMethodVisible());
+		;
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) { }
+		System.out.println("here");
+		System.out.println(view.isInputMethodVisible());
+	}
+	
+	
+	
+	
+	// set associated plugin
 	public void setDataFilter(NodeDataFilter filter){
 		this.filter = filter;
 	}
 	
-	public static String selectRecordWithKey(ArrayList<String> info, int pos, String key ){
-		for(String record: info){
-			String[] parts = record.split(";");
-			if(parts[pos].trim().equals(key)){
-				return record;
-			}
-		}
-		return null;
+	public void setWindowSelecter(SelectWindow selecter){
+		this.windowSelecter = selecter;
 	}
 	
-	private void init(){
+//	public static String selectRecordWithKey(ArrayList<String> info, int pos, String key ){
+//		for(String record: info){
+//			String[] parts = record.split(";");
+//			if(parts[pos].trim().equals(key)){
+//				return record;
+//			}
+//		}
+//		return null;
+//	}
+	
+	
+	
+
+	
+
+
+	
+	
+	
+	public boolean init(){
+		return initialized?true:initInternal();
+	}
+	
+	public boolean forceInit(){
+		return initInternal();
+	}
+	
+	private boolean initInternal(){
+		if(debug)System.out.println("initializing ViewPositionData");
 		DeviceBridge.initDebugBridge();
+		if(debug) System.out.println("Connecting Device");
+		currentDevice = connectDevice();
+		if(currentDevice == null){
+			System.out.println("Cannot find device.");
+			initialized = false;
+			return false;
+		}
+		
+		if(debug) System.out.println("Checking Device");
+		if(checkViewServer(currentDevice)) {
+			System.out.println("Checking window failure.");
+			initialized = false;
+			return false;
+		}
+		
+		
+//		if(currentWindow == null){
+//			System.out.println("Cannot find window.");
+//			initialized = false;
+//			return false;
+//		}
+		initialized = true;
+		return true;
 	}
 	
 	private Device connectDevice(){
@@ -113,6 +223,14 @@ public class ViewPositionData {
 		if(debug_1) System.out.println("Loading window");
 		Window[] wins = WindowsLoader.loadWindows(device);
 		Window selected = windowSelecter.select(wins);
+		return selected;
+	}
+	
+	private Window retrieveWindow(Device device, SelectWindow selecter){
+		DeviceBridge.setupDeviceForward(device);
+		if(debug_1) System.out.println("Loading window");
+		Window[] wins = WindowsLoader.loadWindows(device);
+		Window selected = selecter.select(wins);
 		return selected;
 	}
 	
@@ -215,6 +333,13 @@ public class ViewPositionData {
 	};
 	
 	
+	
+	
+	// ------------------------- static class starts -------------------------
+	
+	
+	//------------------------------- static class starts -------------------------------
+	
 	public static class UnfilteredData implements NodeDataFilter{
 
 		@Override
@@ -251,31 +376,6 @@ public class ViewPositionData {
 		}
 	}
 	
-	public static class SelectFirstDevice implements SelectDevice{
-		@Override
-		public Device select(ArrayList<Device> devices) { 
-			if(devices == null || devices.isEmpty()) return null;
-			return devices.get(0);
-		}
-	}
-	
-	public static class SelectActivityNamedMain implements SelectWindow{
-		@Override
-		public Window select(Window[] wins) {
-			if(wins == null || wins.length <=0){
-				System.out.println("No input window");
-				return null;
-			}
-			for(Window win : wins){
-				if(win.toString().toLowerCase().contains("main")){
-					return win;
-				}
-			}
-			return null;
-		}
-		
-	}
-	
 	public static class StringValueRetriever implements NodeDataFilter{
 		private String[] keys;
 		public StringValueRetriever(String... keys){
@@ -299,6 +399,64 @@ public class ViewPositionData {
 		}
 		
 	}
+	
+	public static class SelectFirstDevice implements SelectDevice{
+		@Override
+		public Device select(ArrayList<Device> devices) { 
+			if(devices == null || devices.isEmpty()) return null;
+			return devices.get(0);
+		}
+	}
+	
+	public static class SelectWindowWithName implements SelectWindow{
+		private String name;
+		public SelectWindowWithName(String name){
+			this.name = name;
+		}
+		@Override
+		public Window select(Window[] wins) {
+			for(Window win : wins){
+				if(win.getTitle().contains(name)){
+					return win;
+				}
+			}
+			return null;
+		}
+		
+	}
+	
+	public static class SelectActivityNamedMain implements SelectWindow{
+		@Override
+		public Window select(Window[] wins) {
+			if(wins == null || wins.length <=0){
+				System.out.println("No input window");
+				return null;
+			}
+			for(Window win : wins){
+				if(win.toString().toLowerCase().equals("main")){
+					return win;
+				}
+			}
+			return null;
+		}
+		
+	}
+	
+	public static class SelectFocusedWindow implements SelectWindow{
+		@Override
+		public Window select(Window[] wins) {
+			System.out.println(Arrays.toString(wins));
+			if(wins == null || wins.length <=0){
+				System.out.println("No input window");
+				return null;
+			}
+			int count = wins.length - 7;
+			return wins[count];
+		}
+		
+	}
+
+	// ------------------------------- interface starts -------------------------------
 	
 	public static interface NodeDataFilter{
 		public ArrayList<String> process(ArrayList<ViewNode> list);
