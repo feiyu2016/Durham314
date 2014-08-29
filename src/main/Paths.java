@@ -11,10 +11,10 @@ public class Paths {
 	 * appDataDir is the place where the generated files stored.
 	 */
 	
-	public static String androidSDKPath = "/home/wenhaoc/bin/adt-bundle-linux-x86_64-20140702/";
-	public static String appDataDir = "/home/wenhaoc/AppData/";
+	public static String androidSDKPath = "/home/zhenxu/tools/adt-bundle-linux-x86_64-20140702/";
+	public static String appDataDir = "/home/zhenxu/workspace/result/";
 
-	
+	public static String viewDataFile = appDataDir+"/viewData.txt";
 	public static String androidToolPath = androidSDKPath+"sdk/tools/";
 	public static String androidPlatformToolPath = androidSDKPath+"/sdk/platform-tools/";
 	public static String adbPath = androidPlatformToolPath+"adb";

@@ -1,4 +1,4 @@
-package ZhensPackaget;
+package zhen.packet;
 
 import inputGeneration.JDBStuff;
 import inputGeneration.Layout;
@@ -48,6 +48,17 @@ public abstract class TraverseAlgorithm {
 	}
 	
 	public abstract void execute();
+	
+	public void setNormalStartUp(){
+		enableAPKTool = true;
+		enableStaticInfo = true;
+		enableJDB = true;
+		showStaticInfo = false;
+		enableDynamicInit = true;
+		enablePostRun = true;
+		enablePreRun = true;
+		enableExcute = true;
+	}
 	
 	// --------------- private method starts -----------------
 	private void preRun(){

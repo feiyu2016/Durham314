@@ -1,4 +1,4 @@
-package ZhensPackaget;
+package zhen.packet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,16 +22,15 @@ import inputGeneration.StaticInfo;
  * @author zhenxu
  *
  */
-
 public class StaticGuidedAlgoirthm extends TraverseAlgorithm{		
 	private static String PREFIX = "ZLABEL";
 	private static String TESTED = PREFIX+"tested";
 	private long waitDuraion = 100;
-	private boolean enableReinstall = false;
-	private boolean enableUsePartialSet = true;
-	private boolean enableUserFullSet = true;
-	private boolean enableStaticHandlerInfo = false;
-	private boolean enablePathOptimization = false;
+	public boolean enableUsePartialSet = true;
+	public boolean enableUserFullSet = true;
+	public boolean enableReinstall = true;
+	public boolean enableStaticHandlerInfo = false;
+	public boolean enablePathOptimization = false;
 	private boolean innerTravel_failure = false;
 	private Map<String, ArrayList<EventRecord>> eventRecorder;
 	private ArrayList<EventRecord> currentPath;
@@ -70,11 +69,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			"x",
 			"y"
 	};
-	
-	
 	private boolean enableDynamicPrograming = false;
 	private Map<String, List<String>> stayingWidgtsInfoDepost;
-	
 	private String currentStartingActName;
 
 	public StaticGuidedAlgoirthm(String apkPath) {
@@ -557,5 +553,4 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			return eventType+" occurs at ("+viewProfile.get("x")+","+viewProfile.get("y")+") at " +sourceActName+" leads to "+destActName;
 		}
 	}
-	
 }

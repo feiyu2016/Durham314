@@ -1,4 +1,4 @@
-package ZhensPackaget;
+package zhen.packet;
 
 import inputGeneration.StaticInfo;
 

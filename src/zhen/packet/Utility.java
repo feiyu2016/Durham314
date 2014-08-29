@@ -1,4 +1,4 @@
-package ZhensPackaget;
+package zhen.packet;
 
 public class Utility {
 	public static int findFirstFalse(boolean[] arr){

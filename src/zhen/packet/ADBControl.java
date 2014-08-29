@@ -1,4 +1,4 @@
-package ZhensPackaget;
+package zhen.packet;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -21,50 +21,15 @@ public class Main {
 
 
 	public static void main(String[] args) throws Exception {
-		//File file = new File("/home/wenhaoc/AppStorage/TestThreads.apk");
-		File file = new File("/home/john/AppData/fast.apk");
-
-		setBreakPointsAtAllLines(file);
-
+		String apkFilePath = "APK/Fast.apk";
 		
-
-
-		
-		SimpleTesting.clickAll(new File("/home/john/HDD/flashboot/apps/fast.apk"));
-		
-		/*initAnalysis(file);
-		
-		StaticInfo.getActivityNames(file);
-		for (Node node: nodes) {
-			Element e = (Element) node;
-			System.out.println(e.getAttributes().getLength());
-			e.setAttribute("LOL", "aaa");
-		}
-		System.out.println("---------------");
-		for (Node node: nodes) {
-			Element e = (Element) node;
-			System.out.println(e.getAttributes().getLength());
-			System.out.println(node.getAttributes().getNamedItem("LOL").getNodeValue());
-			
-		}
->>>>>>> refs/remotes/origin/master
-		//initAnalysis(file);
-		try {
-<<<<<<< HEAD
-			//SimpleTesting.clickAll(file);
-		} catch (Exception e) {	e.printStackTrace();}
-=======
-			
-		} catch (Exception e1) {e1.printStackTrace();}*/
-
+		File file = new File(apkFilePath);
 
 //		initAnalysis(file);
-		//testJDB(file);
+//		StaticInfo.getActivityNames(file);
+		setBreakPointsAtAllLines(file);
 
-		
-		/*try {
-			SimpleTesting.clickAll(file);
-		} catch (Exception e) {	e.printStackTrace();}*/
+//		ZhensTest.clickAll(file);
 
 	}
 	
