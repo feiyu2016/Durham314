@@ -1,5 +1,6 @@
-package zhen.packet;
+package zhen.test;
 
+import zhen.packet.StaticGuidedAlgoirthm;
 import inputGeneration.StaticInfo;
 
 public class Examine {
