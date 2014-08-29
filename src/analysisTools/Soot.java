@@ -50,6 +50,7 @@ public class Soot {
 	 *  	....
 	*/
 		PackManager.v().getPack("wjtp").add(new Transform("wjtp.myTransform", new SceneTransformer() {
+			
 			protected void internalTransform(String phaseName, Map options) {
 				try {
 					System.out.println("test");
@@ -130,7 +131,7 @@ public class Soot {
 													tgtMethod.getSubSignature().replace(",", " ") + "," + 
 													stmt.toString() + "," + stmtCounter + "\n");
 									out_CG.write("MethodCall," + c.getName() + "," + 
-												method.getName() + "," + 
+												method.getSubSignature().replace("," , " ") + "," + 
 												tgtMethod_Class.getName() + "," + 
 												tgtMethod.getSubSignature().replace("," , " ") + "," + 
 												stmt.toString() + "," + stmtCounter + "\n");
@@ -145,6 +146,7 @@ public class Soot {
 					out_ApkInfo.close();
 				}	catch (Exception e) {e.printStackTrace();}
 			}
+			
 		}));
 		
 		String[] args = {};
@@ -162,6 +164,7 @@ public class Soot {
 		sortClassNames(file);
 	}
 
+	
 	private static void sortClassNames(File file) {
 	// this method sorts the /AppData/(file name)/ApkInfo.csv
 	// put MainActivity first, other Activities following, and regular classes at last
