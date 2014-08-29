@@ -320,9 +320,9 @@ public class StaticInfo {
 					String line;
 					while ((line = in_mJ.readLine())!=null) {
 						if (EventHandlers.isStartActivity(line) > -1 && line.contains("virtualinvoke"))
-							UIChanges.add(solveIntent(file, className, methodFileName, lineNumber));
+							UIChanges.add(solveIntent1(file, className, methodFileName, lineNumber));
 						else if (EventHandlers.isSetContentView(line) > -1 && line.contains("virtualinvoke"))
-							UIChanges.add(solveSetContentView(file, className, methodFileName, lineNumber));
+							UIChanges.add(solveSetContentView1(file, className, methodFileName, lineNumber));
 						lineNumber++;
 					}
 					in_mJ.close();
@@ -503,7 +503,7 @@ public class StaticInfo {
 		return result;
 	}
 	
-	private static String solveIntent(File file, String className, String methodFileName, int lineNumber) throws Exception {
+	private static String solveIntent1(File file, String className, String methodFileName, int lineNumber) throws Exception {
 		String result = "";
 		// Step 1, find target
 		String targetActivity = findIntentTarget(file, className, methodFileName, lineNumber);
@@ -543,7 +543,7 @@ public class StaticInfo {
 	}
 	
 
-	public static String solveSetContentView(File file, String className, String methodFileName, int lineNumber) throws Exception {
+	public static String solveSetContentView1(File file, String className, String methodFileName, int lineNumber) throws Exception {
 		String result = "";
 		// Step 1, find target
 		String targetLayout = findSetContentViewTarget(file, className, methodFileName, lineNumber);
