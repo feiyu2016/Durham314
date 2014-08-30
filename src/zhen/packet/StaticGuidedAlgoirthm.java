@@ -14,65 +14,101 @@ import inputGeneration.Layout;
 import inputGeneration.StaticInfo;
 
 /**
- * Use the info from static analysis to guide the search algorithm
- * Implementation of the workflow 
+ * Date: August 30th 2014
+ * Implementation of traverse in the UIs
  * 
- * This implementation does not handle cyclic UI graph well. 
+ * Static info:
+ * 		stayingWidgets 	-- 	Views that for sure that does not cause UI change
+ * 		eventHandler 	-- 	What event a known view could receive
+ * 
+ * Dynamic info:
+ * 		Break points 	-- 	which is setup before testing and provide information on method calls
+ * 		HierarchyView 	-- 	provide view trees
+ * 
+ * RunTime Log:
+ * 		Log channel		-- 	Log various information to file
+ * 		Event Sequence	-- 	the sequence of events that leads to current UI state
+ * 	
+ * Known problems and potential solutions for algorithm
+ * 		1. Cyclic UI graph could leads to infinite loop, duplicated UI analysis. 
+ * 		UI learning which takes the sequence of UIs before and after current UI
+ * 		may solve the problem.
+ * 
+ * Algorithm:
+ * For each untested activity, 
+ * 		travel through all staying widgets
+ * 		for each of untested views
+ * 			for each of possible events
+ * 				carry out the event
+ * 				observe consequence
+ * 				record the event
+ * 				if UI changes 
+ * 					travel the new UI
+ * 				sustain layout consistency
+ * 
+ * Fatal error condition
+ * 		When UI cannot be re-reached
  * 
  * @author zhenxu
  *
  */
-public class StaticGuidedAlgoirthm extends TraverseAlgorithm{		
-	private static String PREFIX = "ZLABEL";
-	private static String TESTED = PREFIX+"tested";
-	private long waitDuraion = 100;
+public class StaticGuidedAlgoirthm extends TraverseAlgorithm{	
 	public boolean enableUsePartialSet = true;
-	public boolean enableUserFullSet = true;
+	public boolean enableUseFullSet = true;
 	public boolean enableReinstall = true;
 	public boolean enableStaticHandlerInfo = false;
 	public boolean enablePathOptimization = false;
+	public static boolean Debug = false;
+	public static final String[] layoutKeywords = { // name and address are not included here
+		//identification
+		"mID",
+		"getTag()",
+		"getVisibility()",
+		
+		//drawing information
+		"drawing:getX()",
+		"drawing:getY()",
+		"drawing:mLayerType",
+		
+		//Padding information
+		"padding:mPaddingTop",
+		"padding:mPaddingLeft",
+		"padding:mPaddingRight",
+		"padding:mPaddingBottom",
+		
+		//layout information
+		"layout:mChildCountWithTransientState",
+		"layout:getWidth()",
+		"layout:getHeight()",
+		
+		//status information
+		"isActivated()",
+		"isSelected()",
+		"isEnabled() ",
+		
+		//focus information 
+		"focus:hasFocus()",
+		
+		//Customized information
+		"x",
+		"y"
+	};
+	
+	private static String PREFIX = "ZLABEL";
+	private static String TESTED = PREFIX+"tested";
+	private String currentStartingActName;
+	private String[] allPossibleEvents = EventHandlers.eventHandlers;
+	private long waitDuraion = 100;
+	private boolean enableDynamicPrograming = false;
 	private boolean innerTravel_failure = false;
+	private Map<String, List<String>> stayingWidgtsInfoDepost;
 	private Map<String, ArrayList<EventRecord>> eventRecorder;
 	private ArrayList<EventRecord> currentPath;
-	private String[] allPossibleEvents = EventHandlers.eventHandlers;
-	public static final String[] layoutKeywords = { // name and address are not included here
-			//identification
-			"mID",
-			"getTag()",
-			"getVisibility()",
-			
-			//drawing information
-			"drawing:getX()",
-			"drawing:getY()",
-			"drawing:mLayerType",
-			
-			//Padding information
-			"padding:mPaddingTop",
-			"padding:mPaddingLeft",
-			"padding:mPaddingRight",
-			"padding:mPaddingBottom",
-			
-			//layout information
-			"layout:mChildCountWithTransientState",
-			"layout:getWidth()",
-			"layout:getHeight()",
-			
-			//status information
-			"isActivated()",
-			"isSelected()",
-			"isEnabled() ",
-			
-			//focus information 
-			"focus:hasFocus()",
-			
-			//Customized information
-			"x",
-			"y"
-	};
-	private boolean enableDynamicPrograming = false;
-	private Map<String, List<String>> stayingWidgtsInfoDepost;
-	private String currentStartingActName;
-
+	
+	
+	/**
+	 * @param apkPath	-- 	the path to the target APK file which will be installed on device
+	 */
 	public StaticGuidedAlgoirthm(String apkPath) {
 		super(apkPath);
 		eventRecorder = new HashMap<String, ArrayList<EventRecord>>();
@@ -104,13 +140,15 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		};
 	}
 
+	/**
+	 * when all conditions are set, execute the operation!
+	 */
 	@Override
 	public void execute() {
 		//pick an activity that has not been tested
 		while(true){
 			int actIndex = Utility.findFirstFalse(actMark);
 			if(actIndex<0) break; // all activities are label as tested -- finished.
-			
 			//launch the act --> am start -n yourpackagename/.activityname
 			currentStartingActName = this.activityNames.get(actIndex);
 			ADBControl.sendSellCommand("am start -n "+this.packageName+"/."+currentStartingActName);
@@ -127,6 +165,11 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		}
 	}
 	
+	/**
+	 * Travel through the UIs. Recursive call happens when UI change is detected.
+	 * @param currentLayoutInfo -- 	the layout information of a UI. Can be null. 
+	 * @param currentActName	--	the name of activity currently activates.
+	 */
 	private void innerTravel(List<Map<String,String>> currentLayoutInfo, String currentActName){
 		while(innerTravel_failure != false){
 			//retrieve current layout information
@@ -216,6 +259,12 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		}
 	}
 
+	/**
+	 * sustain the UI consistency. Make sure the UI is the same one after an event is launched on 
+	 * device. It will be called after an event. 
+	 * @param expectedLayout	--	the expected layout 
+	 * @return	true if current UI is the same as expected one, false otherwise
+	 */
 	private boolean sustainUIGraphConsisitencyProcedure(List<Map<String,String>> expectedLayout){
 		{
 			//press button to see if the original layout could be reached
@@ -240,7 +289,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			}
 		}
 		
-		if(enableUserFullSet){
+		if(enableUseFullSet){
 			restatAndReachUIWithFullSet();
 			List<String> restartedUIlayout = this.viewData.retrieveFocusedActivityInformation();
 			List<Map<String,String>> processedInfo = this.processLayoutData(restartedUIlayout);
@@ -264,12 +313,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		return false ;
 	}
 	
+	/**
+	 * when UI consistency can not be sustained. Consider this a fatal error.
+	 */
 	private void failToReachUI(){
 		System.out.println("Fail to reach UI");
 		dumpLogFile();
 		innerTravel_failure = true;
 	}
 	
+	/**
+	 * Restart the APP and carry out the recorded event sequence. However, events which do not 
+	 * trigger UI change are ignored. Will try to find the shortest path if flag is set.
+	 */
 	private void restartAndReachUIWithPartialSet(){
 		ADBControl.sendSellCommand("am force-stop "+this.packageName);
 		this.waitForTime(800);
@@ -282,6 +338,9 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		applyEventSet(path,true);
 	}
 	
+	/**
+	 * Restart the APP and carry out the full event sequence
+	 */
 	private void restatAndReachUIWithFullSet(){
 		ADBControl.sendSellCommand("am force-stop "+this.packageName);
 		this.waitForTime(800);
@@ -290,7 +349,12 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		applyEventSet(this.currentPath, false);
 	}
 	
-	//TODO may want to check the output from ADB
+	
+	/**
+	 * TODO -- may want to check ADB output
+	 * Wipe out the APP and all data in the its private storage place e.g. database. 
+	 * Re-install the APP and launch it. Then carry out the event sequence.
+	 */
 	private void reinstallPackageAndReachUIWithFullSet(){
 		ADBControl.sendSellCommand("pm uninstall -k "+this.packageName);
 		this.waitForTime(1500);
@@ -301,15 +365,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		applyEventSet(this.currentPath, false);
 	}
 	
+	/**
+	 * TODO implementation required
+	 * @param path -- the event path happened
+	 * @return	the optimized/shortest valid event sequence
+	 */
 	private List<EventRecord> optimizeEventPath(ArrayList<EventRecord> path){
-		//TODO
 		List<EventRecord> result = new ArrayList<EventRecord>();
 		return result;
 	}
 	
 	/**
 	 * Used for traveling back to UI after restart
-	 * @param path -- the sequence about who the program get to the status
+	 * @param path 	-- the sequence about who the program get to the status
 	 * @param ignoreIntermediate -- if ignore the widget does not change UI
 	 */
 	private void applyEventSet(List<EventRecord> path, boolean ignoreIntermediate){
@@ -341,10 +409,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			} catch (InterruptedException e) { }
 		}
 	}
+	/**
+	 * TODO -- implementation required after acquisition of sufficient knowledge on breakpoint 
+	 * hits on various situation. Possible other candidates includes device CPU rate, specific
+	 * method which might indicate the finish of UI drawing. 
+	 * @return true if 
+	 */
 	private boolean isUIStablized(){
-		//TODO
 		return false;
 	};
+	/**
+	 * Label an activity has been reached so that it will not be launched separately.
+	 * @param actName -- the name of the activity
+	 */
 	private void labelActivityAsReached(String actName){
 		for(int i=0;i<this.activityNames.size();i++){
 			if(this.activityNames.get(i).equals(actName)){
@@ -354,8 +431,13 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		}
 	}
 	
-	//TODO don't forget the dataFilter
-	//NOTE Right now it assume the order of the views will not change
+	/**
+	 * NOTE Right now it assume the order of the views will not change
+	 * Compare the two input layouts in terms of name, mID, x, y, layout:getWidth(), layout:getHeight()
+	 * @param layout1	-- the first layout
+	 * @param layout2	-- the second layout
+	 * @return true if the order and the target attributes of each elements are the same
+	 */
 	private boolean isExactlyMatched(List<Map<String,String>> layout1, List<Map<String,String>> layout2){
 		if(layout1.size() != layout2.size()) return false;
 		for(int i=0;i<layout1.size();i++){
@@ -367,13 +449,15 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	}
 	//NOTE potential wrong format e.g. "1.0" does not equal String "1"
 	private static String exactComparisonHelper(Map<String,String> info){
-		return info.get("mID")+info.get("x")+info.get("y")+info.get("layout:getWidth()")+info.get("layout:getHeight()");
+		return info.get("name")+info.get("mID")+info.get("x")+info.get("y")+info.get("layout:getWidth()")+info.get("layout:getHeight()");
 	}
 	
-	//Assumption: if the layout set from dynamic run >= the layout set from static analysis
-	//			  then there is a match
-	//TODO potential optimization could be done
-	//NOTE only ID is checked right now -- assume no ID duplication
+	/**
+	 * NOTE Assume: no ID duplication. if the layout set from dynamic run >= the layout set 
+	 * 		from static analysis then there is a match. Potential optimization could be done.
+	 * @param currentLayoutInfo -- current layout information from device
+	 * @return match static layout
+	 */
 	private Layout matchWithStaticLayout(List<Map<String,String>> currentLayoutInfo){
 		Layout result = null;
 		for(Layout layout : this.staticLayout){
@@ -441,7 +525,13 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		return result;
 	}
 	
-	//NOTE -- Possible unnecessary searching
+	/**
+	 * NOTE Possible unnecessary searching
+	 * Find a possible event given static analysis information and the view profile.
+	 * @param viewInfo	-- the view profile including id 
+	 * @param staticLayoutInfo	--	static layout information 
+	 * @return an event string or null
+	 */
 	private String getNextEventForView(Map<String,String> viewInfo, Layout staticLayoutInfo){
 		if(enableStaticHandlerInfo){
 			//only consider event handler listed in staticLayoutInfo
@@ -478,15 +568,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		return null;
 	}
 	
-	//TODO May need improvement over time
-	//EventHandlers.eventHandlers
+	/**
+	 * carry out the event on device
+	 * TODO Require improvement over time
+	 * @param viewInfo	--	view profile
+	 * @param event		-- the event which needs to be carried out
+	 * @param enableLabel	-- if needs to label the event as tested. 
+	 */
 	private void carryoutEventOnView(Map<String,String> viewInfo, String event, boolean enableLabel){
 		String x = viewInfo.get("x");
 		String y = viewInfo.get("y");
 		if(event.equals("android:onClick")){
 			this.monkey.inteactiveModelClick(x, y);
 		}
-//		else if
 		if(enableLabel) viewInfo.put(PREFIX+event,"tested"); // label this event as tested;
 	}
 	
@@ -533,6 +627,11 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		//TODO
 	}
 	
+	/**
+	 * Representation of an event e.g. touch, click
+	 * On a view which is in an activity, an event occurred, which leads to a destination UI.
+	 * @author zhenxu
+	 */
 	private class EventRecord{
 		public EventRecord(String eventType, String sourceAct){
 			this.eventType = eventType;
@@ -550,7 +649,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		}
 		
 		public String toString(){
-			return eventType+" occurs at ("+viewProfile.get("x")+","+viewProfile.get("y")+") at " +sourceActName+" leads to "+destActName;
+			return eventType+" occurs on ("+viewProfile.get("x")+","+viewProfile.get("y")+") at " +sourceActName+" leads to "+destActName;
 		}
 	}
 }
