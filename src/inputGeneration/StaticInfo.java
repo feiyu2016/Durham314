@@ -338,9 +338,12 @@ public class StaticInfo {
 					String[] u = U.split(",");
 					// TODO here I only look for the ones that are in OnCreate, exceptions will be recorded in UtilsLog/defaultLayout.log
 					// need to solve this
-					if (!u[0].equals("setContentView") || !u[2].equals("1") || !u[4].equals(actvt))	continue;
-					count++;
-					defLayouts.put(actvt, u[7]);
+					
+					//if (!u[0].equals("setContentView") || !u[2].equals("1") || !u[4].equals(actvt))	continue;
+					//count++;
+					//defLayouts.put(actvt, u[7]);
+					if (!u[0].equals("setContentView") || u[1].equals("0"))	continue;
+					
 				}
 				if (count!=1) {
 					File outfile = new File(Paths.appDataDir + file.getName() + "/UtilsLog/defaultLayout.log");
