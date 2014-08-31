@@ -13,6 +13,9 @@ public class Examine {
 		
 		StaticGuidedAlgoirthm test = new StaticGuidedAlgoirthm(path);
 		test.setNormalStartUp();
+		
+		test.enableJDB = true;
+		test.enableAPKTool = false;
 		test.showStaticInfo = true;
 		test.enableUsePartialSet = true;
 		test.enableUseFullSet = true;

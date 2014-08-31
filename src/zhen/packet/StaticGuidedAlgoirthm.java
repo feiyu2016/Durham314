@@ -1,9 +1,11 @@
 package zhen.packet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.android.hierarchyviewer.scene.ViewNode;
 
@@ -33,7 +35,7 @@ import inputGeneration.StaticInfo;
  * 		1. Cyclic UI graph could leads to infinite loop, duplicated UI analysis. 
  * 		UI learning which takes the sequence of UIs before and after current UI
  * 		may solve the problem.
- * 
+ * 		2. 
  * Algorithm:
  * For each untested activity, 
  * 		travel through all staying widgets
@@ -57,7 +59,9 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	public boolean enableUseFullSet = true;
 	public boolean enableReinstall = true;
 	public boolean enableStaticHandlerInfo = false;
+	public boolean enableStaticLayoutInfo = false;
 	public boolean enablePathOptimization = false;
+	public boolean ignoreViewGroup = true;
 	public static boolean Debug = false;
 	public static final String[] layoutKeywords = { // name and address are not included here
 		//identification
@@ -94,6 +98,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		"y"
 	};
 	
+	
+	
 	private static String PREFIX = "ZLABEL";
 	private static String TESTED = PREFIX+"tested";
 	private String currentStartingActName;
@@ -102,16 +108,16 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	private boolean enableDynamicPrograming = false;
 	private boolean innerTravel_failure = false;
 	private Map<String, List<String>> stayingWidgtsInfoDepost;
-	private Map<String, ArrayList<EventRecord>> eventRecorder;
+	private Map<String, ArrayList<EventRecord>> eventSequenceRecorder;
 	private ArrayList<EventRecord> currentPath;
-	
+	private static Logger logger = Utility.setupLogger(StaticGuidedAlgoirthm.class);
 	
 	/**
 	 * @param apkPath	-- 	the path to the target APK file which will be installed on device
 	 */
 	public StaticGuidedAlgoirthm(String apkPath) {
 		super(apkPath);
-		eventRecorder = new HashMap<String, ArrayList<EventRecord>>();
+		eventSequenceRecorder = new HashMap<String, ArrayList<EventRecord>>();
 		stayingWidgtsInfoDepost = new HashMap<String, List<String>>();
 		this.dataFilter = new ViewPositionData.NodeDataFilter(){
 			@Override
@@ -121,7 +127,11 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 					StringBuilder sb = new StringBuilder();
 					sb.append(node.name+";");
 					for(String keyword: layoutKeywords){
-						sb.append(node.namedProperties.get(keyword).value+";");
+						if( node.namedProperties.get(keyword) == null){
+							sb.append("null;");
+						}else{
+							sb.append(node.namedProperties.get(keyword).value+";");
+						}
 					}
 					double x = Double.parseDouble(node.namedProperties.get("drawing:getX()").value) ,
 							   y = Double.parseDouble(node.namedProperties.get("drawing:getY()").value);
@@ -145,25 +155,27 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 */
 	@Override
 	public void execute() {
+		if(Debug)logger.info("Execution starts");
 		//pick an activity that has not been tested
 		while(true){
 			int actIndex = Utility.findFirstFalse(actMark);
 			if(actIndex<0) break; // all activities are label as tested -- finished.
-			//launch the act --> am start -n yourpackagename/.activityname
 			currentStartingActName = this.activityNames.get(actIndex);
-			ADBControl.sendSellCommand("am start -n "+this.packageName+"/."+currentStartingActName);
-			//TODO -- change waitForTime to wait for UIStalized after sufficient test
-			waitForTime(5000);
-			
+			if(Debug)logger.info("test act:"+currentStartingActName);
+		
+			startActivity(currentStartingActName);
 			String currentActName = currentStartingActName;
 			labelActivityAsReached(currentActName);
 			//the event of launching APP is not recorded
 			
 			currentPath = new ArrayList<EventRecord>();
 			innerTravel(null, currentActName);
-			eventRecorder.put(currentStartingActName, currentPath);
+			eventSequenceRecorder.put(currentStartingActName, currentPath);
 		}
+		if(Debug)logger.info("Execution ends");
 	}
+	
+	static int level = 0;
 	
 	/**
 	 * Travel through the UIs. Recursive call happens when UI change is detected.
@@ -171,17 +183,27 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 * @param currentActName	--	the name of activity currently activates.
 	 */
 	private void innerTravel(List<Map<String,String>> currentLayoutInfo, String currentActName){
-		while(innerTravel_failure != false){
+		
+		System.out.println("innerTravel level:"+level);
+		level+=1;
+		
+//		while(innerTravel_failure == false){
 			//retrieve current layout information
 			if(currentLayoutInfo == null){
 				List<String> rawLayoutInfo = this.viewData.retrieveFocusedActivityInformation();
 				currentLayoutInfo = processLayoutData(rawLayoutInfo);
 			}
+			if(Debug)logger.info("innerTravel, Act:"+currentActName+" layout:"+currentLayoutInfo.hashCode());
 			//TODO -- Optimization: Could sort the array by mID, this benefits for searching later
+			
+			//NOTE maybe keyboard status should be recorded
+			System.out.println("before3");
+			checkAndCloseKeyboard();
 			
 			//match with existing static information
 			Layout matchedLayoutInfo = matchWithStaticLayout(currentLayoutInfo);
 			if(matchedLayoutInfo != null){ // there is a match!
+				if(Debug)logger.info("innerTravel: find static layout info");
 				// For the widget which will not trigger any UI change 
 				String layoutName = matchedLayoutInfo.getName();
 				List<String> stayingWidgetsInfo = null;
@@ -208,6 +230,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						}
 					}
 				}
+			}else{
+				if(Debug)logger.info("innerTravel: no static layout info");
 			}
 			// the UI should not get changed before the above operations
 			
@@ -215,18 +239,39 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			// special attention on the leaving widgets 
 			for(Map<String,String> viewProfile: currentLayoutInfo){
 				if(viewProfile.get(TESTED) == null){ // the view is not yet touched
+					String name = viewProfile.get("name");
+					if(name.contains("PhoneWindow$DecorView")){
+						viewProfile.put(TESTED, "true");
+						logger.info("ignore PhoneWindow$DecorView");
+						continue;
+					}else if(ignoreViewGroup){
+						if(name.contains("Layout") || name.contains("Container")){
+							viewProfile.put(TESTED, "true");
+							logger.info("ignore "+name);
+							continue;
+						}
+					}
+					
+					
+					if(Debug)logger.info("innerTravel: testing view, "+viewProfile.get("name")+","+ viewProfile.get("mID"));
 					String eventType = null;
 					while(((eventType = getNextEventForView(viewProfile, matchedLayoutInfo)) != null)){
-						
+						if(Debug)logger.info("innerTravel: find event for view, "+ eventType);
 						boolean layoutUnchanged = false;
 						EventRecord record = new EventRecord(eventType, currentActName);
 						record.recordFromViewProfile(viewProfile);
 						carryoutEventOnView(viewProfile, eventType, true);//e.g press, click
 						waitForTime(800);
-						
+						System.out.println("before1");
+						boolean keyboardTriggered = checkAndCloseKeyboard();
+						boolean checkFirst = false;
 						//check consequence
 						String focuedActName = this.viewData.getFocusedActivityName();
+						String[] tmpParts = focuedActName.split("/");
+						focuedActName = tmpParts[tmpParts.length-1];
+						
 						if(focuedActName.equals(currentActName)){	//in the same activity ?
+							logger.info("within the same act:"+focuedActName);
 							List<String> info = this.viewData.retrieveFocusedActivityInformation();
 							List<Map<String,String>> processedLayoutInfo = this.processLayoutData(info);
 							//compare the information with known layout to determine any change
@@ -236,27 +281,50 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 								innerTravel(currentLayoutInfo, currentActName);
 							}
 						}else if(this.activityNames.contains(focuedActName)){//has jumped to other activity in the APP?	
+							logger.info("enter act:"+focuedActName+" from "+currentActName);
 							labelActivityAsReached(focuedActName);
 							innerTravel(null, focuedActName);
 						}else{ // launch an activity NOT in the APP e.g. Setting or went back to launcher
+							
+							String ignoredAct = "SearchPanelNavigationBarStatusBarKeyguardKeyguardScrimInputMethodToast";
+							if(ignoredAct.contains(focuedActName)){
+								//lower function incorrectly implemented 
+								//ignore this Act
+								logger.info("entered Toast from "+currentActName+" ignored");
+								layoutUnchanged = true;
+								checkFirst = true;//DONT USE NOW
+							}else{
+								logger.info("entered different act:"+focuedActName+"  in different APP from "+currentActName);
+							}
+							
+							//some act could draw over others
 							// don't traverse into the other APP
 						}
 						
 						record.destActName = focuedActName;
 						record.triggerLayoutChange = layoutUnchanged;
+						if(keyboardTriggered){
+							record.additionalInfo.put("keyboard", "triggered");
+						}
 						this.currentPath.add(record);
-						if(layoutUnchanged){ continue; }
+
+						if(layoutUnchanged){ 
+							logger.info("layout does not change");
+							continue; 
+						}else{
+							logger.info("layout was changed");
+						}
 						
 						//make sure the consistency of the UI graph
-						//TODO -- refine/re-think this part when a failure occurs
+						//TODO -- reinfo/re-think this part when a failure occurs
 						if(innerTravel_failure) return;
-						sustainUIGraphConsisitencyProcedure(currentLayoutInfo);
+						sustainUIGraphConsisitencyProcedure(currentLayoutInfo,checkFirst);
 					}
 					viewProfile.put(TESTED, "true");
 				}
 			}
 			
-		}
+//		}
 	}
 
 	/**
@@ -265,9 +333,22 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 * @param expectedLayout	--	the expected layout 
 	 * @return	true if current UI is the same as expected one, false otherwise
 	 */
-	private boolean sustainUIGraphConsisitencyProcedure(List<Map<String,String>> expectedLayout){
+	private boolean sustainUIGraphConsisitencyProcedure(List<Map<String,String>> expectedLayout, boolean checkFirst){
+		if(checkFirst){
+			logger.info("check first");
+			waitForTime(400);
+			List<String> info_previous_layoutChange = this.viewData.retrieveFocusedActivityInformation();
+			List<Map<String,String>> processedInfo = this.processLayoutData(info_previous_layoutChange);
+			if(isExactlyMatched(expectedLayout,processedInfo)){
+				//via press back, the UI has been reached. 
+				return true;
+			}
+		}
+		
+		
 		{
 			//press button to see if the original layout could be reached
+			logger.info("back pressed");
 			this.monkey.interactiveModelPress(KeyEvent.KEYCODE_BACK);
 			//TODO -- change waitForTime to waitForUIStablized after sufficient test
 			waitForTime(800);
@@ -318,6 +399,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 */
 	private void failToReachUI(){
 		System.out.println("Fail to reach UI");
+		if(Debug)logger.severe("Cannot reach original UI");
 		dumpLogFile();
 		innerTravel_failure = true;
 	}
@@ -329,7 +411,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	private void restartAndReachUIWithPartialSet(){
 		ADBControl.sendSellCommand("am force-stop "+this.packageName);
 		this.waitForTime(800);
-		ADBControl.sendSellCommand("am start -n "+this.packageName+"/."+currentStartingActName);
+		this.startActivity(currentStartingActName);
 		this.waitForTime(800);
 		List<EventRecord> path = this.currentPath;
 		if(enablePathOptimization){
@@ -344,7 +426,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	private void restatAndReachUIWithFullSet(){
 		ADBControl.sendSellCommand("am force-stop "+this.packageName);
 		this.waitForTime(800);
-		ADBControl.sendSellCommand("am start -n "+this.packageName+"/."+currentStartingActName);
+		this.startActivity(currentStartingActName);
 		this.waitForTime(800);
 		applyEventSet(this.currentPath, false);
 	}
@@ -360,7 +442,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		this.waitForTime(1500);
 		ADBControl.sendADBCommand("adb install "+this.apkPath);
 		this.waitForTime(1500);
-		ADBControl.sendSellCommand("am start -n "+this.packageName+"/."+currentStartingActName);
+		this.startActivity(currentStartingActName);
 		this.waitForTime(1500);
 		applyEventSet(this.currentPath, false);
 	}
@@ -385,6 +467,12 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			if(event.triggerLayoutChange || !ignoreIntermediate){
 				this.carryoutEventOnView(event.viewProfile, event.eventType, false);
 				this.waitForTime(800);
+				
+				String keybordEvent = event.additionalInfo.get("keyboard");
+				if(keybordEvent!=null && keybordEvent.equals("triggered")){
+					System.out.println("before2");
+					this.checkAndCloseKeyboard();
+				}
 			}
 		}
 	}
@@ -439,12 +527,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 * @return true if the order and the target attributes of each elements are the same
 	 */
 	private boolean isExactlyMatched(List<Map<String,String>> layout1, List<Map<String,String>> layout2){
-		if(layout1.size() != layout2.size()) return false;
+		if(layout1.size() != layout2.size()){
+			logger.info("layout difference found: size,"+layout1.size()+"vs"+layout2.size());
+			return false;
+		}
 		for(int i=0;i<layout1.size();i++){
 			String msg1 = exactComparisonHelper(layout1.get(i));
 			String msg2 = exactComparisonHelper(layout2.get(i));
-			if(!msg1.equals(msg2)) return false;
+			if(!msg1.equals(msg2)){
+				logger.info("layout difference found:\n"+msg1+"\n"+msg2);
+				return false;
+			}
 		}
+		logger.info("layouts are the same");
 		return true;
 	}
 	//NOTE potential wrong format e.g. "1.0" does not equal String "1"
@@ -459,6 +554,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 * @return match static layout
 	 */
 	private Layout matchWithStaticLayout(List<Map<String,String>> currentLayoutInfo){
+		if(enableStaticLayoutInfo == false) return null;
 		Layout result = null;
 		for(Layout layout : this.staticLayout){
 			ArrayList<inputGeneration.ViewNode> list = layout.getViewNodes();
@@ -581,6 +677,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		if(event.equals("android:onClick")){
 			this.monkey.inteactiveModelClick(x, y);
 		}
+		
+		logger.info("apply "+event+" on "+viewInfo.get("name")+" at "+x+","+y);
 		if(enableLabel) viewInfo.put(PREFIX+event,"tested"); // label this event as tested;
 	}
 	
@@ -621,6 +719,29 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 				}
 			}
 		}
+	}
+	
+	static int iter = 0;
+	/**
+	 * check if the keyboard is up and try to close it
+	 * @return true if keyboard was turned off 
+	 */
+	private boolean checkAndCloseKeyboard(){
+		logger.info("checking keyboard");
+		if(this.viewData.isInputMethodVisible()){
+			this.monkey.interactiveModelPress(KeyEvent.KEYCODE_BACK);
+			this.waitForTime(200);
+			logger.info("close keyboard "+iter); iter+=1;
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private void startActivity(String actName){
+		String[] parts = actName.split("\\.");
+		ADBControl.sendSellCommand("am start -n "+this.packageName+"/."+parts[parts.length-1]);
+		waitForTime(3000);
 	}
 	
 	private void dumpLogFile(){

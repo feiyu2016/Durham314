@@ -267,7 +267,7 @@ public class ViewPositionData {
                     break;
                 }
                 
-                int whitespaceCount = Utility.countFrontWhitespace(line);
+                int whitespaceCount = ViewerUtility.countFrontWhitespace(line);
                 if (lastWhitespaceCount < whitespaceCount) {
                     stack.push(lastNode);
                 } else if (!stack.isEmpty()) {
@@ -285,7 +285,7 @@ public class ViewPositionData {
                 lastNode.name = line.substring(0, index);
 
                 line = line.substring(index + 1);
-                Utility.loadProperties(lastNode, line);
+                ViewerUtility.loadProperties(lastNode, line);
                 arrlist.add(lastNode);
                 if (setRoot) {
                     setRoot = false;
@@ -453,10 +453,12 @@ public class ViewPositionData {
 			}
 			int count = wins.length - 7;
 			Window result = wins[count];
-			if(result.getTitle().equalsIgnoreCase("inputmethod")){
+			String title = result.getTitle();
+			if(title.equalsIgnoreCase("toast")){
+				return wins[wins.length-8];
+			}else if(title.equalsIgnoreCase("inputmethod")){
 				return wins[wins.length-4];
 			}
-			
 			return result;
 		}
 		

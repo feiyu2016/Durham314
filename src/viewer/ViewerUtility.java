@@ -5,7 +5,7 @@ import java.util.Comparator;
 
 import com.android.hierarchyviewer.scene.ViewNode;
 
-public class Utility {
+public class ViewerUtility {
 
     public static int countFrontWhitespace(String line) {
         int count = 0;
