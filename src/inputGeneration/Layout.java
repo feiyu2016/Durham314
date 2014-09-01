@@ -34,6 +34,10 @@ public class Layout {
 			}
 	}
 	
+	public String getType() {
+		return Type;
+	}
+	
 	public void addNode(ViewNode node) {
 		viewNodes.add(node);
 	}
