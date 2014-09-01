@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
 public class StaticInfo {
 	
 	private static ArrayList<Layout> layoutList = new ArrayList<Layout>();
-	private static ArrayList<String> UIChanges = new ArrayList<String>();
+	public static ArrayList<String> UIChanges = new ArrayList<String>();
 	private static Map<String, String> defLayouts = new HashMap<String, String>();
 	
 	public static ArrayList<Layout> getLayoutList(File file) {
@@ -262,49 +262,8 @@ public class StaticInfo {
 		}	catch (Exception e) {e.printStackTrace();}
 		return result;
 	}
-
 	
-	public static ArrayList<String> getLeavingWidgets(File file, String activityName, String layoutName) {
-		ArrayList<String> results = new ArrayList<String>();
-		try {
-			for (String UIChange: UIChanges) {
-				// TODO need redo
-				// maybe I don't need to see if it's an event handler, just look at the responsible views
-				String[] u = UIChange.split(",");
-				int viewNumber = Integer.parseInt(u[7]);
-				if (viewNumber==0)	continue;
-				for (int i = 8; i < u.length; i++) {
-					String[] v = u[i].split("&&");
-					// class name, method subsig, layout name, view id, event handler
-					if (activityName.equals(v[0]) && layoutName.equals(v[2])) {
-						results.add(u[0] + "," + v[3] + "," + v[4] + "," + u[6]);
-					}
-				}
-				if (UIChange.startsWith("setContentView,")) {}
-				else if (UIChange.startsWith("startActivity,")) {}
-			}
-		}	catch (Exception e) {e.printStackTrace();}
-		return results;
-	}
-	
-	public static ArrayList<String> getStayingWidgets(File file, String activityName, String layoutName) {
-		ArrayList<String> results = new ArrayList<String>();
-		ArrayList<String> leaving = getLeavingWidgets(file, activityName, layoutName);
-		Layout l = getLayoutObject(layoutName);
-		ArrayList<ViewNode> viewNodes = l.getViewNodes();
-		for (ViewNode viewNode: viewNodes) {
-			String id = viewNode.getID();
-			boolean isLeaving = false;
-			for (String s: leaving)
-				if (s.split(",")[1].equals(id))
-					isLeaving = true;
-			if (!isLeaving)
-				results.add(id);
-		}
-		return results;
-	}
-	
-	private static Layout getLayoutObject(String name) {
+	public static Layout getLayoutObject(String name) {
 		Layout result = null;
 		for (Layout l: layoutList)
 			if (l.getName().equals(name))
@@ -369,13 +328,31 @@ public class StaticInfo {
 					out.close();
 				}
 			}
+			// then assign leaving and staying widgets
+			// "StartActivity",foundTargetActvt?,inOnCreate?,inEventHandler?,classname,methodsig,linenumber,targetActvt,NumberOfOnCreate,NumberOfViews,actvt1,...(avtvt&&layout&&widgetID&&EH),...
+			// "setContentView",foundTargetLayout?,inOnCreate?,inEventHandler?,classname,methodsig,linenumber,targetLayout,NumberOfOnCreate,NumberOfViews,actvt1,...(avtvt&&layout&&widgetID&&EH),...
+			for (String UIChange: UIChanges) {
+				String[] u = UIChange.split(",");
+				if (u[3].equals("0") && u[9].equals("0"))	continue;
+				int onCreateCount = Integer.parseInt(u[8]);
+				int viewCount = Integer.parseInt(u[9]);
+				for (int i = 0; i < viewCount; i++) {
+					String[] thisViewInfo = u[10+onCreateCount+i].split("&&");
+					String actvtNm = thisViewInfo[0];
+					String layoutNm = thisViewInfo[1];
+					String vID = thisViewInfo[2];
+					String vEH = thisViewInfo[3];
+					ViewNode theVN = StaticInfo.getLayoutObject(layoutNm).getViewNodeById(vID);
+					theVN.addLeavingEventHandler(actvtNm + "," + vEH + "," + u[0] + "," + u[7]);
+				}
+			}
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
-	public static String getDefaultLayout(File file, String activityName) {
-		String result = "";
+	public static Layout getDefaultLayout(File file, String activityName) {
+		Layout result = null;
 		if (defLayouts.containsKey(activityName))
-			result = defLayouts.get(activityName);
+			result = getLayoutObject(defLayouts.get(activityName));
 		return result;
 	}
 	
@@ -501,10 +478,11 @@ public class StaticInfo {
 		return (methodSubSig.equals("void onCreate(android.os.Bundle)") && isActivity(file, className));
 	}
 	
-	private static ArrayList<String> findEventHandlersThatMightCallThisMethod(File file, String className, String methodSubSig) {
+	private static ArrayList<String> findEventHandlersThatMightDirectlyCallThisMethod(File file, String className, String methodSubSig) {
 		ArrayList<String> result = new ArrayList<String>();
+		if (!StaticInfo.isActivity(file, className))	return result;
 		for (Layout l: layoutList) {
-			ArrayList<ViewNode> vNs = l.getViewNodes();
+			ArrayList<ViewNode> vNs = l.getAllViewNodes();
 			for (ViewNode vN : vNs) {
 				String id = vN.getID();
 				Map<String, String> eHs = vN.getAllEventHandlers();
@@ -512,7 +490,7 @@ public class StaticInfo {
 					String eH = entry.getKey();
 					String eHMethodSig = entry.getValue() + "(android.view.View)";
 					if (methodSubSig.endsWith(eHMethodSig))
-						result.add(l.getName() + "," + id + "," + eH);
+						result.add(className + "," + l.getName() + "," + id + "," + eH);
 				}
 			}
 		}
@@ -529,22 +507,21 @@ public class StaticInfo {
 		String methodSubSig = in_mI.readLine().split(",")[5];
 		in_mI.close();
 		boolean inOnCreate = isOnCreate(file, className, methodSubSig);
-		ArrayList<String> possibleEHs = findEventHandlersThatMightCallThisMethod(file, className, methodSubSig);
+		ArrayList<String> possibleEHs = findEventHandlersThatMightDirectlyCallThisMethod(file, className, methodSubSig);
 		boolean inEventHandler = false;
 		if (possibleEHs.size() > 0)	inEventHandler = true;
 		// Step 3, get all possible incoming method calls, pick onCreate and EventHandlers from them
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
-		ArrayList<String> EHCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(file, className, methodSubSig);
 		for (String caller: possibleCallers) {
 			String callerClass = caller.split(",")[0];
 			String callerMethodSig = caller.split(",")[1];
 			if (isOnCreate(file, className, callerMethodSig))
 				onCreateCallers.add(callerClass);
-			ArrayList<String> eh = findEventHandlersThatMightCallThisMethod(file, callerClass, callerMethodSig);
+			ArrayList<String> eh = findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethodSig);
 			for (String s: eh)
-				if (!EHCallers.contains(s))
-					EHCallers.add(s);
+				if (!possibleEHs.contains(s))
+					possibleEHs.add(s);
 		}
 		// "StartActivity",foundTargetActvt?,inOnCreate?,inEventHandler?,classname,methodname,linenumber,targetActvt,NumberOfOnCreateCaller,NumberOfEventHandlers,...,...
 		result = "startActivity,";
@@ -552,11 +529,12 @@ public class StaticInfo {
 		if (inOnCreate)	result+="1,"; else result+="0,";
 		if (inEventHandler)	result+="1,"; else result+="0,";
 		result += className + "," + methodFileName + "," + lineNumber + "," + targetActivity + ",";
-		result += onCreateCallers.size() + "," + EHCallers.size();
+		result += onCreateCallers.size() + "," + possibleEHs.size();
 		for (String s: onCreateCallers)	result += "," + s;
-		for (String s: EHCallers)	result += "," + s.replace(",", "&&");
+		for (String s: possibleEHs)	result += "," + s.replace(",", "&&");
 		return result;
 	}
+	
 	
 
 	private static String solveSetContentView(File file, String className, String methodFileName, int lineNumber) throws Exception {
@@ -569,31 +547,30 @@ public class StaticInfo {
 		String methodSubSig = in_mI.readLine().split(",")[5];
 		in_mI.close();
 		boolean inOnCreate = isOnCreate(file, className, methodSubSig);
-		ArrayList<String> possibleEHs = findEventHandlersThatMightCallThisMethod(file, className, methodSubSig);
+		ArrayList<String> possibleEHs = findEventHandlersThatMightDirectlyCallThisMethod(file, className, methodSubSig);
 		boolean inEventHandler = false;
 		if (possibleEHs.size() > 0)	inEventHandler = true;
 		// Step 3, get all possible incoming method calls, pick onCreate and EventHandlers from them
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
-		ArrayList<String> EHCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(file, className, methodSubSig);
 		for (String caller: possibleCallers) {
 			String callerClass = caller.split(",")[0];
 			String callerMethodSig = caller.split(",")[1];
 			if (isOnCreate(file, className, callerMethodSig))
 				onCreateCallers.add(callerClass);
-			ArrayList<String> eh = findEventHandlersThatMightCallThisMethod(file, callerClass, callerMethodSig);
+			ArrayList<String> eh = findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethodSig);
 			for (String s: eh)
-				if (!EHCallers.contains(s))
-					EHCallers.add(s);
+				if (!possibleEHs.contains(s))
+					possibleEHs.add(s);
 		}
 		result = "setContentView,";
 		if (targetLayout.equals(" "))	result+="0,"; else result+="1,";
 		if (inOnCreate)	result+="1,"; else result+="0,";
 		if (inEventHandler)	result+="1,"; else result+="0,";
 		result += className + "," + methodFileName + "," + lineNumber + "," + targetLayout + ",";
-		result += onCreateCallers.size() + "," + EHCallers.size();
+		result += onCreateCallers.size() + "," + possibleEHs.size();
 		for (String s: onCreateCallers)	result += "," + s;
-		for (String s: EHCallers)	result += "," + s.replace(",", "&&");
+		for (String s: possibleEHs)	result += "," + s.replace(",", "&&");
 		return result;
 	}
 	

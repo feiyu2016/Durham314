@@ -46,7 +46,7 @@ public class Layout {
 		return hasInclude;
 	}
 	
-	public ArrayList<ViewNode> getViewNodes() {
+	public ArrayList<ViewNode> getAllViewNodes() {
 		return viewNodes;
 	}
 	
@@ -57,4 +57,28 @@ public class Layout {
 	public String getName() {
 		return Name;
 	}
+	
+	public ViewNode getViewNodeById(String id) {
+		for (ViewNode vN: viewNodes)
+			if (vN.getID().equals(id))
+				return vN;
+		return null;
+	}
+	
+	public ArrayList<ViewNode> getLeavingViewNodes() {
+		ArrayList<ViewNode> result = new ArrayList<ViewNode>();
+		for (ViewNode vN : viewNodes)
+			if (vN.hasLeavingEventHandlers())
+				result.add(vN);
+		return result;
+	}
+	
+	public ArrayList<ViewNode> getStayingViewNodes() {
+		ArrayList<ViewNode> result = new ArrayList<ViewNode>();
+		for (ViewNode vN : viewNodes)
+			if (!vN.hasLeavingEventHandlers())
+				result.add(vN);
+		return result;
+	}
+	
 }
