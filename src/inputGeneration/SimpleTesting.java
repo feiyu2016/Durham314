@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 
 import main.Paths;
 import viewer.MonkeyWrapper;
@@ -33,7 +35,7 @@ import viewer.ViewPositionData;
 			
 			for(String string:buttonIDs) {
 				updateViewData();
-				clickWidget(file, "activity_main", string);
+				//clickWidget(file, "activity_main", string);
 				System.out.println("CLICKED " + string);
 				for(String string1:JDBStuff.clicksAndBreakPoints) {
 					System.out.println(string1);
@@ -77,54 +79,82 @@ import viewer.ViewPositionData;
 			// this is a recursive method
 			try {
 				updateViewData();
-				String currentLayout = activityOrLayout;
+				Layout currentLayout = StaticInfo.getLayoutObject(activityOrLayout);
 				if (flag.equals("activity")) {
 					visitedActivities.add(activityOrLayout);
-					currentLayout = OldStaticInfo.getDefaultLayout(file, activityOrLayout);
+					currentLayout = StaticInfo.getDefaultLayout(file, activityOrLayout);
 					System.out.println("-Activity State: " + activityOrLayout + ", layout: " + currentLayout + "\n");
 				} else {
 					System.out.println("-Activity State: " + currentActivity + ", layout: " + currentLayout + "\n");
 				}
-				ArrayList<String> stayingWidgets = OldStaticInfo.getStayingWidgets(file, currentLayout);
-				ArrayList<String> leavingWidgets = OldStaticInfo.getLeavingWidgets(file, currentLayout);
+				ArrayList<ViewNode> stayingWidgets = currentLayout.getLeavingViewNodes();
+				ArrayList<ViewNode> leavingWidgets = currentLayout.getStayingViewNodes();
 				
-				for (String stayingWidget: stayingWidgets) {
-					String widgetType = stayingWidget.split(",")[0];
-					String widgetID = stayingWidget.split(",")[1];
-					String widgetOnClick = stayingWidget.split(",")[2];
-					if (alreadyClicked(file, currentActivity + "," + currentLayout + "," + widgetID))	{System.out.println(widgetID + " has been clicked before, skipping...\n"); continue;}
-					System.out.println("  clicking " + widgetID + ". Activity/Layout should stay the same\n");
-					clickWidget(file, currentLayout, widgetID);
-					updateViewData();
-					//Thread.sleep(1000);
-					updateClickedEvents(file, currentActivity + "," + currentLayout + "," + widgetID);
+				for (ViewNode stayingWidget: stayingWidgets) {
+					String widgetType = stayingWidget.getType();
+					String widgetID = stayingWidget.getID();
+					Map<String, String> allEH = stayingWidget.getAllEventHandlers();
+					for (String eh: allEH.keySet()) {
+						if (alreadyPerformed(file, currentActivity + "," + currentLayout + "," + widgetID + "," + eh)) {
+							System.out.println(widgetID + " has been clicked before, skipping...\n"); 
+							continue;
+						}
+						System.out.println("  clicking " + widgetID + ". Activity/Layout should stay the same\n");
+						sendEvent(file, currentLayout.getName(), widgetID, eh);
+						//updateViewData();
+						//Thread.sleep(1000);
+						updateClickedEvents(file, currentActivity + "," + currentLayout + "," + widgetID);
+					}
 				}
 				
-				for (String leavingWidget : leavingWidgets) {
-					String widgetType = leavingWidget.split(",")[1];
-					String widgetID = leavingWidget.split(",")[2];
-					String widgetOnClick = leavingWidget.split(",")[3];
-					String target = leavingWidget.split(",")[4];
-					if (alreadyClicked(file, currentActivity + "," + currentLayout + "," + widgetID))	{System.out.println(widgetID + " has been clicked before, skipping...\n"); continue;}
-					if (leavingWidget.split(",")[0].equals("newLayout"))
-						System.out.println("  clicking " + widgetID + ". Layout will change to: " + target + ".xml\n");
-					else  if (leavingWidget.split(",")[0].equals("newActivity"))
-						System.out.println("  clicking " + widgetID + ". Activity will change to: " + target + "\n");
-					clickWidget(file, currentLayout, widgetID);
-					updateViewData();
-					updateClickedEvents(file, currentActivity + "," + currentLayout + "," + widgetID);
-					if (leavingWidget.split(",")[0].equals("newLayout")) {
-						clickWidgetsOfActivity(file, currentActivity, target, "layout");
-						System.out.println("-layout of Activity\"" + currentActivity + "\" has changed, restarting App...\n");
-						RunTimeInfo.exitApp(file);
-						RunTimeInfo.startApp(file);
-						clickWidgetsOfActivity(file, StaticInfo.getMainActivityName(file), StaticInfo.getMainActivityName(file), "activity");
+				for (ViewNode leavingWidget : leavingWidgets) {
+					String widgetType = leavingWidget.getType();
+					String widgetID = leavingWidget.getID();
+					// 1. perform the staying events
+					ArrayList<String> stayingEH = leavingWidget.getStayingEvents(currentActivity);
+					for (String sEH : stayingEH) {
+						if (alreadyPerformed(file, currentActivity + "," + currentLayout + "," + widgetID + "," + sEH)) {
+							System.out.println(widgetID + " has been clicked before, skipping...\n"); 
+							continue;
+						}
+						System.out.println("  clicking " + widgetID + ". Activity/Layout should stay the same\n");
+						sendEvent(file, currentLayout.getName(), widgetID, sEH);
+						//updateViewData();
+						//Thread.sleep(1000);
+						updateClickedEvents(file, currentActivity + "," + currentLayout + "," + widgetID);
 					}
-					else  if (leavingWidget.split(",")[0].equals("newActivity")) {
-						clickWidgetsOfActivity(file, activityOrLayout, target, "activity");
-						System.out.println("-just finished Clicking all widgets of Activity\"" + target + "\", returning to previous Activity\n");
-						System.out.println("-Activity State: " + currentActivity + ", layout: " + currentLayout + "\n");
-						clickReturnButton();
+					// 2. perform the leaving events
+					Set<String> leavingEH = leavingWidget.getLeavingEvents(currentActivity).keySet();
+					for (String lEH : leavingEH) {
+						ArrayList<String> targets = leavingWidget.getLeavingTargets(currentActivity, lEH);
+						// need to validate target
+
+						if (alreadyPerformed(file, currentActivity + "," + currentLayout + "," + widgetID + "," + lEH))	{System.out.println(widgetID + " has been clicked before, skipping...\n"); continue;}
+/*						if (target.split(",")[0].equals("setContentView"))
+							System.out.println("  clicking " + widgetID + ". Layout will change to: " + target + ".xml\n");
+						else  if (target.split(",")[0].equals("startActivity"))
+							System.out.println("  clicking " + widgetID + ". Activity will change to: " + target + "\n");*/
+						sendEvent(file, currentLayout.getName(), widgetID, lEH);
+						updateViewData();
+						updateClickedEvents(file, currentActivity + "," + currentLayout + "," + widgetID);
+						String target = "";
+						if (targets.size() > 0) target = targets.get(0);
+						// if more than 1 possible target, need runtime info confirmation
+						if (targets.size()!=1)
+							target = RunTimeInfo.getCurrentUIStatus();
+						if (target.split(",")[0].equals("setContentView")) {
+							clickWidgetsOfActivity(file, currentActivity, target, "layout");
+							System.out.println("-layout of Activity\"" + currentActivity + "\" has changed, restarting App...\n");
+							RunTimeInfo.exitApp(file);
+							RunTimeInfo.startApp(file);
+							clickWidgetsOfActivity(file, StaticInfo.getMainActivityName(file), StaticInfo.getMainActivityName(file), "activity");
+						}
+						else  if (target.split(",")[0].equals("startActivity")) {
+							clickWidgetsOfActivity(file, activityOrLayout, target, "activity");
+							System.out.println("-just finished Clicking all widgets of Activity\"" + target + "\", returning to previous Activity\n");
+							System.out.println("-Activity State: " + currentActivity + ", layout: " + currentLayout + "\n");
+							clickReturnButton();
+						}
 					}
 				}
 			}	catch (Exception e) {e.printStackTrace();}
@@ -168,20 +198,22 @@ import viewer.ViewPositionData;
 			m.interactiveModelPress("KEYCODE_BACK");
 		}
 		
-		public static void clickWidget(File file, String layoutName, String widgetID) throws Exception{
-			String[] widgetLocation = getWidgetLocation(widgetID);
-			String x = (Integer.parseInt(widgetLocation[0]) + Integer.parseInt(widgetLocation[2]))/2 + "";
-			String y = (Integer.parseInt(widgetLocation[1]) + Integer.parseInt(widgetLocation[3]))/2 + "";
-			System.out.println(widgetLocation[0] + "," + widgetLocation[1] + "," + widgetLocation[2] + "," + widgetLocation[3] + "," + "  " + x + "," + y);
-			JDBStuff.clicksAndBreakPoints.add("Click," + layoutName + "," + widgetID + "," + x + "," + y);
-			m.interactiveModelTouch(x, y, MonkeyWrapper.DOWN_AND_UP);
-			while (!JDBStuff.flag) {};
-			JDBStuff.flag = false;
-			//Thread.sleep(10);
-			//checkCodeCoverage(file, layoutName, widgetID);
+		public static void sendEvent(File file, String layoutName, String widgetID, String eventHandler) throws Exception{
+			if (eventHandler.equals("android:onClick")) {
+				String[] widgetLocation = getWidgetLocation(widgetID);
+				String x = (Integer.parseInt(widgetLocation[0]) + Integer.parseInt(widgetLocation[2]))/2 + "";
+				String y = (Integer.parseInt(widgetLocation[1]) + Integer.parseInt(widgetLocation[3]))/2 + "";
+				System.out.println(widgetLocation[0] + "," + widgetLocation[1] + "," + widgetLocation[2] + "," + widgetLocation[3] + "," + "  " + x + "," + y);
+				JDBStuff.clicksAndBreakPoints.add("Click," + layoutName + "," + widgetID + "," + x + "," + y);
+				m.interactiveModelTouch(x, y, MonkeyWrapper.DOWN_AND_UP);
+				while (!JDBStuff.flag) {};
+				JDBStuff.flag = false;
+				//Thread.sleep(10);
+				//checkCodeCoverage(file, layoutName, widgetID);
+			}
 		}
 		
-		public static boolean alreadyClicked(File file, String eventCombo) {
+		public static boolean alreadyPerformed(File file, String eventCombo) {
 			boolean result = false;
 			String clickedEvents = getClickedEvents(file);
 			if (clickedEvents.contains(eventCombo))	result = true;
