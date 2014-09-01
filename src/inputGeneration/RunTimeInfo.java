@@ -64,4 +64,8 @@ public class RunTimeInfo {
 		while ((line = in_err.readLine())!=null)
 			System.out.println(line);
 	}
+	
+	public static String getCurrentUIStatus() {
+		return "";
+	}
 }
