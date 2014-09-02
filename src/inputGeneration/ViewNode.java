@@ -1,5 +1,6 @@
 package inputGeneration;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ public class ViewNode {
 	private Node Node;
 	private Map<String, String> eventHandlers;
 	private boolean isCustomView;
+	private ArrayList<String> leavingInfo;
 	
 	public ViewNode(String type, String id, Node node, boolean isCustom) {
 		ID = id;
@@ -23,6 +25,7 @@ public class ViewNode {
 		Node = node;
 		isCustomView = isCustom;
 		eventHandlers = new HashMap<String, String>();
+		leavingInfo = new ArrayList<String>();
 		parseEventHandlers();
 	}
 	
@@ -82,4 +85,61 @@ public class ViewNode {
 	public boolean isCustomView() {
 		return isCustomView;
 	}
+	
+	public void addLeavingEventHandler(String info) {
+		if (!leavingInfo.contains(info))
+			leavingInfo.add(info);
+	}
+	
+	public ArrayList<String> getLeavingInfo() {
+		return leavingInfo;
+	}
+	
+	public boolean hasLeavingEventHandlers() {
+		if (leavingInfo.size()>0)
+			return true;
+		return false;
+	}
+	
+	public Map<String, ArrayList<String>> getLeavingEvents(String activityName) {
+		// format: (Event Handler1, target1, target2),...
+		Map<String, ArrayList<String>> ehMap = new HashMap<String, ArrayList<String>>();
+		// "StartActivity",foundTargetActvt?,inOnCreate?,inEventHandler?,classname,methodsig,linenumber,targetActvt,NumberOfOnCreate,NumberOfViews,actvt1,...(layout&&widgetID),...
+		// "setContentView",foundTargetLayout?,inOnCreate?,inEventHandler?,classname,methodsig,linenumber,targetLayout,NumberOfOnCreate,NumberOfViews,actvt1,...(layout&&widgetID),...
+			for (String lI : leavingInfo) {
+				if (!activityName.equals(lI.split(",")[0]))	continue;
+				String theEH = lI.split(",")[1];
+				String target = lI.split(",")[2] + "," + lI.split(",")[3];
+				if (!ehMap.containsKey(theEH)) {
+					ArrayList<String> ts = new ArrayList<String>();
+					ts.add(target);
+					ehMap.put(theEH, ts);
+				}
+				else {
+					ArrayList<String> ts = ehMap.get(theEH);
+					if (!ts.contains(target))
+						ts.add(target);
+					ehMap.put(theEH, ts);
+				}
+			}
+		return ehMap;
+	}
+	
+	public ArrayList<String> getStayingEvents(String activityName) {
+		ArrayList<String> results = new ArrayList<String>();
+		for (Map.Entry<String, String> entry: eventHandlers.entrySet())
+			results.add(entry.getKey());
+		for (Map.Entry<String, ArrayList<String>> entry: getLeavingEvents(activityName).entrySet())
+			if (results.contains(entry.getKey()))
+				results.remove(entry.getKey());
+		return results;
+	}
+	
+	public ArrayList<String> getLeavingTargets(String actvtName, String eventHandler) {
+		ArrayList<String> result = new ArrayList<String>();
+		if (getLeavingEvents(actvtName).containsKey(eventHandler))
+			result = getLeavingEvents(actvtName).get(eventHandler);
+		return result;
+	}
+	
 }

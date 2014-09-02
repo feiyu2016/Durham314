@@ -49,8 +49,10 @@ public class Soot {
 	 *  	....
 	 *  	....
 	*/
+
 		PackManager.v().getPack("wjtp").add(new Transform("wjtp.myTransform", new SceneTransformer() {
-			protected void internalTransform(String phaseName, Map options) {
+			
+			protected void internalTransform(String phaseName, Map<String, String> options) {
 				try {
 					System.out.println("test");
 					CHATransformer.v().transform();
@@ -130,7 +132,7 @@ public class Soot {
 													tgtMethod.getSubSignature().replace(",", " ") + "," + 
 													stmt.toString() + "," + stmtCounter + "\n");
 									out_CG.write("MethodCall," + c.getName() + "," + 
-												method.getName() + "," + 
+												method.getSubSignature().replace("," , " ") + "," + 
 												tgtMethod_Class.getName() + "," + 
 												tgtMethod.getSubSignature().replace("," , " ") + "," + 
 												stmt.toString() + "," + stmtCounter + "\n");
@@ -145,6 +147,7 @@ public class Soot {
 					out_ApkInfo.close();
 				}	catch (Exception e) {e.printStackTrace();}
 			}
+			
 		}));
 		
 		String[] args = {};
@@ -162,6 +165,7 @@ public class Soot {
 		sortClassNames(file);
 	}
 
+	
 	private static void sortClassNames(File file) {
 	// this method sorts the /AppData/(file name)/ApkInfo.csv
 	// put MainActivity first, other Activities following, and regular classes at last
@@ -206,7 +210,6 @@ public class Soot {
 		final PrintWriter out = new PrintWriter(new FileWriter(instrumentLog));
 		PackManager.v().getPack("jtp").add(new Transform("jtp.myTransform", new BodyTransformer() {
 			protected void internalTransform(Body b, String phaseName,Map<String, String> options) {
-				if (true) return;
 				String className = b.getMethod().getDeclaringClass().getName();
 				if (className.startsWith("android.support.v"))	return;
 				if (b.getMethod().getName().contains("<clinit>") || b.getMethod().getName().contains("<init>"))	return;

@@ -45,8 +45,8 @@ public class FileFormats {
  *  
  *  Note: FieldRefs and MethodCalls are not separately stored, all mixed together
  *  
- * 		LineA(0,1,2,3,4,5,6,7,8):	"FieldRef", srcClass name, srcMethod name, tgtField Declaring Class, tgtField Name, tgtField Type, stmt, line number, column number
- *  	LineB(0,1,2,3,4,5,6,7):	"MethodCall", srcClass name, srcMethod name, tgtClass name, tgtMethod Subsignature, stmt, line number, column number
+ * 		LineA(0,1,2,3,4,5,6,7,8):	"FieldRef", srcClass name, srcMethod Subsignature, tgtField Declaring Class, tgtField Name, tgtField Type, stmt, line number, column number
+ *  	LineB(0,1,2,3,4,5,6):	"MethodCall", srcClass name, srcMethod Subsignature, tgtClass name, tgtMethod Subsignature, stmt, stmt number
  *  
  *  
  *  
