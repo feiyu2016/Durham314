@@ -11,8 +11,14 @@ import main.Paths;
 import soot.BodyTransformer;
 import soot.PackManager;
 import soot.SceneTransformer;
+import soot.SootMethod;
 import soot.Transform;
 import soot.Body;
+import soot.jimple.Stmt;
+import soot.toolkits.graph.Block;
+import soot.toolkits.graph.BlockGraph;
+import soot.toolkits.graph.ExceptionalBlockGraph;
+import soot.toolkits.graph.UnitGraph;
 
 public class SootTemplate {
 
@@ -28,6 +34,14 @@ public class SootTemplate {
 		PackManager.v().getPack("jtp").add(new Transform("jtp.myTransform", new BodyTransformer() {
 			protected void internalTransform(Body b, String phaseName,Map<String, String> options) {
 				// this method will be called on each app method
+				SootMethod m = b.getMethod();
+				if (m.getDeclaringClass().getName().startsWith("android.support.v"))	return;
+				if (!m.getName().equals("doIT"))	return;
+				System.out.println("BYTECODE PARAMS " + m.getBytecodeSignature());
+				ExceptionalBlockGraph eBG = new ExceptionalBlockGraph(b);
+				for (Block bl: eBG.getBlocks())
+					System.out.println(bl);
+				System.out.println("exceptional BG size: " + eBG.size());
 			}
 		}));
 		
