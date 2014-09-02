@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import main.Paths;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Device;
 import com.android.hierarchyviewer.device.DeviceBridge;
@@ -82,6 +84,7 @@ public class ViewPositionData {
 	}
 	
 	private void init(){
+		System.setProperty("hierarchyviewer.adb", Paths.adbPath);
 		DeviceBridge.initDebugBridge();
 	}
 	

@@ -25,7 +25,7 @@ public class SootTemplate {
 	public static void Template(File file) {
 		
 		PackManager.v().getPack("wjtp").add(new Transform("wjtp.myTransform", new SceneTransformer() {
-			protected void internalTransform(String phaseName, Map options) {
+			protected void internalTransform(String phaseName, Map<String, String> options) {
 				// this method will be called only once
 				
 			}
