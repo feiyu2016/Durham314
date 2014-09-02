@@ -51,12 +51,14 @@ public class ViewPositionData {
 			return null;
 		}
 		
-		if(debug) System.out.println("Retrieving window info");
-		Window win = retrieveWindow(device);
-		if(win == null){
-			System.out.println("Cannot find window.");
-			return null;
-		}
+//		if(debug) System.out.println("Retrieving window info");
+//		Window win = retrieveWindow(device);
+//		if(win == null){
+//			System.out.println("Cannot find window.");
+//			return null;
+//		}
+		
+		Window win = Window.FOCUSED_WINDOW;
 		
 		if(debug)System.out.println("Request layout");
 		invalidateLayout(device, win);
