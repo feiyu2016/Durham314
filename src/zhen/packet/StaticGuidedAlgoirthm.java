@@ -112,6 +112,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	private ArrayList<EventRecord> currentPath;
 	private static Logger logger = Utility.setupLogger(StaticGuidedAlgoirthm.class);
 	
+	
 	/**
 	 * @param apkPath	-- 	the path to the target APK file which will be installed on device
 	 */
@@ -156,6 +157,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	@Override
 	public void execute() {
 		if(Debug)logger.info("Execution starts");
+		System.out.println(this.activityNames);
 		//pick an activity that has not been tested
 		while(true){
 			int actIndex = Utility.findFirstFalse(actMark);
@@ -169,6 +171,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			//the event of launching APP is not recorded
 			
 			currentPath = new ArrayList<EventRecord>();
+			innerTravel_failure = false;
 			innerTravel(null, currentActName);
 			eventSequenceRecorder.put(currentStartingActName, currentPath);
 		}
@@ -196,8 +199,6 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			if(Debug)logger.info("innerTravel, Act:"+currentActName+" layout:"+currentLayoutInfo.hashCode());
 			//TODO -- Optimization: Could sort the array by mID, this benefits for searching later
 			
-			//NOTE maybe keyboard status should be recorded
-			System.out.println("before3");
 			checkAndCloseKeyboard();
 			
 			//match with existing static information
@@ -247,9 +248,14 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 					}else if(ignoreViewGroup){
 						if(name.contains("Layout") || name.contains("Container")){
 							viewProfile.put(TESTED, "true");
-							logger.info("ignore "+name);
+							if(Debug)logger.info("ignore "+name);
 							continue;
 						}
+					}else if(name.contains("action")){
+						if(Debug)logger.info("ignore "+name);
+						viewProfile.put(TESTED, "true");
+						logger.info("ignore "+name);
+						continue;
 					}
 					
 					
@@ -262,7 +268,6 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						record.recordFromViewProfile(viewProfile);
 						carryoutEventOnView(viewProfile, eventType, true);//e.g press, click
 						waitForTime(800);
-						System.out.println("before1");
 						boolean keyboardTriggered = checkAndCloseKeyboard();
 						boolean checkFirst = false;
 						//check consequence
@@ -273,13 +278,21 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						if(focuedActName.equals(currentActName)){	//in the same activity ?
 							logger.info("within the same act:"+focuedActName);
 							List<String> info = this.viewData.retrieveFocusedActivityInformation();
-							List<Map<String,String>> processedLayoutInfo = this.processLayoutData(info);
+							List<Map<String,String>> info_afterward = this.processLayoutData(info);
+							
 							//compare the information with known layout to determine any change
-							if(isExactlyMatched(processedLayoutInfo,currentLayoutInfo)){
-								layoutUnchanged = true; // the same layout -- no change at all --> proceed
-							}else{ //layout has changed 
-								innerTravel(currentLayoutInfo, currentActName);
+							layoutUnchanged = isExactlyMatched(info_afterward,currentLayoutInfo);
+							if(layoutUnchanged == false){
+								record.destActName = focuedActName;
+								record.triggerLayoutChange = layoutUnchanged;								
+								this.currentPath.add(record);
+								ArrayList<EventRecord> newPath = new ArrayList<EventRecord>(currentPath);
+								//record the path to the new layout
+								eventSequenceRecorder.put(info.toString(), newPath);
+								innerTravel(info_afterward, currentActName);
+								currentPath.remove(currentPath.size()-1);
 							}
+							
 						}else if(this.activityNames.contains(focuedActName)){//has jumped to other activity in the APP?	
 							logger.info("enter act:"+focuedActName+" from "+currentActName);
 							labelActivityAsReached(focuedActName);
@@ -301,24 +314,25 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 							// don't traverse into the other APP
 						}
 						
-						record.destActName = focuedActName;
-						record.triggerLayoutChange = layoutUnchanged;
 						if(keyboardTriggered){
 							record.additionalInfo.put("keyboard", "triggered");
 						}
-						this.currentPath.add(record);
 
 						if(layoutUnchanged){ 
-							logger.info("layout does not change");
+							logger.info("layout did not change");
 							continue; 
 						}else{
 							logger.info("layout was changed");
 						}
 						
-						//make sure the consistency of the UI graph
-						//TODO -- reinfo/re-think this part when a failure occurs
+						//upon this point UI should have changed
 						if(innerTravel_failure) return;
-						sustainUIGraphConsisitencyProcedure(currentLayoutInfo,checkFirst);
+						boolean isSucessful = sustainUIGraphConsisitencyProcedure(currentLayoutInfo,checkFirst);
+						if(isSucessful){
+							
+						}else{
+							failToReachUI();
+						}
 					}
 					viewProfile.put(TESTED, "true");
 				}
@@ -390,7 +404,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			}
 		}
 		
-		failToReachUI();
+		
 		return false ;
 	}
 	
@@ -470,7 +484,6 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 				
 				String keybordEvent = event.additionalInfo.get("keyboard");
 				if(keybordEvent!=null && keybordEvent.equals("triggered")){
-					System.out.println("before2");
 					this.checkAndCloseKeyboard();
 				}
 			}
