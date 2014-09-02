@@ -1,16 +1,17 @@
 package main;
 
 import inputGeneration.JDBStuff;
-
+import inputGeneration.Layout;
 import inputGeneration.ParseSmali;
 import inputGeneration.SimpleTesting;
-
 import inputGeneration.StaticInfo;
+import inputGeneration.ViewNode;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.w3c.dom.Node;
 
@@ -20,60 +21,41 @@ public class Main {
 	
 
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args){
 		//File file = new File("/home/wenhaoc/AppStorage/TestThreads.apk");
-		File file = new File("/home/john/AppData/fast.apk");
 
-		setBreakPointsAtAllLines(file);
-
-		
-
-
-		
-		SimpleTesting.clickAll(new File("/home/john/HDD/flashboot/apps/fast.apk"));
-		
-		/*initAnalysis(file);
-		
-		StaticInfo.getActivityNames(file);
-		for (Node node: nodes) {
-			Element e = (Element) node;
-			System.out.println(e.getAttributes().getLength());
-			e.setAttribute("LOL", "aaa");
-		}
-		System.out.println("---------------");
-		for (Node node: nodes) {
-			Element e = (Element) node;
-			System.out.println(e.getAttributes().getLength());
-			System.out.println(node.getAttributes().getNamedItem("LOL").getNodeValue());
-			
-		}
->>>>>>> refs/remotes/origin/master
-		//initAnalysis(file);
+		File file = new File("/home/wenhaoc/AppStorage/PlayStoreApps/co.vine.android.apk");
+		file = new File("/home/wenhaoc/AppStorage/SpringVersion1.5.apk");
+		file = new File("/home/wenhaoc/AppStorage/Fast.apk");
+		StaticInfo.initAnalysis(file, false);
+		//file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
+		//StaticInfo.initAnalysis(file, false);
 		try {
-<<<<<<< HEAD
-			//SimpleTesting.clickAll(file);
-		} catch (Exception e) {	e.printStackTrace();}
-=======
-			
-		} catch (Exception e1) {e1.printStackTrace();}*/
-
-
-//		initAnalysis(file);
-		//testJDB(file);
-
-		
-		/*try {
 			SimpleTesting.clickAll(file);
-		} catch (Exception e) {	e.printStackTrace();}*/
+		}	catch (Exception e) {e.printStackTrace();}
+		
 
 	}
 	
-	
-	private static void initAnalysis(File file) {
-		analysisTools.ApkTool.extractAPK(file);
-		analysisTools.Soot.generateAPKData(file);
-		StaticInfo.process_Intents_And_setContentView(file);
+	private static void showAllEHs(File file) {
+		for (Layout layout: StaticInfo.getLayoutList(file)){
+			for (ViewNode vN: layout.getAllViewNodes()) {
+				ArrayList<String> stayingList = vN.getStayingEvents(StaticInfo.getMainActivityName(file));
+				Map<String, ArrayList<String>> leavingMap = vN.getLeavingEvents(StaticInfo.getMainActivityName(file));
+				System.out.println("view with id of " + vN.getID() + " has following STAYING event handler:");
+				for (String sEH : stayingList)
+					System.out.println("  " + sEH);
+				System.out.println("view with id of " + vN.getID() + " has following LEAVING event handler:");
+				for (Map.Entry<String, ArrayList<String>> entry: leavingMap.entrySet()) {
+					System.out.print("  " + entry.getKey() + ". Targets:");
+					for (String s: entry.getValue())
+						System.out.print(" " + s);
+					System.out.print("\n");
+				}
+			}
+		}
 	}
+	
 	
 	private static void setBreakPointsAtAllLines(File file) {
 		ArrayList<String> al = new ParseSmali().parseLines(file);

@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -23,6 +25,7 @@ public class StaticInfo {
 	private static ArrayList<Layout> layoutList = new ArrayList<Layout>();
 	public static ArrayList<String> UIChanges = new ArrayList<String>();
 	private static Map<String, String> defLayouts = new HashMap<String, String>();
+	private static ArrayList<String> callGraph = new ArrayList<String>();
 	
 	public static ArrayList<Layout> getLayoutList(File file) {
 		return layoutList;
@@ -55,9 +58,29 @@ public class StaticInfo {
 		File cG = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
 		if (!cG.exists() || forceAllSteps)
 			analysisTools.Soot.generateAPKData(file);
+		System.out.println("reading call graph...");
+		prepareCG(file);
+		System.out.println("finished reading call graph\nparsing XML layouts");
 		parseXMLLayouts(file);
+		System.out.println("finished parsing XML layouts\nparsing java layouts");
 		parseJavaLayouts(file);
+		System.out.println("finished parsing java layouts\nprocessing intents and setcontentview");
 		process_Intents_And_setContentView(file);
+		System.out.println("finished processing intents and setcontentviews");
+		System.out.println("initAnalysis finished.");
+	}
+	
+	private static void prepareCG(File file) {
+		File cgFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(cgFile));
+			String line;
+			while ((line = in.readLine())!=null)
+				callGraph.add(line);
+			in.close();
+		}	catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static ArrayList<String> getClassNames(File file) {
@@ -127,6 +150,7 @@ public class StaticInfo {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifestFile);
 			doc.getDocumentElement().normalize();
 			NodeList activityList = doc.getElementsByTagName("activity");
+			System.out.println("found " + activityList.getLength());
 			for (int i = 0; i < activityList.getLength(); i++) {
 				Node activityNode = activityList.item(i);
 				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
@@ -145,7 +169,7 @@ public class StaticInfo {
 				if (actionNode.getAttributes().getNamedItem("android:name").getNodeValue().equals("android.intent.action.MAIN")) {
 					Node mainActvtNode = actionNode.getParentNode().getParentNode();
 					mainActvtName = mainActvtNode.getAttributes().getNamedItem("android:name").getNodeValue();
-					if (mainActvtName.startsWith("."))	
+					if (mainActvtName.startsWith("."))
 						mainActvtName = mainActvtName.substring(1, mainActvtName.length());
 					if (!mainActvtName.startsWith(StaticInfo.getPackageName(file)))
 						mainActvtName = StaticInfo.getPackageName(file) + "." + mainActvtName;
@@ -193,7 +217,7 @@ public class StaticInfo {
 				for (String c: classNames)
 					if (c.equals(layoutType))
 						isCustom = true;
-				Layout thisLayout = new Layout(layoutName, layoutNode, isCustom);
+				Layout thisLayout = new Layout(layoutName, layoutNode, layoutType, isCustom);
 				layoutList.add(thisLayout);
 				doc.getDocumentElement().normalize();
 				NodeList nodes = doc.getElementsByTagName("*");
@@ -232,7 +256,16 @@ public class StaticInfo {
 	private static void parseJavaLayouts(File file) {
 		// TODO parse java layouts and add views
 		// first read the code of those custom layouts, then scan the others
-		
+		for (Layout l : layoutList) {
+			if (!l.isCustomLayout())	continue;
+			if (l.getType().startsWith("android.support.v"))	continue;
+			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
+			try {
+				BufferedReader in = new BufferedReader(new FileReader(classFile));
+				
+				in.close();
+			}	catch (Exception e) {e.printStackTrace();}
+		}
 	}
 	
 	private static String findViewNameByID(File file, String ID) {
@@ -276,10 +309,12 @@ public class StaticInfo {
 		try {
 			// first collect all startActivity and setContentView in code, and determine their characteristics
 			for (File classFolder: classFolders) {
+
 				File[] methodJimples = classFolder.listFiles();
 				String className = classFolder.getName();
 				for (File methodJimple: methodJimples) {
 					if (!methodJimple.getName().endsWith(".jimple"))	continue;
+					System.out.println("  scanning " + className + "/" + methodJimple.getName());
 					String methodFileName = methodJimple.getName().substring(0, methodJimple.getName().length()-7);
 					BufferedReader in_mJ = new BufferedReader(new FileReader(methodJimple));
 					int lineNumber = 1;
@@ -449,8 +484,7 @@ public class StaticInfo {
 		// output format: className,methodSig,lineNumber
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
-		String[] outCalls = readDatFile(new File(Paths.appDataDir + file.getName() + "/CallGraph.csv")).split("\n");
-		for (String outCall: outCalls) {
+		for (String outCall: callGraph) {
 			String[] out = outCall.split(",");
 			if (!out[0].equals("MethodCall"))	continue;
 			if (className.equals(out[3]) && methodSubSig.equals(out[4])) {
@@ -459,7 +493,8 @@ public class StaticInfo {
 					callMap.put(callSig , false);
 			}
 		}
-		for (Map.Entry<String, Boolean> entry: callMap.entrySet()) {
+		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
+		for (Map.Entry<String, Boolean> entry: entrySets) {
 			if (entry.getValue())	continue;
 			String nextClassName = entry.getKey().split(",")[0];
 			String nextMethodSubSig = entry.getKey().split(",")[1];
@@ -507,7 +542,9 @@ public class StaticInfo {
 		String methodSubSig = in_mI.readLine().split(",")[5];
 		in_mI.close();
 		boolean inOnCreate = isOnCreate(file, className, methodSubSig);
+
 		ArrayList<String> possibleEHs = findEventHandlersThatMightDirectlyCallThisMethod(file, className, methodSubSig);
+
 		boolean inEventHandler = false;
 		if (possibleEHs.size() > 0)	inEventHandler = true;
 		// Step 3, get all possible incoming method calls, pick onCreate and EventHandlers from them
@@ -574,7 +611,6 @@ public class StaticInfo {
 		return result;
 	}
 	
-	
 	public static String readDatFile(File file) {
 		String result = "", currentLine = "";
 		try {
@@ -585,4 +621,5 @@ public class StaticInfo {
 		}	catch (Exception e) {e.printStackTrace();}
 		return result;
 	}
+
 }

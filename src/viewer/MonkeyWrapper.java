@@ -203,6 +203,7 @@ public class MonkeyWrapper {
 	
 	public void interactiveModleConnectDevice(){
 		String toWrite = "device = MonkeyRunner.waitForConnection()\n";
+		System.out.println("connecting");
 		try {
 			ostream.write(toWrite.getBytes());
 			ostream.flush();
@@ -210,6 +211,7 @@ public class MonkeyWrapper {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("finish connecting");
 	}
 	
 	private boolean isNotReadyForNextInput(String msg){

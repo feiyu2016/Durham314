@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import main.Paths;
+
 import zhen.packet.ADBControl;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -43,6 +45,7 @@ public class ViewPositionData {
 		deviceSelecter = new ViewPositionData.SelectFirstDevice();
 		windowSelecter = focusedWindowSelecter;
 		filter = new ViewPositionData.FilterDrawingData();
+		System.setProperty("hierarchyviewer.adb", Paths.androidPlatformToolPath);
 	}
 	
 	
@@ -119,6 +122,7 @@ public class ViewPositionData {
 		}
 		return false;
 	}
+	
 	public static void main(String[] args){
 		ViewPositionData view = new ViewPositionData();
 		view.init();
