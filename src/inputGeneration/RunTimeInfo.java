@@ -18,6 +18,7 @@ public class RunTimeInfo {
 		String packageName = StaticInfo.getPackageName(file);
 		String mainActivity = StaticInfo.getMainActivityName(file);
 		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " shell am start -n " + packageName + "/" + mainActivity);
+		pc.waitFor();
 		printStreams(pc);
 	}
 	

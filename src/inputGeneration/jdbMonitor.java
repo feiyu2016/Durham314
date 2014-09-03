@@ -29,8 +29,8 @@ public class jdbMonitor implements Runnable{
 				if ((System.currentTimeMillis() - time) > 1000) {
 					if(inStream) JDBStuff.flag = true;
 				}
-				System.out.println(line);
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
+				//System.out.println(line);
 				time = System.currentTimeMillis();
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));

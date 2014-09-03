@@ -15,12 +15,13 @@ public class Layout {
 	private boolean isCustomLayout;
 	private boolean hasInclude;
 	
-	public Layout(String name, Node layoutNode, boolean isCustom) {
+	public Layout(String name, Node layoutNode, String type, boolean isCustom) {
 		Name = name;
 		viewNodes = new ArrayList<ViewNode>();
 		Node = layoutNode;
 		isCustomLayout = isCustom;
 		hasInclude = false;
+		Type = type;
 		checkInclude();
 	}
 	

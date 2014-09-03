@@ -11,6 +11,7 @@ import main.Paths;
 public class JDBStuff {
 	
 	public static boolean flag = false;
+	public static boolean monitorOn = false;
 	private static Process pc;
 	private static OutputStream out;
 	private static int tcpPort = 7772;
@@ -47,7 +48,7 @@ public class JDBStuff {
 		for (String string:breakPointList) {
 			i++;
 			setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
-			System.out.println("Set breakpoint " + i + "/" + breakPointList.size());
+			//System.out.println("Set breakpoint " + i + "/" + breakPointList.size());
 		}
 	}
 	

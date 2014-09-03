@@ -1,21 +1,40 @@
 package viewer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+
+import android.view.KeyEvent;
 
 public class MonkeyWrapperTest {
 	static MonkeyWrapper m;
-	static ArrayList<String> arr;
+	static List<String> arr;
 	static ViewPositionData pos;
 	public static void main(String[] args){
 		m = new MonkeyWrapper();
 		pos = new ViewPositionData();
 		arr = pos.retrieveViewInformation();		
 		System.out.println("testing");
-		testInteractiveModel();
+//		testInteractiveModel();
 //		testScriptCase();
+		testPress();
 	}
 
+	private static void testPress(){
+		Scanner sc = new Scanner(System.in);
+		m.startInteractiveModel();
+		while(true){
+			String reading = sc.nextLine().trim().split(" ")[0];
+			if(reading.equals("0")){
+				break;
+			}
+			if(reading.equals("b")){
+				m.interactiveModelPress(KeyEvent.KEYCODE_BACK+"");
+			}
+		}
+		sc.close();
+		m.stopInteractiveModle();
+	}
+	
 	private static void testInteractiveModel(){
 		m.startInteractiveModel();
 		
