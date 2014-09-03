@@ -56,15 +56,9 @@ public class ViewPositionData {
 	 * must be running.
 	 * @return
 	 */
-	public ArrayList<String> retrieveViewInformation(){
-
-		
-		
-		
+	public ArrayList<String> retrieveViewInformation(){	
         init();
-        
 //      ADBControl.sendADBCommand(ADBControl.unlockScreenCommand);
-      
 
       Window win = Window.FOCUSED_WINDOW;
 
@@ -175,6 +169,7 @@ public class ViewPositionData {
 	
 	
 	public boolean init(){
+		System.setProperty("hierarchyviewer.adb", Paths.androidPlatformToolPath);
 		return initialized?true:initInternal();
 	}
 	

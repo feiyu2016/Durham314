@@ -1,15 +1,10 @@
 package inputGeneration;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-
 public class JDBMonkeyCorrelation implements Runnable {
 	
-	public BufferedReader in;
-	
-	public JDBMonkeyCorrelation(BufferedReader bR)
+	public JDBMonkeyCorrelation()
 	{
-		in = bR;
+
 	}
 	
 	public void run() 
@@ -19,29 +14,22 @@ public class JDBMonkeyCorrelation implements Runnable {
 	
 	private void getBreakPointsFromClick()
 	{
-		String line;
-		long time;
+		long timeNoSee;
 		try {
-			time = System.currentTimeMillis();
-			while ((line = in.readLine())!=null) {
-				// read that file, see if any of those break points are reached
-				if ((System.currentTimeMillis() - time) > 1000) {
-					System.out.println("Returning from getBreakPointsFromClick()");
-					return;
-				}
-				if (!line.startsWith("Breakpoint hit: \"")) continue;
-				time = System.currentTimeMillis();
-				String classAndMethod = line.split(",")[1].trim();
+			timeNoSee = System.currentTimeMillis();
+			while ((System.currentTimeMillis() - timeNoSee) > 1000) {
+				
+				if(JDBStuff.hitBPfromJDBMonitor.isEmpty()) continue;
+				String classAndMethod = JDBStuff.hitBPfromJDBMonitor.get(0).split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());
-				int lineNumber = Integer.parseInt(line.split(",")[2].trim().split(" ")[0].split("=")[1]);
-				long timeStamp = System.currentTimeMillis();
-				JDBStuff.clicksAndBreakPoints.add("BreakPoint," + timeStamp + "," + className + "," + methodSig + "," + lineNumber);
-				System.out.println("Should've added");
-				
+				int lineNumber = Integer.parseInt(JDBStuff.hitBPfromJDBMonitor.get(0).split(",")[2].trim().split(" ")[0].split("=")[1]);
+				long timeStamp = timeNoSee = System.currentTimeMillis();
+				JDBStuff.clicksAndBreakPoints.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				JDBStuff.hitBPfromJDBMonitor.remove(0);
 			}
-			System.out.println("WARNING: BufferedReader ended. This shouldn't have happened.");
-		} catch (IOException e) {
+		} 
+		catch (Exception e) {
 			System.out.println("Exception");
 			e.printStackTrace();
 		}

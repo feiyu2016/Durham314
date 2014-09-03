@@ -224,8 +224,13 @@ import viewer.ViewPositionData;
 				System.out.println(widgetLocation[0] + "," + widgetLocation[1] + "," + widgetLocation[2] + "," + widgetLocation[3] + "," + "  " + x + "," + y);
 				JDBStuff.clicksAndBreakPoints.add("Click," + layoutName + "," + widgetID + "," + x + "," + y);
 				m.interactiveModelTouch(x, y, MonkeyWrapper.DOWN_AND_UP);
+
 				JDBStuff.monitorOn = true;
 				System.out.println("clicking " + widgetID);
+
+				new JDBStuff().getClickBreakPoints();
+				System.out.println("clicked " + widgetID);
+
 				while (!JDBStuff.flag) {};
 				JDBStuff.flag = false;
 				System.out.println("---------------------------");

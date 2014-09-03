@@ -39,23 +39,31 @@ public class Main {
 
 	}
 	
-	private static void showAllEHs(File file) {
-		for (Layout layout: StaticInfo.getLayoutList(file)){
-			for (ViewNode vN: layout.getAllViewNodes()) {
-				ArrayList<String> stayingList = vN.getStayingEvents(StaticInfo.getMainActivityName(file));
-				Map<String, ArrayList<String>> leavingMap = vN.getLeavingEvents(StaticInfo.getMainActivityName(file));
-				System.out.println("view with id of " + vN.getID() + " has following STAYING event handler:");
-				for (String sEH : stayingList)
-					System.out.println("  " + sEH);
-				System.out.println("view with id of " + vN.getID() + " has following LEAVING event handler:");
-				for (Map.Entry<String, ArrayList<String>> entry: leavingMap.entrySet()) {
-					System.out.print("  " + entry.getKey() + ". Targets:");
-					for (String s: entry.getValue())
-						System.out.print(" " + s);
-					System.out.print("\n");
-				}
-			}
-		}
+//<<<<<<< HEAD
+	
+	private static void initAnalysis(File file) {
+		analysisTools.ApkTool.extractAPK(file);
+		analysisTools.Soot.generateAPKData(file);
+//		StaticInfo.process_Intents_And_setContentView(file);
+//=======
+//	private static void showAllEHs(File file) {
+//		for (Layout layout: StaticInfo.getLayoutList(file)){
+//			for (ViewNode vN: layout.getAllViewNodes()) {
+//				ArrayList<String> stayingList = vN.getStayingEvents(StaticInfo.getMainActivityName(file));
+//				Map<String, ArrayList<String>> leavingMap = vN.getLeavingEvents(StaticInfo.getMainActivityName(file));
+//				System.out.println("view with id of " + vN.getID() + " has following STAYING event handler:");
+//				for (String sEH : stayingList)
+//					System.out.println("  " + sEH);
+//				System.out.println("view with id of " + vN.getID() + " has following LEAVING event handler:");
+//				for (Map.Entry<String, ArrayList<String>> entry: leavingMap.entrySet()) {
+//					System.out.print("  " + entry.getKey() + ". Targets:");
+//					for (String s: entry.getValue())
+//						System.out.print(" " + s);
+//					System.out.print("\n");
+//				}
+//			}
+//		}
+//>>>>>>> refs/remotes/origin/master
 	}
 	
 	

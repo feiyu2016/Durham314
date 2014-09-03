@@ -20,6 +20,7 @@ public class JDBStuff {
 	public static ArrayList<String> bPHitLog = new ArrayList<String>();
 	public static ArrayList<String> nonDupe_bPHitLog = new ArrayList<String>();
 	public static ArrayList<String> clicksAndBreakPoints = new ArrayList<String>();
+	public static ArrayList<String> hitBPfromJDBMonitor = new ArrayList<String>();
 	
 	public void initJDB(File file) throws Exception{
 		String pID = RunTimeInfo.getPID(file);
@@ -44,9 +45,9 @@ public class JDBStuff {
 	}
 	
 	public void setBreakPointsAllLines(ArrayList<String> breakPointList) throws Exception {
-		int i = 0;
+		//int i = 0;
 		for (String string:breakPointList) {
-			i++;
+			//i++;
 			setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
 			//System.out.println("Set breakpoint " + i + "/" + breakPointList.size());
 		}
@@ -77,16 +78,16 @@ public class JDBStuff {
 	}
 	
 	private void printStreams() throws Exception{
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream())), true))).start();
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream())), false))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))/*, true*/))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))/*, false*/))).start();
 	}
 	
-	/*public static void getClickBreakPoints() throws Exception {
+	public void getClickBreakPoints() throws Exception {
 		if(pc == null) System.out.println("pc is null");
-		Thread nT = new Thread(new JDBMonkeyCorrelation(new BufferedReader(new InputStreamReader(pc.getInputStream()))));
+		Thread nT = new Thread(new JDBMonkeyCorrelation());
 		nT.start();
 		nT.join();
-	}*/
+	}
 	
 	private void addBreakPoints(String newBP) {
 		boolean exists = false;

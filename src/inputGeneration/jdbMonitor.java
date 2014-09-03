@@ -6,11 +6,11 @@ import java.io.IOException;
 public class jdbMonitor implements Runnable{
 
 	private BufferedReader in;
-	private boolean inStream;
+	//private boolean inStream;
 	
-	public jdbMonitor(BufferedReader bR, boolean iS) {
+	public jdbMonitor(BufferedReader bR/*, boolean iS*/) {
 		in = bR;
-		inStream = iS;
+		//inStream = iS;
 	}
 	
 	@Override
@@ -20,25 +20,14 @@ public class jdbMonitor implements Runnable{
 
 	private void startsMonitoring() {
 		String line;
-		long time;
 		
 		try {
-			time = System.currentTimeMillis();
 			while ((line = in.readLine())!=null) {
-				// read that file, see if any of those break points are reached
-				if (JDBStuff.monitorOn) {
-					if ((System.currentTimeMillis() - time) > 1000) {
-						if(inStream) {
-							JDBStuff.flag = true;
-							JDBStuff.monitorOn = false;
-						}
-						System.out.println("IT's OUT");
-					}
-				}
+
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
-				//System.out.println(line);
-				if (JDBStuff.monitorOn)
-					time = System.currentTimeMillis();
+
+				JDBStuff.hitBPfromJDBMonitor.add(line);
+
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());
