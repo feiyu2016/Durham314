@@ -24,7 +24,13 @@ import viewer.ViewPositionData;
 
 			RunTimeInfo.startApp(file);	// adb am start -n package/activity
 			
-			setBreakPointsAtAllLines(file);
+			ArrayList<String> al = new ParseSmali().parseBeginningAndReturnLines(file);
+			
+			for (String string : al) {
+				System.out.println(string);
+			}
+			
+			/*setBreakPointsAtAllLines(file);
 			System.out.println("HERE");
 			initRuntimeEnv();		// initiate HierarchyViewer and MonkeyRunner
 			System.out.println("INITIATION COMPLETE");
@@ -35,7 +41,7 @@ import viewer.ViewPositionData;
 			updateViewData();
 			sendEvent(file, "activity_main", "gtr", "android:onClick");
 			updateViewData();
-			sendEvent(file, "activity_main", "por", "android:onClick");
+			sendEvent(file, "activity_main", "por", "android:onClick");*/
 			
 /*			String mainActivityName = StaticInfo.getMainActivityName(file);
 			clearClickingRecord(file);
