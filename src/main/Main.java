@@ -26,12 +26,14 @@ public class Main {
 
 		File file = new File("/home/wenhaoc/AppStorage/PlayStoreApps/co.vine.android.apk");
 		file = new File("/home/wenhaoc/AppStorage/SpringVersion1.5.apk");
-		file = new File("/home/wenhaoc/AppStorage/Fast.apk");
-		StaticInfo.initAnalysis(file, false);
+		//file = new File("/home/wenhaoc/AppStorage/Fast.apk");
+		//StaticInfo.initAnalysis(file, false);
 		//file = new File("/home/wenhaoc/workspace/Test/bin/Test.apk");
 		//StaticInfo.initAnalysis(file, false);
+		for (String s: StaticInfo.getActivityNames(file))
+			System.out.println(s);
 		try {
-			SimpleTesting.clickAll(file);
+			//SimpleTesting.clickAll(file);
 		}	catch (Exception e) {e.printStackTrace();}
 		
 

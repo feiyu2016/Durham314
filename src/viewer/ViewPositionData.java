@@ -57,22 +57,30 @@ public class ViewPositionData {
 	 * @return
 	 */
 	public ArrayList<String> retrieveViewInformation(){
-		init();
+
 		
-//		ADBControl.sendADBCommand(ADBControl.unlockScreenCommand);
 		
-		if(debug) System.out.println("Retrieving window info");
-		currentWindow = retrieveWindow(currentDevice);
 		
-		if(debug)System.out.println("Request layout");
-		invalidateLayout(currentDevice, currentWindow);
+        init();
+        
+//      ADBControl.sendADBCommand(ADBControl.unlockScreenCommand);
+      
+
+      Window win = Window.FOCUSED_WINDOW;
+
+      
+      if(debug)System.out.println("Request layout");
+      invalidateLayout(currentDevice, win);
+      
+      if(debug) System.out.println("Retrieving view info");
+      ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,win);
+      
+      if(debug) System.out.println("Filtering Data");
+      ArrayList<String> result = processData(arrlist);
+      return result;
 		
-		if(debug) System.out.println("Retrieving view info");
-		ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,currentWindow);
 		
-		if(debug) System.out.println("Filtering Data");
-		ArrayList<String> result = processData(arrlist);
-		return result;
+		
 	}
 	
 	public String getFocusedActivityName(){

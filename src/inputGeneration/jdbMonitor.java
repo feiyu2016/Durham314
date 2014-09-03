@@ -26,12 +26,19 @@ public class jdbMonitor implements Runnable{
 			time = System.currentTimeMillis();
 			while ((line = in.readLine())!=null) {
 				// read that file, see if any of those break points are reached
-				if ((System.currentTimeMillis() - time) > 1000) {
-					if(inStream) JDBStuff.flag = true;
+				if (JDBStuff.monitorOn) {
+					if ((System.currentTimeMillis() - time) > 1000) {
+						if(inStream) {
+							JDBStuff.flag = true;
+							JDBStuff.monitorOn = false;
+						}
+						System.out.println("IT's OUT");
+					}
 				}
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
 				//System.out.println(line);
-				time = System.currentTimeMillis();
+				if (JDBStuff.monitorOn)
+					time = System.currentTimeMillis();
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());
