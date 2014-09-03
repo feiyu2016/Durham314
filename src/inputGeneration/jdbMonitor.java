@@ -1,6 +1,7 @@
 package inputGeneration;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 
 public class jdbMonitor implements Runnable{
@@ -31,6 +32,7 @@ public class jdbMonitor implements Runnable{
 				}
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
 				//System.out.println(line);
+				JDBStuff.hitBPfromJDBMonitor.add(line);
 				time = System.currentTimeMillis();
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));

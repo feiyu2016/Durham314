@@ -1,6 +1,7 @@
 package inputGeneration;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -20,6 +21,7 @@ public class JDBStuff {
 	public static ArrayList<String> bPHitLog = new ArrayList<String>();
 	public static ArrayList<String> nonDupe_bPHitLog = new ArrayList<String>();
 	public static ArrayList<String> clicksAndBreakPoints = new ArrayList<String>();
+	public static ArrayList<String> hitBPfromJDBMonitor = new ArrayList<String>();
 	
 	public void initJDB(File file) throws Exception{
 		String pID = RunTimeInfo.getPID(file);
@@ -81,12 +83,12 @@ public class JDBStuff {
 		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream())), false))).start();
 	}
 	
-	/*public static void getClickBreakPoints() throws Exception {
+	public void getClickBreakPoints() throws Exception {
 		if(pc == null) System.out.println("pc is null");
-		Thread nT = new Thread(new JDBMonkeyCorrelation(new BufferedReader(new InputStreamReader(pc.getInputStream()))));
+		Thread nT = new Thread(new JDBMonkeyCorrelation());
 		nT.start();
 		nT.join();
-	}*/
+	}
 	
 	private void addBreakPoints(String newBP) {
 		boolean exists = false;
