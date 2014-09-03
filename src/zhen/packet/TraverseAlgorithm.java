@@ -33,7 +33,8 @@ public abstract class TraverseAlgorithm {
 	protected ViewPositionData.NodeDataFilter dataFilter;
 	private static Logger logger = Utility.setupLogger(TraverseAlgorithm.class);
 	
-	public boolean enableAPKTool = false, enableStaticInfo = true, enableJDB = false, 
+	public boolean enableAPKTool = false, enableStaticInfo = true, enableJDB = false,
+			enableStaticAnalysis = false,
 			showStaticInfo = true, enableDynamicInit = true , enablePostRun = true,
 			enablePreRun = true, enableExcute = true, forceReinstallOnStartup = false;
 			
@@ -46,10 +47,13 @@ public abstract class TraverseAlgorithm {
 		}
 	}
 	public void start(){
+		long time1 = System.currentTimeMillis();
 		logger.info("TraverseAlgorithm starts");
 		if(enablePreRun)	preRun();
 		if(enableExcute)	execute();
 		if(enablePostRun)	postRun();
+		long time2 = System.currentTimeMillis();
+		System.out.println("Total: "+(time2-time1));
 	}
 	
 	public abstract void execute();
@@ -82,11 +86,14 @@ public abstract class TraverseAlgorithm {
 		//setup static info
 		if(enableStaticInfo){
 			logger.info("static infomation generation starts");
-			activityNames = StaticInfo.getActivityNames(apkFile);
-			actMark = new boolean[activityNames.size()];
-			
+			if(enableStaticAnalysis){
+				StaticInfo.initAnalysis(apkFile, true);
+			}
 			packageName = StaticInfo.getPackageName(apkFile);
 			staticLayout = StaticInfo.getLayoutList(apkFile);
+			
+			activityNames = StaticInfo.getActivityNames(apkFile);
+			actMark = new boolean[activityNames.size()];
 			logger.info("static infomation generation ends");
 		}
 		

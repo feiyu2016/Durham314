@@ -11,8 +11,8 @@ public class Paths {
 	 * appDataDir is the place where the generated files stored.
 	 */
 	
-	public static String androidSDKPath = "/home/wenhaoc/bin/adt-bundle-linux-x86_64-20140702/";
-	public static String appDataDir = "/home/wenhaoc/AppData/";
+	public static String androidSDKPath = "/home/zhenxu/tools/adt-bundle-linux-x86_64-20140702/";
+	public static String appDataDir = "result/";
 
 	
 	public static String androidToolPath = androidSDKPath+"sdk/tools/";
