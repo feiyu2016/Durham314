@@ -10,8 +10,8 @@ import main.Paths;
 
 public class JDBStuff {
 	
-	public static boolean flag = false;
-	public static boolean monitorOn = false;
+	//public static boolean flag = false;
+	//public static boolean monitorOn = false;
 	private static Process pc;
 	private static OutputStream out;
 	private static int tcpPort = 7772;

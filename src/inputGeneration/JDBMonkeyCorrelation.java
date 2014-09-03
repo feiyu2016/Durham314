@@ -17,7 +17,7 @@ public class JDBMonkeyCorrelation implements Runnable {
 		long timeNoSee;
 		try {
 			timeNoSee = System.currentTimeMillis();
-			while ((System.currentTimeMillis() - timeNoSee) < 1000) {
+			while ((System.currentTimeMillis() - timeNoSee) < 5000) {
 				
 				if(JDBStuff.hitBPfromJDBMonitor.isEmpty()) continue;
 				String classAndMethod = JDBStuff.hitBPfromJDBMonitor.get(0).split(",")[1].trim();
@@ -26,6 +26,7 @@ public class JDBMonkeyCorrelation implements Runnable {
 				int lineNumber = Integer.parseInt(JDBStuff.hitBPfromJDBMonitor.get(0).split(",")[2].trim().split(" ")[0].split("=")[1]);
 				long timeStamp = timeNoSee = System.currentTimeMillis();
 				JDBStuff.clicksAndBreakPoints.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				//System.out.println(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
 				JDBStuff.hitBPfromJDBMonitor.remove(0);
 			}
 		} 

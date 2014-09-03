@@ -28,14 +28,14 @@ import viewer.ViewPositionData;
 			System.out.println("HERE");
 			initRuntimeEnv();		// initiate HierarchyViewer and MonkeyRunner
 			System.out.println("INITIATION COMPLETE");
-			//updateViewData();
-			//sendEvent(file, "activity_main", "bug", "android:onClick");
-			//updateViewData();
-			//sendEvent(file, "activity_main", "bmw", "android:onClick");
-			//updateViewData();
-			//sendEvent(file, "activity_main", "gtr", "android:onClick");
 			updateViewData();
-			sendEvent(file, "activity_main", "ferrari", "android:onClick");
+			sendEvent(file, "activity_main", "bug", "android:onClick");
+			updateViewData();
+			sendEvent(file, "activity_main", "ford", "android:onClick");
+			updateViewData();
+			sendEvent(file, "activity_main", "gtr", "android:onClick");
+			updateViewData();
+			sendEvent(file, "activity_main", "por", "android:onClick");
 			
 /*			String mainActivityName = StaticInfo.getMainActivityName(file);
 			clearClickingRecord(file);
@@ -228,8 +228,8 @@ import viewer.ViewPositionData;
 				new JDBStuff().getClickBreakPoints();
 				System.out.println("clicked " + widgetID);
 
-				while (!JDBStuff.flag) {};
-				JDBStuff.flag = false;
+				//while (!JDBStuff.flag) {};
+				//JDBStuff.flag = false;
 				System.out.println("---------------------------");
 				for (String s: JDBStuff.clicksAndBreakPoints)
 					System.out.println(s);
