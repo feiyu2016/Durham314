@@ -7,18 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 import main.Paths;
-
+import soot.Body;
 import soot.BodyTransformer;
 import soot.PackManager;
 import soot.SceneTransformer;
 import soot.SootMethod;
 import soot.Transform;
-import soot.Body;
-import soot.jimple.Stmt;
 import soot.toolkits.graph.Block;
-import soot.toolkits.graph.BlockGraph;
 import soot.toolkits.graph.ExceptionalBlockGraph;
-import soot.toolkits.graph.UnitGraph;
 
 public class SootTemplate {
 

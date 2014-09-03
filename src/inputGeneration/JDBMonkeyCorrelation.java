@@ -17,7 +17,7 @@ public class JDBMonkeyCorrelation implements Runnable {
 		long timeNoSee;
 		try {
 			timeNoSee = System.currentTimeMillis();
-			while ((System.currentTimeMillis() - timeNoSee) > 1000) {
+			while ((System.currentTimeMillis() - timeNoSee) < 1000) {
 				
 				if(JDBStuff.hitBPfromJDBMonitor.isEmpty()) continue;
 				String classAndMethod = JDBStuff.hitBPfromJDBMonitor.get(0).split(",")[1].trim();
