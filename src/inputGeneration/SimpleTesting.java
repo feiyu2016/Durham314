@@ -62,7 +62,7 @@ import viewer.ViewPositionData;
 					"mID", " layout:getWidth()",  "layout:getHeight()",
 					"layout:mLeft" ,"layout:mTop" ,"layout:mRight", "layout:mBottom"
 					));
-			view.debug = true;
+			ViewPositionData.debug = true;
 			
 			System.out.println("HierarchyView initiated.");
 			m = new MonkeyWrapper();
@@ -108,7 +108,6 @@ import viewer.ViewPositionData;
 					System.out.println("no staying widgets.");
 				
 				for (ViewNode stayingWidget: stayingWidgets) {
-					String widgetType = stayingWidget.getType();
 					String widgetID = stayingWidget.getID();
 					Map<String, String> allEH = stayingWidget.getAllEventHandlers();
 					if (allEH.size() == 0)
@@ -127,7 +126,6 @@ import viewer.ViewPositionData;
 				}
 				System.out.println("finished staying, now starting to leave");
 				for (ViewNode leavingWidget : leavingWidgets) {
-					String widgetType = leavingWidget.getType();
 					String widgetID = leavingWidget.getID();
 					// 1. perform the staying events
 					ArrayList<String> stayingEH = leavingWidget.getStayingEvents(currentActivity);
@@ -222,12 +220,11 @@ import viewer.ViewPositionData;
 				String x = (Integer.parseInt(widgetLocation[0]) + Integer.parseInt(widgetLocation[2]))/2 + "";
 				String y = (Integer.parseInt(widgetLocation[1]) + Integer.parseInt(widgetLocation[3]))/2 + "";
 				System.out.println(widgetLocation[0] + "," + widgetLocation[1] + "," + widgetLocation[2] + "," + widgetLocation[3] + "," + "  " + x + "," + y);
+				
 				JDBStuff.clicksAndBreakPoints.add("Click," + layoutName + "," + widgetID + "," + x + "," + y);
+				
 				m.interactiveModelTouch(x, y, MonkeyWrapper.DOWN_AND_UP);
-
-				JDBStuff.monitorOn = true;
 				System.out.println("clicking " + widgetID);
-
 				new JDBStuff().getClickBreakPoints();
 				System.out.println("clicked " + widgetID);
 
