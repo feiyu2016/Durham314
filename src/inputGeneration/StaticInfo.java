@@ -150,13 +150,12 @@ public class StaticInfo {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifestFile);
 			doc.getDocumentElement().normalize();
 			NodeList activityList = doc.getElementsByTagName("activity");
-			System.out.println("found " + activityList.getLength());
 			for (int i = 0; i < activityList.getLength(); i++) {
 				Node activityNode = activityList.item(i);
 				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
-				if (activityName.startsWith("."))	
+				if (activityName.startsWith("."))
 					activityName = activityName.substring(1, activityName.length());
-				if (!activityName.startsWith(StaticInfo.getPackageName(file)))
+				if (activityName.indexOf(".")==-1)
 					activityName = StaticInfo.getPackageName(file) + "." + activityName;
 				if (validateActivity(file, activityName))
 					results.add(activityName);
