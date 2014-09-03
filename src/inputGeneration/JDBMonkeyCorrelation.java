@@ -26,7 +26,7 @@ public class JDBMonkeyCorrelation implements Runnable {
 				int lineNumber = Integer.parseInt(JDBStuff.hitBPfromJDBMonitor.get(0).split(",")[2].trim().split(" ")[0].split("=")[1]);
 				long timeStamp = timeNoSee = System.currentTimeMillis();
 				JDBStuff.clicksAndBreakPoints.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
-				//System.out.println(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				System.out.println(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
 				JDBStuff.hitBPfromJDBMonitor.remove(0);
 			}
 		} 

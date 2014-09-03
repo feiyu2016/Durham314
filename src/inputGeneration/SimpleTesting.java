@@ -228,13 +228,6 @@ import viewer.ViewPositionData;
 				new JDBStuff().getClickBreakPoints();
 				System.out.println("clicked " + widgetID);
 
-				//while (!JDBStuff.flag) {};
-				//JDBStuff.flag = false;
-				System.out.println("---------------------------");
-				for (String s: JDBStuff.clicksAndBreakPoints)
-					System.out.println(s);
-				System.out.println("---------------------------");
-				//Thread.sleep(10);
 				//checkCodeCoverage(file, layoutName, widgetID);
 			}
 		}
