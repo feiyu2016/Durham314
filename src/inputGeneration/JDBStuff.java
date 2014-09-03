@@ -1,7 +1,6 @@
 package inputGeneration;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -46,9 +45,9 @@ public class JDBStuff {
 	}
 	
 	public void setBreakPointsAllLines(ArrayList<String> breakPointList) throws Exception {
-		int i = 0;
+		//int i = 0;
 		for (String string:breakPointList) {
-			i++;
+			//i++;
 			setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
 			//System.out.println("Set breakpoint " + i + "/" + breakPointList.size());
 		}
@@ -79,8 +78,8 @@ public class JDBStuff {
 	}
 	
 	private void printStreams() throws Exception{
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream())), true))).start();
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream())), false))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))/*, true*/))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))/*, false*/))).start();
 	}
 	
 	public void getClickBreakPoints() throws Exception {

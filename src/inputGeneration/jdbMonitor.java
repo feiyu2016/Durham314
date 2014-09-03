@@ -1,17 +1,16 @@
 package inputGeneration;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 
 public class jdbMonitor implements Runnable{
 
 	private BufferedReader in;
-	private boolean inStream;
+	//private boolean inStream;
 	
-	public jdbMonitor(BufferedReader bR, boolean iS) {
+	public jdbMonitor(BufferedReader bR/*, boolean iS*/) {
 		in = bR;
-		inStream = iS;
+		//inStream = iS;
 	}
 	
 	@Override
@@ -21,19 +20,19 @@ public class jdbMonitor implements Runnable{
 
 	private void startsMonitoring() {
 		String line;
-		long time;
+		//long time;
 		
 		try {
-			time = System.currentTimeMillis();
+			//time = System.currentTimeMillis();
 			while ((line = in.readLine())!=null) {
 				// read that file, see if any of those break points are reached
-				if ((System.currentTimeMillis() - time) > 1000) {
+				/*if ((System.currentTimeMillis() - time) > 1000) {
 					if(inStream) JDBStuff.flag = true;
-				}
+				}*/
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
 				//System.out.println(line);
 				JDBStuff.hitBPfromJDBMonitor.add(line);
-				time = System.currentTimeMillis();
+				//time = System.currentTimeMillis();
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());
