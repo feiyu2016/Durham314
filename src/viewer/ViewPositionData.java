@@ -169,7 +169,6 @@ public class ViewPositionData {
 	
 	
 	public boolean init(){
-		System.setProperty("hierarchyviewer.adb", Paths.androidPlatformToolPath);
 		return initialized?true:initInternal();
 	}
 	
