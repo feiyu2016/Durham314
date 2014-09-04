@@ -39,6 +39,7 @@ public class ParseSmali {
 		ArrayList<String> al = StaticInfo.getClassNames(path);
 		ArrayList<String> method = new ArrayList<String>();
 		ArrayList<String> ret = new ArrayList<String>();
+		boolean firstLine = false;
 		
 		for (String string:al) {
 			String newPath = Paths.appDataDir + path.getName() + "/apktool/smali/" + string.replace(".", "/") + ".smali";
@@ -48,24 +49,29 @@ public class ParseSmali {
 	            String line;
 	            while ((line = input.readLine()) != null) {
 	            	if (line.trim().startsWith(".method")) {
-						String temp = (string + "," + line.trim().split(" ")[line.trim().split(" ").length -1]);
+						String temp = string + "," + line.trim().split(" ")[line.trim().split(" ").length -1];
 						while ((line = input.readLine()) != null){
 							method.add(line);
-							
+							if (line.trim().startsWith(".line") && !firstLine) {
+								 temp = temp + ",begins," + line.trim().split(" ")[1] +  ",returns";
+								 firstLine = true;
+							}
 							if (line.trim().startsWith(".end method")) {
 								for (int i = 0; i < method.size(); i++) {
 									if (method.get(i).trim().startsWith("return")) {
 										for (int j = i-1; j > 0; j--){
 											if(method.get(j).trim().startsWith(".line")) {
-												temp = temp + "," + line.trim().split(" ")[1];
+												temp = temp + "," + method.get(j).trim().split(" ")[1];
 												break;
 											}
 										}
+										break;
 									}
 								}
 									
-								method.clear();								
+								method.clear();
 								ret.add(temp);
+								firstLine = false;
 								break;
 							}
 						}
