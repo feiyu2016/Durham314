@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,6 +17,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import main.Paths;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -65,9 +67,16 @@ public class StaticInfo {
 		System.out.println("finished parsing XML layouts\nparsing java layouts");
 		parseJavaLayouts(file);
 		System.out.println("finished parsing java layouts\nprocessing intents and setcontentview");
-		process_Intents_And_setContentView(file);
+		//process_Intents_And_setContentView(file);
 		System.out.println("finished processing intents and setcontentviews");
 		System.out.println("initAnalysis finished.");
+	}
+	
+	public static void reset() {
+		layoutList = new ArrayList<Layout>();
+		UIChanges = new ArrayList<String>();
+		defLayouts = new HashMap<String, String>();
+		callGraph = new ArrayList<String>();
 	}
 	
 	private static void prepareCG(File file) {
@@ -147,44 +156,57 @@ public class StaticInfo {
 			return results;
 		}
 		try {
+			String mainActvt = "";
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifestFile);
 			doc.getDocumentElement().normalize();
+			// first process all <activity>
 			NodeList activityList = doc.getElementsByTagName("activity");
-			for (int i = 0; i < activityList.getLength(); i++) {
+			for (int i = 0, len = activityList.getLength(); i < len; i++) {
 				Node activityNode = activityList.item(i);
 				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
-				if (activityName.startsWith("."))
-					activityName = activityName.substring(1, activityName.length());
-				if (activityName.indexOf(".")==-1)
-					activityName = StaticInfo.getPackageName(file) + "." + activityName;
 				if (validateActivity(file, activityName))
 					results.add(activityName);
-			}
-			// check if it's main activity
-			String mainActvtName = "";
-			NodeList actionList = doc.getElementsByTagName("action");
-			for (int i = 0; i < activityList.getLength(); i++) {
-				Node actionNode = actionList.item(i);
-				if (actionNode.getAttributes().getNamedItem("android:name").getNodeValue().equals("android.intent.action.MAIN")) {
-					Node mainActvtNode = actionNode.getParentNode().getParentNode();
-					mainActvtName = mainActvtNode.getAttributes().getNamedItem("android:name").getNodeValue();
-					if (mainActvtName.startsWith("."))
-						mainActvtName = mainActvtName.substring(1, mainActvtName.length());
-					if (!mainActvtName.startsWith(StaticInfo.getPackageName(file)))
-						mainActvtName = StaticInfo.getPackageName(file) + "." + mainActvtName;
-					break;
+				// check if its mainActvt
+				Element e =(Element) activityNode;
+				NodeList actionList = e.getElementsByTagName("action");
+				for (int j = 0, len2 = actionList.getLength(); j < len2; j++) {
+					Node actionNode = actionList.item(j);
+					if (actionNode.getAttributes().getNamedItem("android:name").getNodeValue().equals("android.intent.action.MAIN"))
+						mainActvt = activityName;
 				}
 			}
+			// if not found mainActvt, process <activity-alias> for mainActvt
+			if (mainActvt.equals("")) {
+				NodeList aliasList = doc.getElementsByTagName("activity-alias");
+				for (int i = 0, len = aliasList.getLength(); i < len; i++) {
+					Node aliasNode = aliasList.item(i);
+					String targetActvtName = aliasNode.getAttributes().getNamedItem("android:targetActivity").getNodeValue();
+					Element e =(Element) aliasNode;
+					NodeList actionList = e.getElementsByTagName("action");
+					for (int j = 0, len2 = actionList.getLength(); j < len2; j++) {
+						Node actionNode = actionList.item(j);
+						if (actionNode.getAttributes().getNamedItem("android:name").getNodeValue().equals("android.intent.action.MAIN"))
+							mainActvt = targetActvtName;
+					}
+				}
+			}
+			// put mainActvt to slot 0
 			for (int i = 0; i < results.size(); i++)
-				if (results.get(i).equals(mainActvtName)) {
+				if (results.get(i).equals(mainActvt)) {
 					String temp = results.get(0);
 					results.set(0, results.get(i));
 					results.set(i, temp);
 				}
+			// fix the name format
+			for (String activityName : results) {
+				if (activityName.startsWith("."))
+					activityName = activityName.substring(1, activityName.length());
+				if (activityName.indexOf(".")==-1)
+					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+			}
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
 	}
-	
 	
 	private static boolean validateActivity(File file, String activityName) {
 		// the activity name in AndroiManifest might be false, e.g., zhiming's Bugatti and bug.
@@ -255,16 +277,47 @@ public class StaticInfo {
 	private static void parseJavaLayouts(File file) {
 		// TODO parse java layouts and add views
 		// first read the code of those custom layouts, then scan the others
+		ArrayList<String> standardLayoutTypes = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "/KnownLayoutTypes.txt")).split("\n")));
+		ArrayList<String> customLayoutParents = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "/CustomLayoutParents.txt")).split("\n")));
 		for (Layout l : layoutList) {
-			if (!l.isCustomLayout())	continue;
+			if (!l.isCustomLayout()) {
+				if (!standardLayoutTypes.contains(l.getType()))	
+					standardLayoutTypes.add(l.getType());	
+				continue;
+			}
 			if (l.getType().startsWith("android.support.v"))	continue;
 			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
+			if (!classFile.exists())	return;
 			try {
 				BufferedReader in = new BufferedReader(new FileReader(classFile));
+				String firstline = in.readLine();
+
+				if (firstline.contains("extends ")) {
+					String p = firstline.substring(firstline.indexOf("extends ") + "extends ".length());
+					if (p.contains("implements"))
+						p = p.substring(0, p.indexOf("implements"));
+					if (!p.contains(",") && !customLayoutParents.contains(p.trim()))	customLayoutParents.add(p.trim());
+					else for (String s: p.trim().split(","))  if (!customLayoutParents.contains(s.trim()))	customLayoutParents.add(s.trim());
+				};
+				if (firstline.contains("implements ")) {
+					String p = firstline.substring(firstline.indexOf("implements ") + "implements ".length());
+					if (!p.contains(","))	if (!customLayoutParents.contains(p.trim())) customLayoutParents.add(p.trim());
+					else for (String s: p.trim().split(","))	if (!customLayoutParents.contains(s.trim())) customLayoutParents.add(s.trim());
+				};
 				
 				in.close();
 			}	catch (Exception e) {e.printStackTrace();}
 		}
+		try {
+			PrintWriter out = new PrintWriter(new FileWriter("/home/wenhaoc/AppData/KnownLayoutTypes.txt"));
+			for (String s: standardLayoutTypes)
+				out.write(s + "\n");
+			out.close();
+			out = new PrintWriter(new FileWriter("/home/wenhaoc/AppData/CustomLayoutParents.txt"));
+			for (String s: customLayoutParents)
+				out.write(s + "\n");
+			out.close();
+		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
 	private static String findViewNameByID(File file, String ID) {
@@ -355,7 +408,7 @@ public class StaticInfo {
 					}
 				}
 				if (count!=1) {
-					File outfile = new File(Paths.appDataDir + file.getName() + "/UtilsLog/defaultLayout.log");
+					File outfile = new File(Paths.appDataDir + file.getName() + "/UtilLogs/defaultLayout.log");
 					outfile.getParentFile().mkdirs();
 					PrintWriter out = new PrintWriter(new FileWriter(outfile, true));
 					out.write("Found " + count + " default layouts for," + actvt + "\n");
@@ -456,7 +509,7 @@ public class StaticInfo {
 		// now it's just 'void setContentView(int)'
 		if (EventHandlers.isSetContentView(theStmt) == 0) {
 			//TODO now I assume everyone will use constant
-			//if the parameter is not int constant, write to /UtilsLog/setContentViewSolving.log
+			//if the parameter is not int constant, write to /UtilLogs/setContentViewSolving.log
 			String viewID = theStmt.substring(theStmt.indexOf(EventHandlers.setContentViewSigs[0]) + EventHandlers.setContentViewSigs[0].length() , theStmt.length());
 			viewID = viewID.substring(viewID.indexOf("(") + 1 , viewID.lastIndexOf(")"));
 			if (!viewID.startsWith("$")) {
@@ -468,7 +521,7 @@ public class StaticInfo {
 					foundTargetLayout = true;
 			}
 			if (!foundTargetLayout) {
-				File logFile = new File(Paths.appDataDir + file.getName() + "/UtilsLog/setContentViewSolving.log");
+				File logFile = new File(Paths.appDataDir + file.getName() + "/UtilLogs/setContentViewSolving.log");
 				logFile.getParentFile().mkdirs();
 				PrintWriter out = new PrintWriter(new FileWriter(logFile, true));
 				out.write("Can not solve setContentView target," + className + "," + methodFileName + "," + lineNumber + "\n");

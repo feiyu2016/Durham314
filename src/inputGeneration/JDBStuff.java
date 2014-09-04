@@ -78,8 +78,8 @@ public class JDBStuff {
 	}
 	
 	private void printStreams() throws Exception{
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))/*, true*/))).start();
-		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))/*, false*/))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream()))))).start();
+		(new Thread(new jdbMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream()))))).start();
 	}
 	
 	public void getClickBreakPoints() throws Exception {

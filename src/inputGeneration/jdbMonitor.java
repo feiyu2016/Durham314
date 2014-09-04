@@ -6,11 +6,9 @@ import java.io.IOException;
 public class jdbMonitor implements Runnable{
 
 	private BufferedReader in;
-	//private boolean inStream;
 	
-	public jdbMonitor(BufferedReader bR/*, boolean iS*/) {
+	public jdbMonitor(BufferedReader bR) {
 		in = bR;
-		//inStream = iS;
 	}
 	
 	@Override
@@ -34,7 +32,7 @@ public class jdbMonitor implements Runnable{
 				int lineNumber = Integer.parseInt(line.split(",")[2].trim().split(" ")[0].split("=")[1]);
 				long timeStamp = System.currentTimeMillis();
 				JDBStuff.bPHitLog.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
-				JDBStuff.clicksAndBreakPoints.add(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
+				//System.out.println(timeStamp + "," + className + "," + methodSig + "," + lineNumber);
 				addNonDupeBPHit(className + "," + methodSig + "," + lineNumber);
 			}
 			System.out.println("WARNING: BufferedReader ended. This shouldn't have happened.");
