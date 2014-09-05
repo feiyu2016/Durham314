@@ -12,7 +12,7 @@ public abstract class AbstractTraversalTree extends AbstractBaseFrameworkCompone
 		super(frame);
 	}
 	
-	public abstract void extendTree(RunTimeLayout layout, Event event);
+	public abstract void extendTree(String actName, ViewNode root, Event... events);
 	public abstract void extendTree(TraversalTreeNode node);
 	public abstract List<Event> getEventSequenceToCurrentNode();
 	public abstract TraversalTreeNode getCurrentNode();
@@ -22,9 +22,8 @@ public abstract class AbstractTraversalTree extends AbstractBaseFrameworkCompone
 	}
 	 	
 	public static class TraversalTreeNode{
-		public TraversalTreeNode(){}
-		public RunTimeLayout runTimeLayout;
-		public Event triggerEvent;
+		public ViewNode layoutRoot;
+		public List<Event> triggerEvents;
 		public TraversalTreeNode parent;
 		public List<TraversalTreeNode> children;
 //		private StaticLayout staticLayout;
