@@ -69,6 +69,29 @@ public abstract class TraverseAlgorithm {
 		enablePreRun = true;
 		enableExcute = true;
 	}
+	private ArrayList<String> methodSignature;
+	protected void setUpBreakPoint(){
+		if(enableJDB){
+			logger.info("JDB initialization starts");
+			methodSignature = new ParseSmali().parseLines(apkFile);
+			if(jdb!=null)
+				try { jdb.exitJDB();
+				} catch (Exception e1) {  }
+			jdb = new JDBStuff();
+			try {
+				jdb.initJDB(apkFile);
+				jdb.setMonitorStatus(true);
+				jdb.setBreakPointsAllLines(methodSignature);
+			} catch (Exception e) {
+				e.printStackTrace();
+				logger.warning(e.getMessage());
+			}
+			try {
+				Thread.sleep(1500);
+			} catch (InterruptedException e) { }
+			logger.info("JDB initialization ends");
+		}
+	}
 	
 	// --------------- private method starts -----------------
 	private void preRun(){
@@ -76,9 +99,9 @@ public abstract class TraverseAlgorithm {
 		
 		//APKtool process
 		if(enableAPKTool){
-			logger.info("APKTool initialization starts");
-			analysisTools.ApkTool.extractAPK(apkFile);
-			analysisTools.Soot.generateAPKData(apkFile);
+//			logger.info("APKTool initialization starts");
+//			analysisTools.ApkTool.extractAPK(apkFile);
+//			analysisTools.Soot.generateAPKData(apkFile);
 //			StaticInfo.process_Intents_And_setContentView(apkFile);
 			logger.info("APKTool initialization ends");
 		}
@@ -98,23 +121,7 @@ public abstract class TraverseAlgorithm {
 		}
 		
 		//init JDB and setup break points at ALL Lines!?
-		if(enableJDB){
-			logger.info("JDB initialization starts");
-			ArrayList<String> methodSignature = new ParseSmali().parseLines(apkFile);
-			jdb = new JDBStuff();
-			try {
-				jdb.initJDB(apkFile);
-				jdb.setMonitorStatus(true);
-				jdb.setBreakPointsAllLines(methodSignature);
-			} catch (Exception e) {
-				e.printStackTrace();
-				logger.warning(e.getMessage());
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) { }
-			logger.info("JDB initialization ends");
-		}
+		
 
 		//initialize hierarchy view and Monkey
 		if(enableDynamicInit){
@@ -151,6 +158,12 @@ public abstract class TraverseAlgorithm {
 	private void postRun(){
 		logger.info("post-run starts");
 		monkey.stopInteractiveModle();
+		try {
+			if(jdb!=null) jdb.exitJDB();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if(jdb != null){
 			jdb.getMethodCoverage();
 		}

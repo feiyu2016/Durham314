@@ -18,8 +18,7 @@
 	<classpathentry kind="lib" path="libs/org-eclipse-equinox-common-3.6.0.jar"/>
 	<classpathentry kind="lib" path="libs/org-eclipse-jface-3.6.2.jar"/>
 	<classpathentry kind="lib" path="libs/org.eclipse.rap.rwt-2.3.0-RC3.jar"/>
-	<classpathentry kind="lib" path="libs/hierarchyviewer2lib.jar"/>
 	<classpathentry kind="lib" path="libs/ddmlib-hierachy.jar"/>
-	<classpathentry kind="lib" path="libs/ddmlib.jar"/>
+	<classpathentry kind="lib" path="libs/hierarchyviewer2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

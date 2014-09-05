@@ -166,6 +166,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			if(Debug)logger.info("test act:"+currentStartingActName);
 		
 			startActivity(currentStartingActName);
+			this.setUpBreakPoint();
 			String currentActName = currentStartingActName;
 			labelActivityAsReached(currentActName);
 			//the event of launching APP is not recorded
@@ -200,6 +201,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			//TODO -- Optimization: Could sort the array by mID, this benefits for searching later
 			
 			checkAndCloseKeyboard();
+			
 			
 			//match with existing static information
 			Layout matchedLayoutInfo = matchWithStaticLayout(currentLayoutInfo);
@@ -417,6 +419,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		this.waitForTime(800);
 		this.startActivity(currentStartingActName);
 		this.waitForTime(800);
+		this.setUpBreakPoint();
 		List<EventRecord> path = this.currentPath;
 		if(enablePathOptimization){
 			path = optimizeEventPath(this.currentPath);
@@ -432,6 +435,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		this.waitForTime(800);
 		this.startActivity(currentStartingActName);
 		this.waitForTime(800);
+		this.setUpBreakPoint();
 		applyEventSet(this.currentPath, false);
 	}
 	
@@ -731,7 +735,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	 */
 	private boolean checkAndCloseKeyboard(){
 		logger.info("checking keyboard");
-		if(this.viewData.isInputMethodVisible()){
+		if(this.viewData.isInputMethodVisibleWithoutInvalid()){
 			this.monkey.interactiveModelPress(KeyEvent.KEYCODE_BACK);
 			this.waitForTime(200);
 			logger.info("close keyboard "+iter); iter+=1;
