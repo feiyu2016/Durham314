@@ -11,7 +11,9 @@ public abstract class AbstractBaseFrameworkComponent {
 	}
 	
 	public abstract void onLaunchApplication();
+	public abstract void onLaunchApplicationFinish();
 	public abstract void onQuitApplication();
+	
 	public abstract void init();
 	public abstract void terminate();
 }

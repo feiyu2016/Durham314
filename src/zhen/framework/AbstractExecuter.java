@@ -7,5 +7,5 @@ public abstract class AbstractExecuter extends AbstractBaseFrameworkComponent {
 	}
 
 	
-	public abstract boolean execute(Event input);
+	public abstract boolean execute(Event... input);
 }

@@ -22,13 +22,13 @@ public class Framework implements Runnable{
 				try { Thread.sleep(200);
 				} catch (InterruptedException e) { break OuterLoop; }
 			}
-			
 			dynamicInfo.observe();
-			Event event = decisionMaker.nextEvent();
-			eventCount+=1;
+			Event[] event = decisionMaker.nextEventSet();
+			if(event == null || event.length == 0) break;
+			eventCount+=event.length;
 			executer.execute(event);
 		}
-		stop();
+		terminate();
 	}
 	
 	private void init(){

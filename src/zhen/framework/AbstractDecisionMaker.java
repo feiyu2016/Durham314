@@ -6,5 +6,5 @@ public abstract class AbstractDecisionMaker extends AbstractBaseFrameworkCompone
 		super(frame);
 	}
 
-	public abstract Event nextEvent();
+	public abstract Event[] nextEventSet();
 }
