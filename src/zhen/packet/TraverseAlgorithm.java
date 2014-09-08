@@ -57,6 +57,7 @@ public abstract class TraverseAlgorithm {
 	}
 	
 	public abstract void execute();
+	public abstract void showLogInformation();
 	
 	public void setNormalStartUp(){
 		logger.info("normal setting");
@@ -167,6 +168,7 @@ public abstract class TraverseAlgorithm {
 		if(jdb != null){
 			jdb.getMethodCoverage();
 		}
+		this.showLogInformation();
 		logger.info("post-run ends");
 	}
 	

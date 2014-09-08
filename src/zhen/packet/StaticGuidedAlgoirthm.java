@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import com.android.hierarchyviewer.scene.ViewNode;
@@ -107,7 +108,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	private long waitDuraion = 100;
 	private boolean enableDynamicPrograming = false;
 	private boolean innerTravel_failure = false;
-	private Map<String, List<String>> stayingWidgtsInfoDepost;
+	private ArrayList<EventRecord> deposit = new ArrayList<EventRecord>();
 	private Map<String, ArrayList<EventRecord>> eventSequenceRecorder;
 	private ArrayList<EventRecord> currentPath;
 	private static Logger logger = Utility.setupLogger(StaticGuidedAlgoirthm.class);
@@ -119,7 +120,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	public StaticGuidedAlgoirthm(String apkPath) {
 		super(apkPath);
 		eventSequenceRecorder = new HashMap<String, ArrayList<EventRecord>>();
-		stayingWidgtsInfoDepost = new HashMap<String, List<String>>();
+//		stayingWidgtsInfoDepost = new HashMap<String, List<String>>();
 		this.dataFilter = new ViewPositionData.NodeDataFilter(){
 			@Override
 			public ArrayList<String> process(ArrayList<ViewNode> list) {
@@ -238,7 +239,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						logger.info("ignore PhoneWindow$DecorView");
 						continue;
 					}else if(ignoreViewGroup){
-						if(name.contains("Layout") || name.contains("Container")){
+						if(name.contains("Layout") || name.contains("Container") || name.contains("Action")){
 							viewProfile.put(TESTED, "true");
 							if(Debug)logger.info("ignore "+name);
 							continue;
@@ -258,6 +259,9 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						boolean layoutUnchanged = false;
 						EventRecord record = new EventRecord(eventType, currentActName);
 						record.recordFromViewProfile(viewProfile);
+						
+						deposit.add(record);
+						
 						carryoutEventOnView(viewProfile, eventType, true);//e.g press, click
 						waitForTime(800);
 						boolean keyboardTriggered = checkAndCloseKeyboard();
@@ -753,6 +757,13 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	
 	private void dumpLogFile(){
 		//TODO
+	}
+	
+	public void showLogInformation(){
+		for(EventRecord event : deposit){
+			System.out.println(event);
+		}
+		System.out.println("Total of "+deposit.size()+" events generated");
 	}
 	
 	/**
