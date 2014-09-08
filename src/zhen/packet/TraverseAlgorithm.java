@@ -71,28 +71,64 @@ public abstract class TraverseAlgorithm {
 		enableExcute = true;
 	}
 	private ArrayList<String> methodSignature;
-	protected void setUpBreakPoint(){
-		if(enableJDB){
-			logger.info("JDB initialization starts");
-			methodSignature = new ParseSmali().parseLines(apkFile);
-			if(jdb!=null)
-				try { jdb.exitJDB();
-				} catch (Exception e1) {  }
+	
+	protected void initJDB(){
+		try {
+			if(jdb!=null) try { jdb.exitJDB(); } catch (Exception e1) {  }
 			jdb = new JDBStuff();
-			try {
-				jdb.initJDB(apkFile);
-				jdb.setMonitorStatus(true);
-				jdb.setBreakPointsAllLines(methodSignature);
-			} catch (Exception e) {
-				e.printStackTrace();
-				logger.warning(e.getMessage());
-			}
-			try {
-				Thread.sleep(1500);
-			} catch (InterruptedException e) { }
-			logger.info("JDB initialization ends");
+			jdb.initJDB(apkFile);
+			jdb.setMonitorStatus(true);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
+	
+
+	
+	protected void setUpBreakPoint(){
+		if(enableJDB){
+			try {
+				jdb.setBreakPointsAllLines(methodSignature);
+				Thread.sleep(1000);
+			} catch (Exception e) { 
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	
+	
+//	protected void setUpBreakPoint(){
+//		if(enableJDB){
+//			logger.info("JDB initialization starts");
+////			if(jdb!=null)
+////				try { jdb.exitJDB();
+////				} catch (Exception e1) {  }
+//			jdb = new JDBStuff();
+//			try {
+//				jdb.initJDB(apkFile);
+//				jdb.setMonitorStatus(true);
+//				jdb.setBreakPointsAllLines(methodSignature);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				logger.warning(e.getMessage());
+//			}
+//			try {
+//				Thread.sleep(1500);
+//			} catch (InterruptedException e) { }
+//			logger.info("JDB initialization ends");
+//		}
+//	}
+	protected void clearUpBreakPoint(){
+		if(enableJDB){
+			try {
+				jdb.clearBreakPointsAllLines(methodSignature);
+			} catch (Exception e) { 
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	
 	// --------------- private method starts -----------------
 	private void preRun(){
@@ -122,7 +158,10 @@ public abstract class TraverseAlgorithm {
 		}
 		
 		//init JDB and setup break points at ALL Lines!?
-		
+		if(this.enableJDB){
+//			jdb = new JDBStuff();
+			methodSignature = new ParseSmali().parseLines(apkFile);
+		}
 
 		//initialize hierarchy view and Monkey
 		if(enableDynamicInit){

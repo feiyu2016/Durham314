@@ -167,7 +167,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			if(Debug)logger.info("test act:"+currentStartingActName);
 		
 			startActivity(currentStartingActName);
-			this.setUpBreakPoint();
+			initJDB();
 			String currentActName = currentStartingActName;
 			labelActivityAsReached(currentActName);
 			//the event of launching APP is not recorded
@@ -176,6 +176,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			innerTravel_failure = false;
 			innerTravel(null, currentActName);
 			eventSequenceRecorder.put(currentStartingActName, currentPath);
+			this.jdb.getMethodCoverage();
 		}
 		if(Debug)logger.info("Execution ends");
 	}
@@ -244,7 +245,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 							if(Debug)logger.info("ignore "+name);
 							continue;
 						}
-					}else if(name.contains("action")){
+					}else if(name.contains("Action")){
 						if(Debug)logger.info("ignore "+name);
 						viewProfile.put(TESTED, "true");
 						logger.info("ignore "+name);
@@ -261,9 +262,12 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						record.recordFromViewProfile(viewProfile);
 						
 						deposit.add(record);
-						
+						this.setUpBreakPoint();
 						carryoutEventOnView(viewProfile, eventType, true);//e.g press, click
-						waitForTime(800);
+//						waitForTime(3000);
+						this.clearUpBreakPoint();
+						
+						
 						boolean keyboardTriggered = checkAndCloseKeyboard();
 						boolean checkFirst = false;
 						//check consequence
@@ -423,7 +427,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		this.waitForTime(800);
 		this.startActivity(currentStartingActName);
 		this.waitForTime(800);
-		this.setUpBreakPoint();
+//		this.setUpBreakPoint();
+		initJDB();
 		List<EventRecord> path = this.currentPath;
 		if(enablePathOptimization){
 			path = optimizeEventPath(this.currentPath);
@@ -439,7 +444,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 		this.waitForTime(800);
 		this.startActivity(currentStartingActName);
 		this.waitForTime(800);
-		this.setUpBreakPoint();
+//		this.setUpBreakPoint();
+		initJDB();
 		applyEventSet(this.currentPath, false);
 	}
 	
@@ -713,15 +719,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 				}
 				for(String eventType : eventSet){
 					EventRecord record = new EventRecord(eventType, actName);
+					this.deposit.add(record);
 					record.recordFromViewProfile(viewInfo);
+					this.setUpBreakPoint();
 					carryoutEventOnView(viewInfo, eventType, true);
 					this.waitForTime(300);
+					this.clearUpBreakPoint();
 					record.destActName = actName;
 					currentPath.add(record);
 				}
 			}else{//This should be logically impossible to reach due to previous if condition
 				for(String eventType : this.allPossibleEvents){
 					EventRecord record = new EventRecord(eventType, actName);
+					this.deposit.add(record);
 					record.recordFromViewProfile(viewInfo);
 					carryoutEventOnView(viewInfo, eventType, true);
 					this.waitForTime(300);
@@ -764,6 +774,11 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			System.out.println(event);
 		}
 		System.out.println("Total of "+deposit.size()+" events generated");
+		
+		if(jdb!=null){
+			jdb.getMethodCoverage();
+			
+		}
 	}
 	
 	/**
