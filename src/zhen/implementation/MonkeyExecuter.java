@@ -48,6 +48,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 	public static boolean DEBUG = true;
 	public boolean enableTouchOffset = false;
 	private int offset_x = 50, offset_y = 50;
+	private static String TAG = "MonkeyExecuter";
 	
 	public void setProgramLocation(String loc){
 		PROGRAM_LOCATION = loc; 
@@ -88,7 +89,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 				}
 			}return false;
 			default:{
-				if(DEBUG)Utility.log("MonkeyExecuter: unidentified event type, "+input.type);	
+				if(DEBUG)Utility.log(TAG,"MonkeyExecuter: unidentified event type, "+input.type);	
 			}return false;
 			}
 		}
@@ -100,8 +101,8 @@ public class MonkeyExecuter extends AbstractExecuter{
 	@Override public void onQuitApplication() {}
 
 	@Override
-	public void init() {
-		if(this.DEBUG) Utility.log("MonkeyExecuter: initialization starts");
+	public boolean init() {
+		if(this.DEBUG) Utility.log(TAG,"initialization starts");
 		try {
 			monkeyProcess = Runtime.getRuntime().exec(PROGRAM_LOCATION);
 			ostream = new BufferedOutputStream(monkeyProcess.getOutputStream());
@@ -115,7 +116,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			} catch (InterruptedException e) { }
 			readString(estream);
 			readString(istream);
-			if(this.DEBUG) Utility.log("MonkeyExecuter: initialization fails");
+			if(this.DEBUG) Utility.log(TAG,"initialization finishes");
 		} catch (IOException e) {
 			e.printStackTrace();
 			try {
@@ -124,8 +125,10 @@ public class MonkeyExecuter extends AbstractExecuter{
 				if(istream!=null) istream.close();	
 			} catch (IOException e1) { }
 			if(monkeyProcess != null) monkeyProcess.destroy();
-			if(this.DEBUG) Utility.log("MonkeyExecuter: initialization finishes");
+			if(this.DEBUG) Utility.log(TAG,"initialization fails");
+			return false;
 		}
+		return true;
 	}
 
 	@Override
@@ -138,7 +141,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			} catch (IOException e) {  }
 			monkeyProcess.destroy(); 
 		}
-		if(DEBUG) Utility.log("MonkeyExecuter: termination finished");
+		if(DEBUG) Utility.log(TAG,"termination finished");
 	}
 
 	
@@ -261,7 +264,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			output = getMonkeyOutput();
 			if(DEBUG && output != null){
 				output.replace("\n", "\n\t");
-				if(DEBUG) Utility.log("stdout "+output);
+				if(DEBUG) Utility.log(TAG,"stdout "+output);
 			}
 			
 			try {Thread.sleep(100);
@@ -271,7 +274,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			if(error != null){
 				if(DEBUG && output != null){
 					output.replace("\n", "\n\t");
-					if(DEBUG) Utility.log("stderr "+output);
+					if(DEBUG) Utility.log(TAG,"stderr "+output);
 				}
 				break;
 			}
@@ -310,7 +313,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 		if(!command.endsWith("\n")){
 			command = command+"\n";
 		}
-		if(DEBUG) Utility.log("MonkeyExecuter: "+command);
+		if(DEBUG) Utility.log(TAG,command);
 		try {
 			ostream.write(command.getBytes());
 			ostream.flush();

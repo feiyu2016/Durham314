@@ -1,6 +1,7 @@
 package zhen.framework;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
+import com.android.hierarchyviewerlib.models.Window;
 
 public abstract class AbstractRunTimeInformation extends AbstractBaseFrameworkComponent {
 
@@ -8,8 +9,12 @@ public abstract class AbstractRunTimeInformation extends AbstractBaseFrameworkCo
 		super(frame);
 	}
 	
-	public abstract ViewNode captureRunTimeLayout();
-	public abstract String getCurrentWindowName();
+	public abstract ViewNode getFocusedLayout();
+	public abstract ViewNode loadWindowData(Window win);
+	public abstract Window getFocusedWindow();
+	public abstract Window[] getWindowList();
+	public abstract boolean isKeyBoardVisible();
+	
 	public abstract double processCPUUsage();
 	public abstract double memoryUsage();
 	public abstract int getBreakPointCount();

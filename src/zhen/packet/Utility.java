@@ -54,11 +54,16 @@ public class Utility {
 		}
 	}
 	
-	public static void log(String msg){
+	public static void log(String TAG, String msg){
 		System.out.println(msg);
 	}
 	
-	public static void info(String msg){
+	public static void info(String TAG,String msg){
 		System.out.println(msg);
+	}
+	
+	public static void sleep(long time){
+		try { Thread.sleep(time);
+		} catch (InterruptedException e) { }
 	}
 }
