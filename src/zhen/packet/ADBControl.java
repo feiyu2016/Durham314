@@ -8,8 +8,8 @@ import java.util.logging.Logger;
 public class ADBControl {
 	public static String unlockScreenCommand = "adb shell input keyevent 82";
 	public static String clickPowerButtonCommand = "adb shell input keyevent KEYCODE_POWER";
-	public static boolean enableConsoleOutput = true;
-	public static boolean debug = true;
+	public static boolean enableConsoleOutput = false;
+	public static boolean debug = false;
 	private static Logger  logger = Utility.setupLogger(ADBControl.class);
 	public static void sendSellCommand(String command){
 		sendADBCommand("adb shell "+command);

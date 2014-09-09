@@ -264,7 +264,6 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						deposit.add(record);
 						this.setUpBreakPoint();
 						carryoutEventOnView(viewProfile, eventType, true);//e.g press, click
-//						waitForTime(3000);
 						this.clearUpBreakPoint();
 						
 						

@@ -22,18 +22,26 @@ public class testJDB {
 			else if(reading.equals("1")){ //setup
 				try {
 					jdb.setMonitorStatus(true);
-					jdb.setBreakPointsAllLines(methodSignature);
+					for(int i=0;i<100;i++){
+						String string = methodSignature.get(i);
+						jdb.setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
+					}
+//					jdb.setBreakPointsAllLines(methodSignature);
 				} catch (Exception e) { 
 					e.printStackTrace();
 				}
-				System.out.println("setup");
+				System.out.println("setup all");
 			}else if(reading.equals("2")){ //remove
 				try {
-					jdb.clearBreakPointsAllLines(methodSignature);
+					for(int i=0;i<100;i++){
+						String string = methodSignature.get(i); 
+						jdb.clearBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
+					}
+//					jdb.clearBreakPointsAllLines(methodSignature);
 				} catch (Exception e) { 
 					e.printStackTrace();
 				}
-				System.out.println("remove");
+				System.out.println("remove all");
 			}else if(reading.equals("3")){ //destroy 
 				try {
 					jdb.exitJDB();
@@ -52,8 +60,31 @@ public class testJDB {
 					e.printStackTrace(); 
 				}
 				System.out.println("init");
-			}else if(reading.equals("9")){ //init
+			}else if(reading.equals("9")){ //information
 				jdb.getMethodCoverage();
+			}else if(reading.equals("8")){ //information
+				System.out.println(methodSignature.get(0));
+			}else if(reading.equals("a")){ //information
+				try {
+					jdb.setMonitorStatus(true);
+					for(int i=0;i<100;i++){
+						String string = methodSignature.get(i);
+						jdb.setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
+					}
+				} catch (Exception e) { 
+					e.printStackTrace();
+				}
+				System.out.println("setup 100 lines");
+			}else if(reading.equals("b")){ //information
+				try {
+					for(int i=0;i<100;i++){
+						String string = methodSignature.get(i); 
+						jdb.clearBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
+					}
+				} catch (Exception e) { 
+					e.printStackTrace();
+				}
+				System.out.println("remove 100 lines");
 			}
 		}
 		

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import zhen.packet.ADBControl;
 import main.Paths;
 
 public class JDBStuff {
@@ -46,9 +47,8 @@ public class JDBStuff {
 	
 	public void clearBreakPointLine(String className, int lineNumber) throws Exception{
 		out.write(("clear " + className + ":" + lineNumber + "\n").getBytes());
-		
-		
 		out.flush();
+		ADBControl.sendADBCommand("adb forward --remove tcp:"+tcpPort);
 	}
 	
 	public void setBreakPointsAllLines(ArrayList<String> breakPointList) throws Exception {
@@ -83,6 +83,7 @@ public class JDBStuff {
 	public void exitJDB() throws Exception{
 		out.write("exit\n".getBytes());
 		out.flush();
+		
 	}
 	
 	public void setlocalTcpPort(int i) {
