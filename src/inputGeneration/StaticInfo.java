@@ -24,12 +24,12 @@ import org.w3c.dom.NodeList;
 
 public class StaticInfo {
 	
-	private static ArrayList<Layout> layoutList = new ArrayList<Layout>();
+	private static ArrayList<StaticLayout> layoutList = new ArrayList<StaticLayout>();
 	public static ArrayList<String> UIChanges = new ArrayList<String>();
 	private static Map<String, String> defLayouts = new HashMap<String, String>();
 	private static ArrayList<String> callGraph = new ArrayList<String>();
 	
-	public static ArrayList<Layout> getLayoutList(File file) {
+	public static ArrayList<StaticLayout> getLayoutList(File file) {
 		return layoutList;
 	}
 		
@@ -73,7 +73,7 @@ public class StaticInfo {
 	}
 	
 	public static void reset() {
-		layoutList = new ArrayList<Layout>();
+		layoutList = new ArrayList<StaticLayout>();
 		UIChanges = new ArrayList<String>();
 		defLayouts = new HashMap<String, String>();
 		callGraph = new ArrayList<String>();
@@ -175,7 +175,7 @@ public class StaticInfo {
 						mainActvt = activityName;
 				}
 			}
-			// if not found mainActvt, process <activity-alias> for mainActvt
+			// if mainActvt, process <activity-alias> for mainActvt
 			if (mainActvt.equals("")) {
 				NodeList aliasList = doc.getElementsByTagName("activity-alias");
 				for (int i = 0, len = aliasList.getLength(); i < len; i++) {
@@ -238,7 +238,7 @@ public class StaticInfo {
 				for (String c: classNames)
 					if (c.equals(layoutType))
 						isCustom = true;
-				Layout thisLayout = new Layout(layoutName, layoutNode, layoutType, isCustom);
+				StaticLayout thisLayout = new StaticLayout(layoutName, layoutNode, layoutType, isCustom);
 				layoutList.add(thisLayout);
 				doc.getDocumentElement().normalize();
 				NodeList nodes = doc.getElementsByTagName("*");
@@ -251,7 +251,7 @@ public class StaticInfo {
 						for (String c: classNames)
 							if (c.equals(layoutType))
 								isCustom = true;
-						ViewNode thisNode = new ViewNode(type, ID, node, isCustom);
+						StaticViewNode thisNode = new StaticViewNode(type, ID, node, isCustom);
 						thisLayout.addNode(thisNode);
 					} else {
 						// TODO need to add solution to nodes that has event handlers but no id
@@ -274,12 +274,10 @@ public class StaticInfo {
 		return result;
 	}
 	
-	private static void parseJavaLayouts(File file) {
-		// TODO parse java layouts and add views
-		// first read the code of those custom layouts, then scan the others
+	private static void collectLayoutTypes(File file) {
 		ArrayList<String> standardLayoutTypes = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "/KnownLayoutTypes.txt")).split("\n")));
 		ArrayList<String> customLayoutParents = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "/CustomLayoutParents.txt")).split("\n")));
-		for (Layout l : layoutList) {
+		for (StaticLayout l : layoutList) {
 			if (!l.isCustomLayout()) {
 				if (!standardLayoutTypes.contains(l.getType()))	
 					standardLayoutTypes.add(l.getType());	
@@ -287,7 +285,7 @@ public class StaticInfo {
 			}
 			if (l.getType().startsWith("android.support.v"))	continue;
 			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
-			if (!classFile.exists())	return;
+			if (!classFile.exists())	continue;
 			try {
 				BufferedReader in = new BufferedReader(new FileReader(classFile));
 				String firstline = in.readLine();
@@ -320,6 +318,18 @@ public class StaticInfo {
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
+	private static void parseJavaLayouts(File file) {
+		// TODO parse java layouts and add views
+		// first read the code of those custom layouts, then scan the others
+		collectLayoutTypes(file);
+		for (StaticLayout l : layoutList) {
+			if (!l.isCustomLayout())	continue;
+			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
+			if (!classFile.exists())	continue;
+			
+		}
+	}
+	
 	private static String findViewNameByID(File file, String ID) {
 		// takes a hex ID string as input, look for the view Name in /res/values/public.xml
 		// this is to deal with 'findViewById()' in the jimple code
@@ -348,9 +358,9 @@ public class StaticInfo {
 		return result;
 	}
 	
-	public static Layout getLayoutObject(String name) {
-		Layout result = null;
-		for (Layout l: layoutList)
+	public static StaticLayout getLayoutObject(String name) {
+		StaticLayout result = null;
+		for (StaticLayout l: layoutList)
 			if (l.getName().equals(name))
 				result = l;
 		return result;
@@ -429,15 +439,15 @@ public class StaticInfo {
 					String layoutNm = thisViewInfo[1];
 					String vID = thisViewInfo[2];
 					String vEH = thisViewInfo[3];
-					ViewNode theVN = StaticInfo.getLayoutObject(layoutNm).getViewNodeById(vID);
+					StaticViewNode theVN = StaticInfo.getLayoutObject(layoutNm).getViewNodeById(vID);
 					theVN.addLeavingEventHandler(actvtNm + "," + vEH + "," + u[0] + "," + u[7]);
 				}
 			}
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
-	public static Layout getDefaultLayout(File file, String activityName) {
-		Layout result = null;
+	public static StaticLayout getDefaultLayout(File file, String activityName) {
+		StaticLayout result = null;
 		if (defLayouts.containsKey(activityName))
 			result = getLayoutObject(defLayouts.get(activityName));
 		return result;
@@ -561,16 +571,54 @@ public class StaticInfo {
 		return result;
 	}
 	
-	private static boolean isOnCreate(File file, String className, String methodSubSig) {
+	public static void methodAnalysis(File file, String targetClass, String targetMethod) {
+
+		ArrayList<String> directEHs = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(file, targetClass, targetMethod);
+		boolean isOnCreate = StaticInfo.isOnCreate(file, targetClass, targetMethod);
+		System.out.println("==========\nThe CallGraph Analysis result for \'" + targetClass + ":" + targetMethod + "\' is: ");
+		if (directEHs.size()>0) {
+			System.out.println("  - this is the event handler method for: ");
+			for (String e: directEHs)
+				System.out.print("      " + e);
+			System.out.print("\n");
+		}
+		if (isOnCreate)
+			System.out.println("  - this is the onCreate method for activity: " + targetClass);
+		ArrayList<String> callers = StaticInfo.getAllPossibleIncomingCallers(file, targetClass, targetMethod);
+		// format is: caller class name , caller method signature, at which line did the call happen
+		if (callers.size()<1) {
+			System.out.println("  - no source found from CallGraph.");
+			return;
+		}
+		System.out.println("here are the CallGraph sources for target method: " + targetClass + " : " + targetMethod + "");
+		int counter = 1;
+		for (String caller: callers) {
+			String callerClass = caller.split(",")[0];
+			String callerMethod = caller.split(",")[1];
+			directEHs = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethod);
+			isOnCreate = StaticInfo.isOnCreate(file, callerClass, callerMethod);
+			System.out.println(counter + ". " + caller);
+			counter++;
+			if (directEHs.size()>0) {
+				System.out.println("  - this is the event handler method for: ");
+				for (String e: directEHs)
+					System.out.print("      " + e);
+			}
+			if (isOnCreate)
+				System.out.println("  - this is the onCreate method for activity: " + callerClass);
+		}
+	}
+	
+	public static boolean isOnCreate(File file, String className, String methodSubSig) {
 		return (methodSubSig.equals("void onCreate(android.os.Bundle)") && isActivity(file, className));
 	}
 	
-	private static ArrayList<String> findEventHandlersThatMightDirectlyCallThisMethod(File file, String className, String methodSubSig) {
+	public static ArrayList<String> findEventHandlersThatMightDirectlyCallThisMethod(File file, String className, String methodSubSig) {
 		ArrayList<String> result = new ArrayList<String>();
 		if (!StaticInfo.isActivity(file, className))	return result;
-		for (Layout l: layoutList) {
-			ArrayList<ViewNode> vNs = l.getAllViewNodes();
-			for (ViewNode vN : vNs) {
+		for (StaticLayout l: layoutList) {
+			ArrayList<StaticViewNode> vNs = l.getAllViewNodes();
+			for (StaticViewNode vN : vNs) {
 				String id = vN.getID();
 				Map<String, String> eHs = vN.getAllEventHandlers();
 				for (Map.Entry<String, String> entry: eHs.entrySet()) {
