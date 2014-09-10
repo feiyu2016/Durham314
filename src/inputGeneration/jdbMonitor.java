@@ -23,7 +23,7 @@ public class jdbMonitor implements Runnable{
 		
 		try {
 			while ((line = in.readLine())!=null) {
-				System.out.println(line);
+//				System.out.println(line);
 				if (!line.startsWith("Breakpoint hit: \"")) continue;
 
 				JDBStuff.hitBPfromJDBMonitor.add(line);

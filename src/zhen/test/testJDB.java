@@ -22,22 +22,14 @@ public class testJDB {
 			else if(reading.equals("1")){ //setup
 				try {
 					jdb.setMonitorStatus(true);
-					for(int i=0;i<100;i++){
-						String string = methodSignature.get(i);
-						jdb.setBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
-					}
-//					jdb.setBreakPointsAllLines(methodSignature);
+					jdb.setBreakPointsAllLines(methodSignature);
 				} catch (Exception e) { 
 					e.printStackTrace();
 				}
 				System.out.println("setup all");
 			}else if(reading.equals("2")){ //remove
 				try {
-					for(int i=0;i<100;i++){
-						String string = methodSignature.get(i); 
-						jdb.clearBreakPointLine(string.split(":")[0], Integer.parseInt(string.split(":")[1]));
-					}
-//					jdb.clearBreakPointsAllLines(methodSignature);
+					jdb.clearBreakPointsAllLines(methodSignature);
 				} catch (Exception e) { 
 					e.printStackTrace();
 				}

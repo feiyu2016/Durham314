@@ -75,9 +75,7 @@ public abstract class TraverseAlgorithm {
 	protected void initJDB(){
 		try {
 			if(jdb!=null) try { jdb.exitJDB(); } catch (Exception e1) {  }
-			jdb = new JDBStuff();
-			jdb.initJDB(apkFile);
-			jdb.setMonitorStatus(true);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -88,6 +86,9 @@ public abstract class TraverseAlgorithm {
 	protected void setUpBreakPoint(){
 		if(enableJDB){
 			try {
+				jdb = new JDBStuff();
+				jdb.initJDB(apkFile);
+				jdb.setMonitorStatus(true);
 				jdb.setBreakPointsAllLines(methodSignature);
 				Thread.sleep(1000);
 			} catch (Exception e) { 
@@ -123,6 +124,7 @@ public abstract class TraverseAlgorithm {
 		if(enableJDB){
 			try {
 				jdb.clearBreakPointsAllLines(methodSignature);
+				jdb.exitJDB();
 			} catch (Exception e) { 
 				e.printStackTrace();
 			}
