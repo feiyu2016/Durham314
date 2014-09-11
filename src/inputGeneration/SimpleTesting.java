@@ -19,29 +19,25 @@ import viewer.ViewPositionData;
 		public static ViewPositionData view;
 		public static File processedAPK;
 		public static ArrayList<String> visitedActivities;
+		private static JDBStuff jdb;
 
 		public static void clickAll(File file) throws Exception{
 
 			RunTimeInfo.startApp(file);	// adb am start -n package/activity
 			
-			ArrayList<String> al = new ParseSmali().parseBeginningAndReturnLines(file);
-			
-			for (String string : al) {
-				System.out.println(string);
-			}
-			
-			/*setBreakPointsAtAllLines(file);
-			System.out.println("HERE");
+			setBreakPointsAtAllLines(file);
+			System.out.println("break points have been set.");
 			initRuntimeEnv();		// initiate HierarchyViewer and MonkeyRunner
 			System.out.println("INITIATION COMPLETE");
-			updateViewData();
-			sendEvent(file, "activity_main", "bug", "android:onClick");
+
 			updateViewData();
 			sendEvent(file, "activity_main", "ford", "android:onClick");
 			updateViewData();
 			sendEvent(file, "activity_main", "gtr", "android:onClick");
 			updateViewData();
-			sendEvent(file, "activity_main", "por", "android:onClick");*/
+			sendEvent(file, "activity_main", "por", "android:onClick");
+			updateViewData();
+			sendEvent(file, "activity_main", "bug", "android:onClick");
 			
 /*			String mainActivityName = StaticInfo.getMainActivityName(file);
 			clearClickingRecord(file);
@@ -76,9 +72,9 @@ import viewer.ViewPositionData;
 			System.out.println("MonkeyRunner initiated.");
 		}
 		
-		private static void setBreakPointsAtAllLines(File file) {
+		public static void setBreakPointsAtAllLines(File file) {
 			ArrayList<String> al = new ParseSmali().parseLines(file);
-			JDBStuff jdb = new JDBStuff();
+			jdb = new JDBStuff();
 			
 			try {
 				jdb.initJDB(file);
@@ -89,11 +85,16 @@ import viewer.ViewPositionData;
 			}
 		}
 		
+		public static void exitJDB() throws Exception{
+			jdb.exitJDB();
+			
+		}
+		
 		public static void clickWidgetsOfActivity(File file, String currentActivity, String activityOrLayout, String flag) {
 			// this is a recursive method
 			try {
 				updateViewData();
-				Layout currentLayout = StaticInfo.getLayoutObject(activityOrLayout);
+				StaticLayout currentLayout = StaticInfo.getLayoutObject(activityOrLayout);
 				if (flag.equals("activity")) {
 					visitedActivities.add(activityOrLayout);
 					System.out.println("retrieving default layout for " + activityOrLayout);
@@ -104,16 +105,16 @@ import viewer.ViewPositionData;
 					System.out.println("-Activity State: " + currentActivity + ", layout: " + currentLayout.getName() + "\n");
 				}
 				
-				ArrayList<ViewNode> leavingWidgets = currentLayout.getLeavingViewNodes();
-				ArrayList<ViewNode> stayingWidgets = currentLayout.getStayingViewNodes();
+				ArrayList<StaticViewNode> leavingWidgets = currentLayout.getLeavingViewNodes();
+				ArrayList<StaticViewNode> stayingWidgets = currentLayout.getStayingViewNodes();
 				System.out.println("staying widgets: ");
-				for (ViewNode v: stayingWidgets)	System.out.println(v.getID());
+				for (StaticViewNode v: stayingWidgets)	System.out.println(v.getID());
 				System.out.println("leaving widgets: ");
-				for (ViewNode v: leavingWidgets)	System.out.println(v.getID() + v.getLeavingTargets(currentActivity, "android:onClick"));
+				for (StaticViewNode v: leavingWidgets)	System.out.println(v.getID() + v.getLeavingTargets(currentActivity, "android:onClick"));
 				if (stayingWidgets.size() == 0)
 					System.out.println("no staying widgets.");
 				
-				for (ViewNode stayingWidget: stayingWidgets) {
+				for (StaticViewNode stayingWidget: stayingWidgets) {
 					String widgetID = stayingWidget.getID();
 					Map<String, String> allEH = stayingWidget.getAllEventHandlers();
 					if (allEH.size() == 0)
@@ -131,7 +132,7 @@ import viewer.ViewPositionData;
 					}
 				}
 				System.out.println("finished staying, now starting to leave");
-				for (ViewNode leavingWidget : leavingWidgets) {
+				for (StaticViewNode leavingWidget : leavingWidgets) {
 					String widgetID = leavingWidget.getID();
 					// 1. perform the staying events
 					ArrayList<String> stayingEH = leavingWidget.getStayingEvents(currentActivity);
