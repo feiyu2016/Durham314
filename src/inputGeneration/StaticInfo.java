@@ -2,8 +2,12 @@ package inputGeneration;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +32,7 @@ public class StaticInfo {
 	public static ArrayList<String> UIChanges = new ArrayList<String>();
 	private static Map<String, String> defLayouts = new HashMap<String, String>();
 	private static ArrayList<String> callGraph = new ArrayList<String>();
+	public static ArrayList<StaticNode> callGraphNodes = new ArrayList<StaticNode>();
 	
 	public static ArrayList<StaticLayout> getLayoutList(File file) {
 		return layoutList;
@@ -57,11 +62,15 @@ public class StaticInfo {
 		File info = new File(Paths.appDataDir + file.getName() + "/apktool/apktool.yml");
 		if (!info.exists() || forceAllSteps)
 			analysisTools.ApkTool.extractAPK(file);
-		File cG = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
-		if (!cG.exists() || forceAllSteps)
+		File apkInfo = new File(Paths.appDataDir + file.getName() + "/ApkInfo.csv");
+		if (!apkInfo.exists() || forceAllSteps)
 			analysisTools.Soot.generateAPKData(file);
-		System.out.println("reading call graph...");
-		prepareCG(file);
+		System.out.println("processing call graph...");
+		File cgNodesFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.nodes");
+		if (!cgNodesFile.exists() || forceAllSteps)
+			prepareCG(file);
+		if (callGraphNodes.size()<1)
+			readCGObject(file);
 		System.out.println("finished reading call graph\nparsing XML layouts");
 		parseXMLLayouts(file);
 		System.out.println("finished parsing XML layouts\nparsing java layouts");
@@ -79,17 +88,50 @@ public class StaticInfo {
 		callGraph = new ArrayList<String>();
 	}
 	
-	private static void prepareCG(File file) {
+	@SuppressWarnings("unchecked")
+	private static void readCGObject(File file) {
+		try {
+			System.out.println("reading Call Graph from '/CallGraph.nodes'...");
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(Paths.appDataDir + file.getName() + "/CallGraph.nodes"));
+			callGraphNodes = (ArrayList<StaticNode>) in.readObject();
+			in.close();
+		}	catch (Exception e ) {e.printStackTrace();}
+	}
+	
+	public static void prepareCG(File file) {
 		File cgFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
 		try {
+			System.out.println("reading '/CallGraph.csv'...");
 			BufferedReader in = new BufferedReader(new FileReader(cgFile));
 			String line;
-			while ((line = in.readLine())!=null)
-				callGraph.add(line);
+			while ((line = in.readLine())!=null) {
+				String srcClass = line.split(",")[1];
+				String srcMethodSig = line.split(",")[2];
+				String tgtClass = line.split(",")[3];
+				String tgtSig = line.split(",")[4];
+				String lineNo = line.split(",")[5];
+				StaticNode srcNode = findStaticNode(srcClass, srcMethodSig);
+				StaticNode tgtNode = findStaticNode(tgtClass, tgtSig);
+				if (srcNode == null)	{ srcNode = new StaticNode(srcClass, srcMethodSig, "Method");	callGraphNodes.add(srcNode); }
+				if (tgtNode == null)	{ tgtNode = new StaticNode(tgtClass, tgtSig, line.split(",")[0]); callGraphNodes.add(tgtNode); }
+				srcNode.addOutCall(tgtNode, lineNo);
+				tgtNode.addInCall(srcNode, lineNo);
+			}
 			in.close();
+			System.out.println("writing /CallGraph.nodes...");
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Paths.appDataDir + file.getName() + "/CallGraph.nodes"));
+			out.writeObject(callGraphNodes);
+			out.close();
 		}	catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static StaticNode findStaticNode(String className, String signature) {
+		for (StaticNode cgNode : callGraphNodes)
+			if (cgNode.getDeclaringClassName().equals(className) && cgNode.getSignature().equals(signature))
+				return cgNode;
+		return null;
 	}
 	
 	public static ArrayList<String> getClassNames(File file) {
@@ -542,33 +584,57 @@ public class StaticInfo {
 		return targetLayout;
 	}
 	
-	public static ArrayList<String> getAllPossibleIncomingCallers(File file, String className, String methodSubSig) {
-		// output format: className,methodSig,lineNumber
+	public static ArrayList<String> getOutCallTargets(String className, String methodSubsig) {
+		for (StaticNode cN : callGraphNodes)
+			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig))
+				return cN.getOutCallTargets();
+		return null;
+	}
+	
+	public static ArrayList<String> getInCallSources(String className, String methodSubsig) {
+		for (StaticNode cN : callGraphNodes)
+			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig))
+				return cN.getInCallSources();
+		return null;
+	}
+	
+	public static void getPossibleCallSequences(String className, String methodSubSig) {
+		// TODO
+	}
+	
+	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubsig) {
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
-		for (String outCall: callGraph) {
-			String[] out = outCall.split(",");
-			if (!out[0].equals("MethodCall"))	continue;
-			if (className.equals(out[3]) && methodSubSig.equals(out[4])) {
-				String callSig = out[1] + "," + out[2] + "," + out[6];
+		for (StaticNode node : callGraphNodes) {
+			if (!node.getDeclaringClassName().equals(className) || !node.getSignature().equals(methodSubsig))
+				continue;
+			ArrayList<String> inCalls = node.getInCallSources();
+			// get direct callers
+			for (String iC : inCalls) {
+				String callerClass = iC.split(":")[0];
+				String callerSig = iC.split(":")[1];
+				String lineNo = iC.split(":")[2];
+				String callSig = callerClass + callerSig + lineNo;
 				if (!callMap.containsKey(callSig))
-					callMap.put(callSig , false);
+					callMap.put(callSig, false);				
 			}
+			// get callers of callers
+			Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
+			for (Map.Entry<String, Boolean> entry: entrySets) {
+				if (entry.getValue())	continue;
+				String nextClassName = entry.getKey().split(",")[0];
+				String nextMethodSubSig = entry.getKey().split(",")[1];
+				ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
+				for (String nLC : nextLevelCaller)
+					if (!callMap.containsKey(nLC))
+						callMap.put(nLC, false);
+				entry.setValue(true);
+			}
+			for (Map.Entry<String, Boolean> entry: callMap.entrySet())
+				result.add(entry.getKey());
+			return result;
 		}
-		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
-		for (Map.Entry<String, Boolean> entry: entrySets) {
-			if (entry.getValue())	continue;
-			String nextClassName = entry.getKey().split(",")[0];
-			String nextMethodSubSig = entry.getKey().split(",")[1];
-			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(file, nextClassName, nextMethodSubSig);
-			for (String nLC : nextLevelCaller)
-				if (!callMap.containsKey(nLC))
-					callMap.put(nLC, false);
-			entry.setValue(true);
-		}
-		for (Map.Entry<String, Boolean> entry: callMap.entrySet())
-			result.add(entry.getKey());
-		return result;
+		return null;
 	}
 	
 	public static void methodAnalysis(File file, String targetClass, String targetMethod) {
@@ -584,7 +650,7 @@ public class StaticInfo {
 		}
 		if (isOnCreate)
 			System.out.println("  - this is the onCreate method for activity: " + targetClass);
-		ArrayList<String> callers = StaticInfo.getAllPossibleIncomingCallers(file, targetClass, targetMethod);
+		ArrayList<String> callers = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
 		// format is: caller class name , caller method signature, at which line did the call happen
 		if (callers.size()<1) {
 			System.out.println("  - no source found from CallGraph.");
@@ -649,7 +715,7 @@ public class StaticInfo {
 		if (possibleEHs.size() > 0)	inEventHandler = true;
 		// Step 3, get all possible incoming method calls, pick onCreate and EventHandlers from them
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
-		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(file, className, methodSubSig);
+		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
 			String callerClass = caller.split(",")[0];
 			String callerMethodSig = caller.split(",")[1];
@@ -689,7 +755,7 @@ public class StaticInfo {
 		if (possibleEHs.size() > 0)	inEventHandler = true;
 		// Step 3, get all possible incoming method calls, pick onCreate and EventHandlers from them
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
-		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(file, className, methodSubSig);
+		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
 			String callerClass = caller.split(",")[0];
 			String callerMethodSig = caller.split(",")[1];

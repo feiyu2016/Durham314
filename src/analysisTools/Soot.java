@@ -54,7 +54,6 @@ public class Soot {
 			
 			protected void internalTransform(String phaseName, Map<String, String> options) {
 				try {
-					System.out.println("test");
 					CHATransformer.v().transform();
 					Chain<SootClass> classes = Scene.v().getApplicationClasses();
 					File cgFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
@@ -114,28 +113,31 @@ public class Soot {
 								if (stmt.containsFieldRef()) {
 									SootField tgtField = stmt.getFieldRef().getField();
 									SootClass tgtfieldC = tgtField.getDeclaringClass();
-									out_Method.write("FieldRef," + tgtField.getName() + "," + 
-													tgtField.getType().toString() +"," + 
+									if (classes.contains(tgtfieldC)) {
+										out_Method.write("Field," + tgtField.getName() + "," + 
+														tgtField.getType().toString() +"," + 
+														tgtfieldC.getName() + "," + 
+														stmtCounter + "\n");
+										out_CG.write("Field," + c.getName() + "," + 
+													method.getSubSignature().replace(",", " ") + "," + 
 													tgtfieldC.getName() + "," + 
-													stmt.toString() + "," + stmtCounter + "\n");
-									out_CG.write("FieldRef," + c.getName() + "," + 
-												method.getName() + "," + 
-												tgtfieldC.getName() + "," + 
-												tgtField.getName() + "," + 
-												tgtField.getType().toString() + "," +
-												stmt.toString() + "," + stmtCounter + "\n");
+													tgtField.getSubSignature() + "," + 
+													stmtCounter + "\n");
+									}
 								} else if (stmt.containsInvokeExpr()) {
 									SootMethod tgtMethod = stmt.getInvokeExpr().getMethod();
 									SootClass tgtMethod_Class = tgtMethod.getDeclaringClass();
-									out_Method.write("MethodCall," + tgtMethod.getName() + "," + 
+									if (classes.contains(tgtMethod_Class)) {
+										out_Method.write("Method," + tgtMethod.getName() + "," + 
+														tgtMethod_Class.getName() + "," + 
+														tgtMethod.getSubSignature().replace(",", " ") + "," + 
+														stmtCounter + "\n");
+										out_CG.write("Method," + c.getName() + "," + 
+													method.getSubSignature().replace("," , " ") + "," + 
 													tgtMethod_Class.getName() + "," + 
-													tgtMethod.getSubSignature().replace(",", " ") + "," + 
-													stmt.toString() + "," + stmtCounter + "\n");
-									out_CG.write("MethodCall," + c.getName() + "," + 
-												method.getSubSignature().replace("," , " ") + "," + 
-												tgtMethod_Class.getName() + "," + 
-												tgtMethod.getSubSignature().replace("," , " ") + "," + 
-												stmt.toString() + "," + stmtCounter + "\n");
+													tgtMethod.getSubSignature().replace("," , " ") + "," + 
+													stmtCounter + "\n");
+									}
 								}
 								stmtCounter++;
 							}
