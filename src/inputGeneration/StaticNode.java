@@ -37,6 +37,18 @@ public class StaticNode implements Serializable{
 		return signature;
 	}
 	
+	public boolean hasOutCalls() {
+		if (outCallTargets.size()>0)
+			return true;
+		else return false;
+	}
+	
+	public boolean hasInCalls() {
+		if (inCallSources.size()>0)
+			return true;
+		else return false;
+	}
+	
 	public ArrayList<String> getOutCallTargets() {
 		return outCallTargets;
 	}
