@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -88,7 +89,6 @@ public class StaticInfo {
 		callGraph = new ArrayList<String>();
 	}
 	
-	@SuppressWarnings("unchecked")
 	private static void readCGObject(File file) {
 		try {
 			System.out.println("reading Call Graph from '/CallGraph.nodes'...");
@@ -598,43 +598,79 @@ public class StaticInfo {
 		return null;
 	}
 	
-	public static void getPossibleCallSequences(String className, String methodSubSig) {
+	public static ArrayList<String> getPossibleCallSequences(String className, String methodSubsig) {
 		// TODO
+		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
+		//ArrayList<String> paths = new ArrayList<String>();
+		//paths.add(className + ":" + methodSubsig);
+		callMap.put(className + ":" + methodSubsig, false);
+		boolean finished = false;
+		while (!finished) {
+			ArrayList<String> addAfterIteration = new ArrayList<String>();
+			Iterator<Map.Entry<String, Boolean>> it = callMap.entrySet().iterator();
+			while (it.hasNext()) {
+				// for each existing path, fetch the source node, get its callers
+				// if no caller then its a source
+				// append those callers to the list
+				// not all callers: if a caller is already in this path, ignore him
+				Map.Entry<String, Boolean> entry = it.next();
+				if (entry.getValue()) continue;
+				String currentSource = entry.getKey();
+				if (entry.getKey().contains(","))	// first find the source in this path
+					currentSource = entry.getKey().split(",")[entry.getKey().split(",").length-1];
+				StaticNode srcNode = StaticInfo.findStaticNode(currentSource.split(":")[0], currentSource.split(":")[1]);
+				if (srcNode == null || !srcNode.hasInCalls()) {	entry.setValue(true); continue;	} // if no new callers, the path reached source
+				ArrayList<String> newSources = srcNode.getInCallSources();
+				int newSrcCount = 0;
+				for (String newSrc : newSources) {
+					if (callMap.containsKey(newSrc))	continue; // if new caller already in this path, ignore this caller
+					newSrcCount++;
+					addAfterIteration.add(entry.getKey() + "," + newSrc);
+				}
+				if (newSrcCount>0)	 it.remove();	// if path grows, delete the old one
+			}
+			for (String newEntry : addAfterIteration)	// put extended paths in
+				callMap.put(newEntry, false);
+			// after one round of extending path, see if another round is needed
+			finished = true;
+			for (Map.Entry<String, Boolean> e : callMap.entrySet())
+				if (!e.getValue()) { finished = false; break; }
+		}
+		ArrayList<String> results = new ArrayList<String>();
+		for (Map.Entry<String, Boolean> e : callMap.entrySet())
+			results.add(e.getKey());
+		return results;
 	}
 	
 	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubsig) {
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
-		for (StaticNode node : callGraphNodes) {
-			if (!node.getDeclaringClassName().equals(className) || !node.getSignature().equals(methodSubsig))
-				continue;
-			ArrayList<String> inCalls = node.getInCallSources();
-			// get direct callers
-			for (String iC : inCalls) {
-				String callerClass = iC.split(":")[0];
-				String callerSig = iC.split(":")[1];
-				String lineNo = iC.split(":")[2];
-				String callSig = callerClass + callerSig + lineNo;
-				if (!callMap.containsKey(callSig))
-					callMap.put(callSig, false);				
-			}
-			// get callers of callers
-			Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
-			for (Map.Entry<String, Boolean> entry: entrySets) {
-				if (entry.getValue())	continue;
-				String nextClassName = entry.getKey().split(",")[0];
-				String nextMethodSubSig = entry.getKey().split(",")[1];
-				ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
-				for (String nLC : nextLevelCaller)
-					if (!callMap.containsKey(nLC))
-						callMap.put(nLC, false);
-				entry.setValue(true);
-			}
-			for (Map.Entry<String, Boolean> entry: callMap.entrySet())
-				result.add(entry.getKey());
-			return result;
+		StaticNode node = StaticInfo.findStaticNode(className, methodSubsig);
+		// get direct callers
+		ArrayList<String> inCalls = node.getInCallSources();
+		for (String iC : inCalls) {
+			String callerClass = iC.split(":")[0];
+			String callerSig = iC.split(":")[1];
+			String lineNo = iC.split(":")[2];
+			String callSig = callerClass + callerSig + lineNo;
+			if (!callMap.containsKey(callSig))
+				callMap.put(callSig, false);				
 		}
-		return null;
+		// get callers of callers
+		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
+		for (Map.Entry<String, Boolean> entry: entrySets) {
+			if (entry.getValue())	continue;
+			String nextClassName = entry.getKey().split(",")[0];
+			String nextMethodSubSig = entry.getKey().split(",")[1];
+			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
+			for (String nLC : nextLevelCaller)
+				if (!callMap.containsKey(nLC))
+					callMap.put(nLC, false);
+			entry.setValue(true);
+		}
+		for (Map.Entry<String, Boolean> entry: callMap.entrySet())
+			result.add(entry.getKey());
+		return result;
 	}
 	
 	public static void methodAnalysis(File file, String targetClass, String targetMethod) {
