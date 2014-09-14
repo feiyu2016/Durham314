@@ -17,6 +17,8 @@ public class testCG {
 	}
 	
 	private static void testSubCompoenent(String path){
+		long time1 = System.currentTimeMillis();
+		
 		File f =new File(path);
 		inputGeneration.StaticInfo.initAnalysis(f, false);
 //		analysisTools.Soot.generateAPKData(f);
@@ -54,19 +56,42 @@ public class testCG {
 		System.out.println("targetMethod:"+targetMethod);
 		
 		ArrayList<String> outCallTargetsList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
-		ArrayList<String> inCallTargetsList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
-		ArrayList<String> possibleCallSequencesList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
-		ArrayList<String> allPossibleIncomingCallersList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
+		ArrayList<String> inCallTargetsList = StaticInfo.getInCallSources(targetClass, targetMethod);
+		ArrayList<String> possibleCallSequencesList = StaticInfo.getPossibleCallSequences(targetClass, targetMethod);
+		ArrayList<String> allPossibleIncomingCallersList = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
 		
 		System.out.println("getOutCallTargets");printLineByLine(outCallTargetsList);
 		System.out.println("getInCallSources");printLineByLine(inCallTargetsList);
 		System.out.println("getPossibleCallSequences");printLineByLine(possibleCallSequencesList);
 		System.out.println("getAllPossibleIncomingCallers");printLineByLine(allPossibleIncomingCallersList);
 		
-		ArrayList<String> handlerList = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, targetClass, targetMethod);
-		System.out.println("findEventHandlersThatMightDirectlyCallThisMethod");printLineByLine(handlerList);
-	
-	
+
+		ArrayList<String> classList = StaticInfo.getClassNames(f);		
+		
+		System.out.println("Until now: "+String.format("%.3f", (System.currentTimeMillis()-time1)/1000.0));
+		System.out.println("Using getInCallSources");
+		for(String methodSig: inCallTargetsList){
+			ArrayList<String> eventHanlder = new ArrayList<String>();
+			boolean isOncreate = false;
+			for(String className: classList){
+//				if(StaticInfo.isOnCreate(f, className, methodSig)){
+//					isOncreate = true;
+//					break;
+//				}
+				ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, className, methodSig);
+				eventHanlder.addAll(tmp);
+			}
+			
+			if(isOncreate){
+				System.out.println("isOncreate");
+			}else{
+				System.out.println("Possible event handler:");
+				System.out.println(eventHanlder);
+			}
+		}
+		
+		long total = System.currentTimeMillis();
+		System.out.println("Total time: "+String.format("%.3f", (total-time1)/1000.0));
 	}
 	
 //	private boolean isHanlerClass(String className){
