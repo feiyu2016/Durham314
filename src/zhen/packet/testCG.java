@@ -1,10 +1,13 @@
 package zhen.packet;
 
 import inputGeneration.StaticInfo;
+import inputGeneration.StaticLayout;
+import inputGeneration.StaticViewNode;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class testCG {
 
@@ -37,13 +40,33 @@ public class testCG {
 		System.out.println("Method names:");
 		ArrayList<String> mList = StaticInfo.getAllMethodSignatures(f, targetClass);
 		printLineByLine(mList);
-//		
+		
+		
+		
+		String targetMethod = "";
 //		String targetMethod = "void Function_1(android.view.View)";
-//		ArrayList<String> callerList = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
+		for(String methodname: mList){
+			if(methodname.toLowerCase().contains("function_2")){
+				targetMethod = methodname;
+				break;
+			}
+		}
+		System.out.println("targetMethod:"+targetMethod);
+		
+		ArrayList<String> outCallTargetsList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
+		ArrayList<String> inCallTargetsList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
+		ArrayList<String> possibleCallSequencesList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
+		ArrayList<String> allPossibleIncomingCallersList = StaticInfo.getOutCallTargets(targetClass, targetMethod);
+		
+		System.out.println("getOutCallTargets");printLineByLine(outCallTargetsList);
+		System.out.println("getInCallSources");printLineByLine(inCallTargetsList);
+		System.out.println("getPossibleCallSequences");printLineByLine(possibleCallSequencesList);
+		System.out.println("getAllPossibleIncomingCallers");printLineByLine(allPossibleIncomingCallersList);
+		
+		ArrayList<String> handlerList = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, targetClass, targetMethod);
+		System.out.println("findEventHandlersThatMightDirectlyCallThisMethod");printLineByLine(handlerList);
 	
-//		for(String caller : callerList){
-//			
-//		}
+	
 	}
 	
 //	private boolean isHanlerClass(String className){
@@ -54,10 +77,11 @@ public class testCG {
 	static void printLineByLine(List li){
 		if(li == null || li.isEmpty()){
 			System.out.println("Empty");
+			return;
 		}
 		
 		for(Object o:li){
-			System.out.println(o.toString());
+			System.out.println(o);
 		}
 	}
 }
