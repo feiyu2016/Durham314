@@ -4,6 +4,7 @@ import inputGeneration.StaticInfo;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class testCG {
 
@@ -18,16 +19,24 @@ public class testCG {
 //		analysisTools.Soot.generateAPKData(f);
 		System.out.println("Act names:");
 		ArrayList<String> list = StaticInfo.getActivityNames(f);
-		System.out.println(list);
+		printLineByLine(list);
 		
-		System.out.println("Class names:");
+//		System.out.println("Class names:");
 		ArrayList<String> clist = StaticInfo.getClassNames(f);
-		System.out.println(clist);
+//		printLineByLine(clist); -- correct
 		
+		String targetClass = "";
+//		String targetClass = "com.example.simplecallgraphtestapp.SimpleTarget";
+		for(String className : clist){
+			if(className.toLowerCase().contains("simpletarget")){
+				targetClass = className;
+				break;
+			}
+		}
+		System.out.println("target class:" +targetClass );
 		System.out.println("Method names:");
-		String targetClass = "com.example.simplecallgraphtestapp.SimpleTarget";
 		ArrayList<String> mList = StaticInfo.getAllMethodSignatures(f, targetClass);
-		System.out.println(mList);
+		printLineByLine(mList);
 //		
 //		String targetMethod = "void Function_1(android.view.View)";
 //		ArrayList<String> callerList = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
@@ -42,4 +51,13 @@ public class testCG {
 //		
 //		return false;
 //	}
+	static void printLineByLine(List li){
+		if(li == null || li.isEmpty()){
+			System.out.println("Empty");
+		}
+		
+		for(Object o:li){
+			System.out.println(o.toString());
+		}
+	}
 }
