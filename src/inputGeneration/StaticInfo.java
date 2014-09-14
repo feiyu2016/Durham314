@@ -44,9 +44,9 @@ public class StaticInfo {
 		// e.g.   void myMethod(java.lang.String int java.lang.String)
 		ArrayList<String> results = new ArrayList<String>();
 		try {
-			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/" + className + "/ClassInfo.csv");
+			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv");
 			if (!classInfoFile.exists()) {
-				System.out.println("can't find ApkInfo file! Did you call 'analysisTools.Soot.generateAPKData(file)' before this?");
+				System.out.println("can't find ClassInfo file! Did you use the correct class name, or call 'analysisTools.Soot.generateAPKData(file)' before this?");
 				return results;
 			}
 			BufferedReader in = new BufferedReader(new FileReader(classInfoFile));
