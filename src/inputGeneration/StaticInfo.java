@@ -77,7 +77,7 @@ public class StaticInfo {
 		System.out.println("finished parsing XML layouts\nparsing java layouts");
 		parseJavaLayouts(file);
 		System.out.println("finished parsing java layouts\nprocessing intents and setcontentview");
-		//process_Intents_And_setContentView(file);
+		process_Intents_And_setContentView(file);
 		System.out.println("finished processing intents and setcontentviews");
 		System.out.println("initAnalysis finished.");
 	}
