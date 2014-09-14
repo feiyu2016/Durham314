@@ -317,8 +317,8 @@ public class StaticInfo {
 	}
 	
 	private static void collectLayoutTypes(File file) {
-		ArrayList<String> standardLayoutTypes = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "/KnownLayoutTypes.txt")).split("\n")));
-		ArrayList<String> customLayoutParents = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "/CustomLayoutParents.txt")).split("\n")));
+		ArrayList<String> standardLayoutTypes = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "KnownLayoutTypes.txt")).split("\n")));
+		ArrayList<String> customLayoutParents = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "CustomLayoutParents.txt")).split("\n")));
 		for (StaticLayout l : layoutList) {
 			if (!l.isCustomLayout()) {
 				if (!standardLayoutTypes.contains(l.getType()))	
