@@ -19,7 +19,6 @@ import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-
 import main.Paths;
 
 import org.w3c.dom.Document;
@@ -117,6 +116,7 @@ public class StaticInfo {
 				if (tgtNode == null)	{ tgtNode = new StaticNode(tgtClass, tgtSig, line.split(",")[0]); callGraphNodes.add(tgtNode); }
 				srcNode.addOutCall(tgtNode, lineNo);
 				tgtNode.addInCall(srcNode, lineNo);
+				System.out.println("added connection between srcnode " + srcNode.toString() + " and tgtNode " + tgtNode.toString());
 			}
 			in.close();
 			System.out.println("writing /CallGraph.nodes...");
@@ -128,7 +128,7 @@ public class StaticInfo {
 		}
 	}
 	
-	private static StaticNode findStaticNode(String className, String signature) {
+	public static StaticNode findStaticNode(String className, String signature) {
 		for (StaticNode cgNode : callGraphNodes)
 			if (cgNode.getDeclaringClassName().equals(className) && cgNode.getSignature().equals(signature))
 				return cgNode;
@@ -600,24 +600,24 @@ public class StaticInfo {
 	}
 	
 	public static ArrayList<String> getOutCallTargets(String className, String methodSubsig) {
-		for (StaticNode cN : callGraphNodes)
-			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig))
+		for (StaticNode cN : callGraphNodes) {
+			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig)) {
 				return cN.getOutCallTargets();
-		return null;
+			}
+		}
+		return new ArrayList<String>();
 	}
 	
 	public static ArrayList<String> getInCallSources(String className, String methodSubsig) {
 		for (StaticNode cN : callGraphNodes)
 			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig))
 				return cN.getInCallSources();
-		return null;
+		return new ArrayList<String>();
 	}
 	
 	public static ArrayList<String> getPossibleCallSequences(String className, String methodSubsig) {
-		// TODO
+		
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
-		//ArrayList<String> paths = new ArrayList<String>();
-		//paths.add(className + ":" + methodSubsig);
 		callMap.put(className + ":" + methodSubsig, false);
 		boolean finished = false;
 		while (!finished) {
@@ -661,22 +661,24 @@ public class StaticInfo {
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
 		StaticNode node = StaticInfo.findStaticNode(className, methodSubsig);
+		if (node == null)
+			return result;
 		// get direct callers
 		ArrayList<String> inCalls = node.getInCallSources();
 		for (String iC : inCalls) {
 			String callerClass = iC.split(":")[0];
 			String callerSig = iC.split(":")[1];
 			String lineNo = iC.split(":")[2];
-			String callSig = callerClass + callerSig + lineNo;
+			String callSig = callerClass + ":" + callerSig + ":" + lineNo;
 			if (!callMap.containsKey(callSig))
-				callMap.put(callSig, false);				
+				callMap.put(callSig, false);
 		}
 		// get callers of callers
 		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
 		for (Map.Entry<String, Boolean> entry: entrySets) {
 			if (entry.getValue())	continue;
-			String nextClassName = entry.getKey().split(",")[0];
-			String nextMethodSubSig = entry.getKey().split(",")[1];
+			String nextClassName = entry.getKey().split(":")[0];
+			String nextMethodSubSig = entry.getKey().split(":")[1];
 			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
 			for (String nLC : nextLevelCaller)
 				if (!callMap.containsKey(nLC))
