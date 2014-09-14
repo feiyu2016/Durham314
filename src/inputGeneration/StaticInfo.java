@@ -349,11 +349,11 @@ public class StaticInfo {
 			}	catch (Exception e) {e.printStackTrace();}
 		}
 		try {
-			PrintWriter out = new PrintWriter(new FileWriter("/home/wenhaoc/AppData/KnownLayoutTypes.txt"));
+			PrintWriter out = new PrintWriter(new FileWriter(Paths.appDataDir + "KnownLayoutTypes.txt"));
 			for (String s: standardLayoutTypes)
 				out.write(s + "\n");
 			out.close();
-			out = new PrintWriter(new FileWriter("/home/wenhaoc/AppData/CustomLayoutParents.txt"));
+			out = new PrintWriter(new FileWriter(Paths.appDataDir + "CustomLayoutParents.txt"));
 			for (String s: customLayoutParents)
 				out.write(s + "\n");
 			out.close();
