@@ -206,8 +206,7 @@ public class StaticInfo {
 			for (int i = 0, len = activityList.getLength(); i < len; i++) {
 				Node activityNode = activityList.item(i);
 				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
-				if (validateActivity(file, activityName))
-					results.add(activityName);
+				results.add(activityName);
 				// check if its mainActvt
 				Element e =(Element) activityNode;
 				NodeList actionList = e.getElementsByTagName("action");
@@ -245,6 +244,15 @@ public class StaticInfo {
 					activityName = activityName.substring(1, activityName.length());
 				if (activityName.indexOf(".")==-1)
 					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+			}
+			for (int i = 0, len = results.size(); i < len; i++) {
+				String activityName = results.get(i);
+				if (activityName.startsWith("."))
+					activityName = activityName.substring(1, activityName.length());
+				if (activityName.indexOf(".")==-1)
+					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+				if (validateActivity(file, activityName))
+					results.set(i, activityName);
 			}
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
@@ -317,8 +325,14 @@ public class StaticInfo {
 	}
 	
 	private static void collectLayoutTypes(File file) {
-		ArrayList<String> standardLayoutTypes = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "KnownLayoutTypes.txt")).split("\n")));
-		ArrayList<String> customLayoutParents = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "CustomLayoutParents.txt")).split("\n")));
+		File known = new File(Paths.appDataDir + "KnownLayoutTypes.txt");
+		File custom = new File(Paths.appDataDir + "CustomLayoutParents.txt");
+		ArrayList<String> standardLayoutTypes = new ArrayList<String>();
+		ArrayList<String> customLayoutParents = new ArrayList<String>();
+		if (known.exists())
+			standardLayoutTypes = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "KnownLayoutTypes.txt")).split("\n")));
+		if (custom.exists())
+			customLayoutParents = new ArrayList<String>(Arrays.asList(readDatFile(new File(Paths.appDataDir + "CustomLayoutParents.txt")).split("\n")));
 		for (StaticLayout l : layoutList) {
 			if (!l.isCustomLayout()) {
 				if (!standardLayoutTypes.contains(l.getType()))	
