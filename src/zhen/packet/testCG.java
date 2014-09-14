@@ -15,18 +15,22 @@ public class testCG {
 	private static void testSubCompoenent(String path){
 		File f =new File(path);
 		inputGeneration.StaticInfo.initAnalysis(f, false);
-		analysisTools.Soot.generateAPKData(f);
+//		analysisTools.Soot.generateAPKData(f);
+		System.out.println("Act names:");
 		ArrayList<String> list = StaticInfo.getActivityNames(f);
 		System.out.println(list);
-//		ArrayList<String> clist = StaticInfo.getClassNames(f);
-//		System.out.println(clist);
 		
+		System.out.println("Class names:");
+		ArrayList<String> clist = StaticInfo.getClassNames(f);
+		System.out.println(clist);
+		
+		System.out.println("Method names:");
 		String targetClass = "com.example.simplecallgraphtestapp.SimpleTarget";
 		ArrayList<String> mList = StaticInfo.getAllMethodSignatures(f, targetClass);
 		System.out.println(mList);
-		
-		String targetMethod = "void Function_1(android.view.View)";
-		ArrayList<String> callerList = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
+//		
+//		String targetMethod = "void Function_1(android.view.View)";
+//		ArrayList<String> callerList = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
 	
 //		for(String caller : callerList){
 //			
