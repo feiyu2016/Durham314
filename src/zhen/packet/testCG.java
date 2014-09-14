@@ -65,28 +65,33 @@ public class testCG {
 		System.out.println("getPossibleCallSequences");printLineByLine(possibleCallSequencesList);
 		System.out.println("getAllPossibleIncomingCallers");printLineByLine(allPossibleIncomingCallersList);
 		
-
-		ArrayList<String> classList = StaticInfo.getClassNames(f);		
 		
 		System.out.println("Until now: "+String.format("%.3f", (System.currentTimeMillis()-time1)/1000.0));
-		System.out.println("Using getInCallSources");
-		for(String methodSig: inCallTargetsList){
-			ArrayList<String> eventHanlder = new ArrayList<String>();
-			boolean isOncreate = false;
-			for(String className: classList){
-//				if(StaticInfo.isOnCreate(f, className, methodSig)){
-//					isOncreate = true;
-//					break;
-//				}
-				ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, className, methodSig);
-				eventHanlder.addAll(tmp);
-			}
-			
-			if(isOncreate){
-				System.out.println("isOncreate");
-			}else{
-				System.out.println("Possible event handler:");
-				System.out.println(eventHanlder);
+		System.out.println("Using possibleCallSequencesList");
+		
+//		System.out.println(possibleCallSequencesList);
+		
+		for(String sequence: possibleCallSequencesList){
+			String[] sub_methodList = sequence.split(",");
+			for(String singleMethod : sub_methodList){
+				System.out.println("current:"+singleMethod);
+				ArrayList<String> eventHanlder = new ArrayList<String>();
+				boolean isOncreate = false;
+				for(String className: clist){
+//					if(StaticInfo.isOnCreate(f, className, methodSig)){
+//						isOncreate = true;
+//						break;
+//					}
+					ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, className, singleMethod);
+					eventHanlder.addAll(tmp);
+				}
+				
+				if(isOncreate){
+					System.out.println("isOncreate");
+				}else{
+					System.out.println("Possible event handler:");
+					System.out.println(eventHanlder);
+				}
 			}
 		}
 		
