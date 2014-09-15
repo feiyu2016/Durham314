@@ -1,7 +1,7 @@
-/result/
-/sootOutput/
-/APK/
-/log/
-/bin/
-/generated/
-/result/
+/result/*
+/sootOutput/*
+/APK/*
+/log/*
+/bin/*
+/generated/*
+/result/*

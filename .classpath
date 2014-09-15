@@ -13,13 +13,13 @@
 	<classpathentry kind="lib" path="libs/polyglot.jar"/>
 	<classpathentry kind="lib" path="libs/sootclasses_0219.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="libs/ddmlib-hierachy.jar"/>
 	<classpathentry kind="lib" path="libs/common.jar"/>
-	<classpathentry kind="lib" path="libs/ddmlib.jar"/>
-	<classpathentry kind="lib" path="libs/hierarchyviewer2lib.jar"/>
 	<classpathentry kind="lib" path="libs/org-eclipse-core-commands-3.6.0.jar"/>
 	<classpathentry kind="lib" path="libs/org-eclipse-equinox-common-3.6.0.jar"/>
 	<classpathentry kind="lib" path="libs/org-eclipse-jface-3.6.2.jar"/>
 	<classpathentry kind="lib" path="libs/org.eclipse.rap.rwt-2.3.0-RC3.jar"/>
+	<classpathentry kind="lib" path="libs/ddmlib-hierachy.jar"/>
+	<classpathentry kind="lib" path="libs/ddmlib.jar"/>
+	<classpathentry kind="lib" path="libs/hierarchyviewer2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

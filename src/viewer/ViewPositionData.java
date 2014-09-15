@@ -77,6 +77,25 @@ public class ViewPositionData {
 		
 	}
 	
+	public ArrayList<String> retrieveInfoWithoutInvalid(){
+	      Window win = Window.FOCUSED_WINDOW;
+	      if(debug) System.out.println("Retrieving view info");
+	      ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,win);
+	      if(debug) System.out.println("Filtering Data");
+	      ArrayList<String> result = processData(arrlist);
+	      return result;
+	}
+	public boolean isInputMethodVisibleWithoutInvalid(){
+		List<String> viewInfomation = retrieveInputMethodViewInformationWithoutInvalid();
+		String[] parts = viewInfomation.get(0).split("=");
+		if(parts.length >1 ){
+			return parts[1].startsWith("VISIBLE");
+		}else{
+			System.out.println("retrive keyborad info fails");
+		}
+		return false;
+	}
+	
 	public String getFocusedActivityName(){
 		return retrieveWindow(currentDevice,focusedWindowSelecter).getTitle();
 	}
@@ -97,6 +116,15 @@ public class ViewPositionData {
 		return list;
 	}
 	
+	public List<String> retrieveInputMethodViewInformationWithoutInvalid(){
+		Window selected = retrieveWindow(currentDevice,inputMehodWindowSelecter);
+		List<String> list = retrieveWindowInfomationWithoutInvalid(selected, new 
+				ViewPositionData.StringValueRetriever(new String[]{
+						"getVisibility()"
+				}));
+		return list;
+	}
+	
 	public List<String> retrieveWindowInfomation(Window win){
 		return retrieveWindowInfomation(win, this.filter);
 	}
@@ -105,6 +133,16 @@ public class ViewPositionData {
 		if(debug)System.out.println("Request layout");
 		invalidateLayout(currentDevice, win);
 		
+		if(debug) System.out.println("Retrieving view info");
+		ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,win);
+		
+		if(debug) System.out.println("Filtering Data");
+		List result = filter.process(arrlist);
+		
+		return result;
+	}
+	
+	public List<String> retrieveWindowInfomationWithoutInvalid(Window win, NodeDataFilter filter){		
 		if(debug) System.out.println("Retrieving view info");
 		ArrayList<ViewNode> arrlist = retrieveViewData(currentDevice,win);
 		

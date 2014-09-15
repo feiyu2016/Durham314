@@ -1,11 +1,11 @@
 package main;
 
 import inputGeneration.JDBStuff;
-import inputGeneration.Layout;
+import inputGeneration.StaticLayout;
 import inputGeneration.ParseSmali;
 import inputGeneration.SimpleTesting;
 import inputGeneration.StaticInfo;
-import inputGeneration.ViewNode;
+import inputGeneration.StaticViewNode;
 
 import java.io.BufferedReader;
 import java.io.File;

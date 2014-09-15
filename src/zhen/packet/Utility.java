@@ -53,4 +53,12 @@ public class Utility {
 			afile.delete();
 		}
 	}
+	
+	public static void log(String msg){
+		System.out.println(msg);
+	}
+	
+	public static void info(String msg){
+		System.out.println(msg);
+	}
 }
