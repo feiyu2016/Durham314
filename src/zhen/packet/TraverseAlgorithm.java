@@ -123,6 +123,7 @@ public abstract class TraverseAlgorithm {
 	protected void clearUpBreakPoint(){
 		if(enableJDB){
 			try {
+			
 				jdb.clearBreakPointsAllLines(methodSignature);
 				jdb.exitJDB();
 			} catch (Exception e) { 

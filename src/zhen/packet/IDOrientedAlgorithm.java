@@ -17,46 +17,7 @@ import inputGeneration.StaticLayout;
 import inputGeneration.StaticInfo;
 import inputGeneration.StaticViewNode;
 
-/**
- * Date: August 30th 2014
- * Implementation of traverse in the UIs
- * 
- * Static info:
- * 		stayingWidgets 	-- 	Views that for sure that does not cause UI change
- * 		eventHandler 	-- 	What event a known view could receive
- * 
- * Dynamic info:
- * 		Break points 	-- 	which is setup before testing and provide information on method calls
- * 		HierarchyView 	-- 	provide view trees
- * 
- * RunTime Log:
- * 		Log channel		-- 	Log various information to file
- * 		Event Sequence	-- 	the sequence of events that leads to current UI state
- * 	
- * Known problems and potential solutions for algorithm
- * 		1. Cyclic UI graph could leads to infinite loop, duplicated UI analysis. 
- * 		UI learning which takes the sequence of UIs before and after current UI
- * 		may solve the problem.
- * 		2. 
- * Algorithm:
- * For each untested activity, 
- * 		travel through all staying widgets
- * 		for each of untested views
- * 			for each of possible events
- * 				carry out the event
- * 				observe consequence
- * 				record the event
- * 				if UI changes 
- * 					travel the new UI
- * 				sustain layout consistency
- * 
- * Fatal error condition
- * 		When UI cannot be re-reached
- * 
- * @author zhenxu
- *
- */
-public class StaticGuidedAlgoirthm extends TraverseAlgorithm{	
+public class IDOrientedAlgorithm extends TraverseAlgorithm{
 	public boolean enableUsePartialSet = true;
 	public boolean enableUseFullSet = true;
 	public boolean enableReinstall = true;
@@ -113,13 +74,20 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 	private Map<String, ArrayList<EventRecord>> eventSequenceRecorder;
 	private ArrayList<EventRecord> currentPath;
 	private static Logger logger = Utility.setupLogger(StaticGuidedAlgoirthm.class);
-	
+	private String targetId;
+	private List<String> targetEventType;
+	private boolean targetReachedFlag = false;
+	private String targetAct;
 	
 	/**
 	 * @param apkPath	-- 	the path to the target APK file which will be installed on device
 	 */
-	public StaticGuidedAlgoirthm(String apkPath) {
+	public IDOrientedAlgorithm(String apkPath,String targetAct, String targetId, List<String> eventType) {
 		super(apkPath);
+//		if(targetId.startsWith(""))
+		this.targetAct = targetAct;
+		this.targetId = targetId;
+		this.targetEventType = eventType;
 		eventSequenceRecorder = new HashMap<String, ArrayList<EventRecord>>();
 //		stayingWidgtsInfoDepost = new HashMap<String, List<String>>();
 		this.dataFilter = new ViewPositionData.NodeDataFilter(){
@@ -176,8 +144,8 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			currentPath = new ArrayList<EventRecord>();
 			innerTravel_failure = false;
 			innerTravel(null, currentActName);
-			eventSequenceRecorder.put(currentStartingActName, currentPath);
-			this.jdb.getMethodCoverage();
+			eventSequenceRecorder.put(currentStartingActName, (ArrayList<EventRecord>)currentPath.clone());
+			if(jdb!=null)this.jdb.getMethodCoverage();
 		}
 		if(Debug)logger.info("Execution ends");
 	}
@@ -204,6 +172,19 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			//TODO -- Optimization: Could sort the array by mID, this benefits for searching later
 			
 			checkAndCloseKeyboard();
+			
+//			System.out.println(targetAct +"|"+currentActName);
+			if(this.targetAct.equalsIgnoreCase(currentActName)){
+				Map<String, String> attr = this.isTargetInsight(currentLayoutInfo);
+				if(attr != null){
+					carryoutEventOnView(attr, "android:onClick", true);
+					targetReachedFlag = true;
+					System.out.println("target found");
+					return;
+				}
+			}
+			
+			
 			
 			
 			//match with existing static information
@@ -263,9 +244,9 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						record.recordFromViewProfile(viewProfile);
 						
 						deposit.add(record);
-						this.setUpBreakPoint();
+//						this.setUpBreakPoint();
 						carryoutEventOnView(viewProfile, eventType, true);//e.g press, click
-						this.clearUpBreakPoint();
+//						this.clearUpBreakPoint();
 						
 						
 						boolean keyboardTriggered = checkAndCloseKeyboard();
@@ -324,7 +305,7 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 						}else{
 							logger.info("layout was changed");
 						}
-						
+						if(this.targetReachedFlag) return;
 						//upon this point UI should have changed
 						if(innerTravel_failure) return;
 						boolean isSucessful = sustainUIGraphConsisitencyProcedure(currentLayoutInfo,checkFirst);
@@ -721,10 +702,10 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 					EventRecord record = new EventRecord(eventType, actName);
 					this.deposit.add(record);
 					record.recordFromViewProfile(viewInfo);
-					this.setUpBreakPoint();
+//					this.setUpBreakPoint();
 					carryoutEventOnView(viewInfo, eventType, true);
 					this.waitForTime(300);
-					this.clearUpBreakPoint();
+//					this.clearUpBreakPoint();
 					record.destActName = actName;
 					currentPath.add(record);
 				}
@@ -780,4 +761,20 @@ public class StaticGuidedAlgoirthm extends TraverseAlgorithm{
 			
 		}
 	}
+	
+	private Map<String,String> isTargetInsight(List<Map<String,String>> viewlist){
+//		System.out.println("target:"+this.targetId);
+		
+		for(Map<String,String> attributes : viewlist){
+			String mId = attributes.get("mID");
+//			System.out.println("mId:"+mId);
+			if(mId.contains(this.targetId)){
+				return attributes;
+			}
+		}
+		return null;
+	}
+	
+	
+	
 }

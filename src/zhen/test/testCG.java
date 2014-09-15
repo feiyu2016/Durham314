@@ -1,4 +1,4 @@
-package zhen.packet;
+package zhen.test;
 
 import inputGeneration.StaticInfo;
 import inputGeneration.StaticLayout;
@@ -14,12 +14,12 @@ public class testCG {
 
 	public static void main(String[] args){
 		String path = "APK/SimpleCallGraphTestApp.apk";
-		testSubCompoenent(path);
+		System.out.println(	testSubCompoenent(path,"function_4"));
 	}
 	
-	private static void testSubCompoenent(String path){
+	public static ArrayList<String> testSubCompoenent(String path, String pattern){
 		long time1 = System.currentTimeMillis();
-		
+		pattern = pattern.toLowerCase();
 		File f =new File(path);
 		inputGeneration.StaticInfo.initAnalysis(f, false);
 //		analysisTools.Soot.generateAPKData(f);
@@ -49,7 +49,7 @@ public class testCG {
 		String targetMethod = "";
 //		String targetMethod = "void Function_1(android.view.View)";
 		for(String methodname: mList){
-			if(methodname.toLowerCase().contains("function_2")){
+			if(methodname.toLowerCase().contains(pattern)){
 				targetMethod = methodname;
 				break;
 			}
@@ -71,9 +71,10 @@ public class testCG {
 		System.out.println("Using possibleCallSequencesList");
 		
 		//ignore onCreate
-		Map<String,ArrayList<String>> methodToHandler = new HashMap<String,ArrayList<String>>();
+		ArrayList<String> slist = new ArrayList<String>();
+		
+//		Map<String,ArrayList<String>> methodToHandler = new HashMap<String,ArrayList<String>>();
 		for(String sequence: possibleCallSequencesList){
-			ArrayList<String> handlerList = new ArrayList<String>();
 			String[] sub_methodList = sequence.split(",");
 			for(int i =1;i<sub_methodList.length;i++){
 				String methodSig = sub_methodList[i];
@@ -82,16 +83,19 @@ public class testCG {
 				String className = parts[0];
 				String methodName = parts[1];
 				ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, className, methodName);
-				handlerList.addAll(tmp);
+				slist.addAll(tmp);
 			}
 			System.out.println("Handler:");
-			System.out.println(handlerList);
-			methodToHandler.put(sub_methodList[0], handlerList);
+			System.out.println(slist);
+			//sub_methodList[0]
 		}
+		slist.add(0,targetMethod);
 		
 		//com.example.simplecallgraphtestapp.MainActivity,activity_main,trigger2,android:onClick
 		long total = System.currentTimeMillis();
 		System.out.println("Total time: "+String.format("%.3f", (total-time1)/1000.0));
+		
+		return slist;
 	}
 	
 //	private boolean isHanlerClass(String className){
