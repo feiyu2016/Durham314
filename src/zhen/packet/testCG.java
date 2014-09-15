@@ -6,6 +6,7 @@ import inputGeneration.StaticViewNode;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,32 +70,26 @@ public class testCG {
 		System.out.println("Until now: "+String.format("%.3f", (System.currentTimeMillis()-time1)/1000.0));
 		System.out.println("Using possibleCallSequencesList");
 		
-//		System.out.println(possibleCallSequencesList);
-		
+		//ignore onCreate
+		Map<String,ArrayList<String>> methodToHandler = new HashMap<String,ArrayList<String>>();
 		for(String sequence: possibleCallSequencesList){
+			ArrayList<String> handlerList = new ArrayList<String>();
 			String[] sub_methodList = sequence.split(",");
-			for(String singleMethod : sub_methodList){
-				System.out.println("current:"+singleMethod);
-				ArrayList<String> eventHanlder = new ArrayList<String>();
-				boolean isOncreate = false;
-				for(String className: clist){
-//					if(StaticInfo.isOnCreate(f, className, methodSig)){
-//						isOncreate = true;
-//						break;
-//					}
-					ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, className, singleMethod);
-					eventHanlder.addAll(tmp);
-				}
-				
-				if(isOncreate){
-					System.out.println("isOncreate");
-				}else{
-					System.out.println("Possible event handler:");
-					System.out.println(eventHanlder);
-				}
+			for(int i =1;i<sub_methodList.length;i++){
+				String methodSig = sub_methodList[i];
+				System.out.println("methodSig:"+methodSig);
+				String parts[] = methodSig.split(":");
+				String className = parts[0];
+				String methodName = parts[1];
+				ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(f, className, methodName);
+				handlerList.addAll(tmp);
 			}
+			System.out.println("Handler:");
+			System.out.println(handlerList);
+			methodToHandler.put(sub_methodList[0], handlerList);
 		}
 		
+		//com.example.simplecallgraphtestapp.MainActivity,activity_main,trigger2,android:onClick
 		long total = System.currentTimeMillis();
 		System.out.println("Total time: "+String.format("%.3f", (total-time1)/1000.0));
 	}
