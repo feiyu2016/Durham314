@@ -3,15 +3,16 @@ package zhen.packet;
 import java.util.Arrays;
 
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Device;
 import com.android.ddmlib.IDevice;
 import com.android.hierarchyviewerlib.device.DeviceBridge;
 import com.android.hierarchyviewerlib.device.HvDeviceFactory;
 import com.android.hierarchyviewerlib.device.IHvDevice;
+import com.android.hierarchyviewerlib.device.ViewServerDevice;
 import com.android.hierarchyviewerlib.device.WindowUpdater;
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
 
+//might want to extend AbstractHvDevice
 public class RunTimeLayoutInformation {
 	private IDevice mDevice;
 	private IHvDevice device;
@@ -27,11 +28,11 @@ public class RunTimeLayoutInformation {
 	public void init(){
 		DeviceBridge.initDebugBridge(path);
 		DeviceBridge.startListenForDevices(listener1);
-		DeviceBridge.startListenForDevices(listener2);
+//		DeviceBridge.startListenForDevices(listener2);
 		while(mDevice == null){
 			try { Thread.sleep(200); } catch (InterruptedException e) { }
 		}//wait until a device is found
-		DeviceBridge.stopListenForDevices(listener1);
+//		DeviceBridge.stopListenForDevices(listener1);
 		try { Thread.sleep(50); } catch (InterruptedException e) { }
 		device = HvDeviceFactory.create(mDevice);
 		device.initializeViewDebug();
@@ -77,29 +78,39 @@ public class RunTimeLayoutInformation {
     public void terminate(){
     	device.removeWindowChangeListener(windowListener);
     	device.terminateViewDebug();
-    	DeviceBridge.stopListenForDevices(listener2);
+    	DeviceBridge.stopListenForDevices(listener1);
     	DeviceBridge.removeDeviceForward(mDevice);
     	DeviceBridge.removeViewServerInfo(mDevice);
     	DeviceBridge.terminate();
     }
 	
 	private AndroidDebugBridge.IDeviceChangeListener listener1 = new AndroidDebugBridge.IDeviceChangeListener(){
-		@Override public void deviceChanged(Device arg0, int arg1) { }
-		@Override public void deviceConnected(Device arg0) { mDevice = arg0; }
-		@Override public void deviceDisconnected(Device arg0) { mDevice = null; }
-	};
-	private AndroidDebugBridge.IDeviceChangeListener listener2 = new AndroidDebugBridge.IDeviceChangeListener(){
 		@Override
-		public void deviceChanged(Device arg0, int arg1) {
-			System.out.println("deviceChanged:"+arg0+";"+arg1);
+		public void deviceChanged(IDevice arg0, int arg1) { }
+		@Override
+		public void deviceConnected(IDevice arg0) { 
+			if(mDevice == null){
+				mDevice = arg0; 
+				//as a compromise
+				final ViewServerDevice vd = new ViewServerDevice(mDevice);
+				new Thread(new Runnable(){
+					@Override
+					public void run() { 
+						try { Thread.sleep(1000);
+						} catch (InterruptedException e) { 
+							e.printStackTrace();
+						}
+						windowList = DeviceBridge.loadWindows(vd, mDevice);
+						focusedWindowHash = DeviceBridge.getFocusedWindow(mDevice);
+					}
+				}).start();
+			}
 		}
 		@Override
-		public void deviceConnected(Device arg0) {
-			System.out.println("deviceConnected:"+arg0+";");
-		}
-		@Override
-		public void deviceDisconnected(Device arg0) {
-			System.out.println("deviceDisconnected:"+arg0+";");
+		public void deviceDisconnected(IDevice arg0) { 
+			if(mDevice == arg0 || mDevice.isOffline()){
+				mDevice = null; 
+			}
 		}
 	};
 	private WindowUpdater.IWindowChangeListener windowListener = new WindowUpdater.IWindowChangeListener(){
@@ -111,7 +122,9 @@ public class RunTimeLayoutInformation {
 		@Override
 		public void windowsChanged(IDevice arg0) {
 			windowList = DeviceBridge.loadWindows(device, arg0);
-//			System.out.println("windowsChanged:"+Arrays.toString(windowList));
+			for(Window win : windowList){
+//				System.out.println(win.getHashCode()+"  :  "+win.encode());
+			}
 		}
 	};
 }

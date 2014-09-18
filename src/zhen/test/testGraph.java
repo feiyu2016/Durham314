@@ -1,0 +1,49 @@
+package zhen.test;
+
+import java.util.Scanner;
+
+import com.android.hierarchyviewerlib.models.ViewNode;
+import com.android.hierarchyviewerlib.models.Window;
+
+import zhen.graph.Event;
+import zhen.graph.EventType;
+import zhen.graph.TraversalGraph;
+import zhen.packet.RunTimeLayoutInformation;
+
+public class testGraph {
+	public static void main(String[] args){
+		RunTimeLayoutInformation info = new RunTimeLayoutInformation("adb");
+		info.init();
+		TraversalGraph trversal = new TraversalGraph();
+		Scanner sc = new Scanner(System.in);
+		ViewNode root = null;
+		Window win = null;
+		while(true){
+			String read = sc.nextLine().trim();
+			if(read.equals("0")) break;
+			else if(read.equals("1")){
+				win = info.getFocusedWindow();
+				System.out.println("win:"+win);
+				trversal.setLauncherActName(win.getTitle());
+				trversal.enableGUI();
+			}else if(read.equals("2")){
+				win = info.getFocusedWindow();
+				Event event = new Event(EventType.LAUNCH,null);
+				trversal.extendGraph(event, win.getTitle(), null);
+			} else if(read.equals("3")){
+				win = info.getFocusedWindow();
+				root = info.loadFocusedWindowData();
+				Event event = new Event(EventType.CLICK,null);
+				trversal.extendGraph(event, win.getTitle(), root);
+			} else if(read.equals("4")){
+				win = info.getFocusedWindow();
+				root = info.loadFocusedWindowData();
+				Event event = new Event(EventType.ONBACK,null);
+				trversal.extendGraph(event, win.getTitle(), root);
+			}
+		}
+		sc.close();
+		System.exit(0);
+		
+	}
+}

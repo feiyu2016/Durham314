@@ -61,4 +61,8 @@ public class Utility {
 	public static void info(String msg){
 		System.out.println(msg);
 	}
+	
+	public static void log(String tag, String msg){
+		System.out.println(tag+";"+msg);
+	}
 }

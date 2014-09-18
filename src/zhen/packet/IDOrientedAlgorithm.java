@@ -8,7 +8,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import com.android.hierarchyviewer.scene.ViewNode;
+
+
+
+import com.android.hierarchyviewerlib.models.ViewNode;
 
 import viewer.ViewPositionData;
 import android.view.KeyEvent;
