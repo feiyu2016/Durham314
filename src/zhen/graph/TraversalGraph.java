@@ -229,6 +229,7 @@ public class TraversalGraph {
 	}
 	
 	public RunTimeLayout popUpAccessStack(){
+		if(accessStack.isEmpty()) return null;
 		return this.accessStack.pop();
 	}
 	

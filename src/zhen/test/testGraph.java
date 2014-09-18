@@ -33,7 +33,7 @@ public class testGraph {
 			} else if(read.equals("3")){
 				win = info.getFocusedWindow();
 				root = info.loadFocusedWindowData();
-				Event event = new Event(EventType.CLICK,null);
+				Event event = new Event(EventType.ONCLICK,null);
 				trversal.extendGraph(event, win.getTitle(), root);
 			} else if(read.equals("4")){
 				win = info.getFocusedWindow();
