@@ -228,6 +228,10 @@ public class TraversalGraph {
 		return actName.equals(this.launcherActName);
 	}
 	
+	public RunTimeLayout popUpAccessStack(){
+		return this.accessStack.pop();
+	}
+	
 	private void addDirectedEdge(RunTimeLayout source, RunTimeLayout target, Event event){
 		//TODO might want to switch other way
 		//Event bundles
