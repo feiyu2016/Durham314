@@ -15,6 +15,14 @@ public class testFramework {
 		tmp.add("com.example.testapp1.Target:traget1");
 		tmp.add("com.example.testapp1.Target:traget2");
 		att.put("pattern", tmp);
+		
+		String[] targets = {
+				"com.example.testapp1.Leaf2,stub,button1,android:onClick",
+				"com.example.testapp1.SecondAct,stub,button2,android:onClick",	
+		};
+		
+		att.put("targets", targets);
+		
 		Framework frame = new Framework(path,att);
 		
 		frame.init();

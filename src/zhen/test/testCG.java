@@ -13,8 +13,8 @@ import java.util.Map;
 public class testCG {
 
 	public static void main(String[] args){
-		String path = "APK/SimpleCallGraphTestApp.apk";
-		System.out.println(	testSubCompoenent(path,"function_4"));
+		String path = "APK/testApp1.apk";
+		System.out.println(	testSubCompoenent(path,"traget1"));
 	}
 	
 	public static ArrayList<String> testSubCompoenent(String path, String pattern){
@@ -22,7 +22,7 @@ public class testCG {
 		pattern = pattern.toLowerCase();
 		File f =new File(path);
 		inputGeneration.StaticInfo.initAnalysis(f, false);
-//		analysisTools.Soot.generateAPKData(f);
+//	
 		System.out.println("Act names:");
 		ArrayList<String> list = StaticInfo.getActivityNames(f);
 		printLineByLine(list);
@@ -34,7 +34,7 @@ public class testCG {
 		String targetClass = "";
 //		String targetClass = "com.example.simplecallgraphtestapp.SimpleTarget";
 		for(String className : clist){
-			if(className.toLowerCase().contains("simpletarget")){
+			if(className.endsWith("Target")){
 				targetClass = className;
 				break;
 			}
@@ -89,8 +89,8 @@ public class testCG {
 			System.out.println(slist);
 			//sub_methodList[0]
 		}
-		slist.add(0,targetMethod);
-		
+//		slist.add(0,targetMethod);
+		System.out.println(slist);
 		//com.example.simplecallgraphtestapp.MainActivity,activity_main,trigger2,android:onClick
 		long total = System.currentTimeMillis();
 		System.out.println("Total time: "+String.format("%.3f", (total-time1)/1000.0));

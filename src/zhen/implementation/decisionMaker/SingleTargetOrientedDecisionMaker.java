@@ -99,8 +99,31 @@ public class SingleTargetOrientedDecisionMaker extends AbstractDecisionMaker{
 			}else if(potentialLyout.size() > 0){
 				RunTimeLayout potential = potentialLyout.remove(0);
 				List<Event> sequence = this.frame.dynamicInfo.getEventSequence(potential);
-				Event event = new Event(target[3],potential.findViewsById(target[2])[0]);
-				sequence.add(event);
+				
+				int index = 0;
+				ViewNode vn =null;
+				for(ViewNode node: potential.getNodeListReference()){
+					if(node.id.equals(target[2])){
+						vn = node;
+						break;
+					}
+					index += 1;
+				}
+				if(vn == null){
+					throw new AssertionError();
+				}
+				Event[] elist= potential.getPossibleViewEventList().get(index);
+				Event desired = null;
+				for(Event single : elist){
+					if(single.getType().equals(target[3])){
+						desired = single;
+						break;
+					}
+				}
+				if(desired == null){
+					throw new AssertionError();
+				}
+				sequence.add(desired);
 //				if(sequence.get(0))
 				
 				

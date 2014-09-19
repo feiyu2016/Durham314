@@ -26,6 +26,16 @@ public class WrapperStaticInformation extends AbstractStaticInformation {
 		packageName = StaticInfo.getPackageName(inputFile);
 		actList = StaticInfo.getActivityNames(inputFile);
 		clist = StaticInfo.getClassNames(inputFile);
+		attributes.put("package", packageName);
+		ArrayList<String> tmp = new ArrayList<String>();
+		for(int i=0;i<actList.size();i++){
+			tmp.add(packageName+"/"+actList.get(i));
+		}
+		attributes.put("actlist", tmp.toArray(new String[0]));
+		
+		if(attributes.containsKey("targets")){
+			return true;
+		}
 		
 		ArrayList<String> slist = new ArrayList<String>();
 		ArrayList<String> inquery = (ArrayList<String>) attributes.get("pattern");
@@ -48,14 +58,14 @@ public class WrapperStaticInformation extends AbstractStaticInformation {
 			String targetMethod = null;
 //			String targetMethod = "void Function_1(android.view.View)";
 			for(String methodname: mList){
-				System.out.println(methodname  +"   ?   "+methodPattern);
+//				System.out.println(methodname  +"   ?   "+methodPattern);
 				if(methodname.toLowerCase().contains(methodPattern)){
 					targetMethod = methodname;
 					break;
 				}
 			}
 			if( targetMethod == null) throw new AssertionError();
-			
+			System.out.println(inquery+" => "+targetClass+":"+targetMethod);
 			
 			ArrayList<String> possibleCallSequencesList = StaticInfo.getPossibleCallSequences(targetClass, targetMethod);
 			for(String sequence: possibleCallSequencesList){
@@ -65,19 +75,13 @@ public class WrapperStaticInformation extends AbstractStaticInformation {
 					String parts[] = methodSig.split(":");
 					String className = parts[0];
 					String methodName = parts[1];
-					ArrayList<String> tmp = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(inputFile, className, methodName);
-					slist.addAll(tmp);
+					ArrayList<String> foundHandler = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(inputFile, className, methodName);
+					slist.addAll(foundHandler);
 				}
 			}
 		}
-		ArrayList<String> tmp = new ArrayList<String>();
-		for(int i=0;i<actList.size();i++){
-			tmp.add(packageName+"/"+actList.get(i));
-		}
-		
-		attributes.put("actlist", tmp.toArray(new String[0]));
+
 		attributes.put("targets", slist.toArray(new String[0]));
-		attributes.put("package", packageName);
 		
 		return true;
 	}
