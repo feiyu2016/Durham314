@@ -674,17 +674,19 @@ public class StaticInfo {
 				callMap.put(callSig, false);
 		}
 		// get callers of callers
+		Map<String, Boolean> dummyMap = callMap;
 		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
 		for (Map.Entry<String, Boolean> entry: entrySets) {
 			if (entry.getValue())	continue;
-			String nextClassName = entry.getKey().split(":")[0];
-			String nextMethodSubSig = entry.getKey().split(":")[1];
+			String nextClassName = entry.getKey().split(",")[0];
+			String nextMethodSubSig = entry.getKey().split(",")[1];
 			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
 			for (String nLC : nextLevelCaller)
-				if (!callMap.containsKey(nLC))
-					callMap.put(nLC, false);
+				if (!dummyMap.containsKey(nLC))
+					dummyMap.put(nLC, false);
 			entry.setValue(true);
 		}
+		callMap = dummyMap;
 		for (Map.Entry<String, Boolean> entry: callMap.entrySet())
 			result.add(entry.getKey());
 		return result;
