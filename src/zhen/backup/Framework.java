@@ -1,4 +1,4 @@
-package zhen.underConsturction;
+package zhen.backup;
 
 import inputGeneration.StaticInfo;
 
@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 import com.android.hierarchyviewerlib.models.Window;
 
-import zhen.graph.TraversalGraph;
+import zhen.implementation.graph.GraphStructureLayoutInformation;
 import zhen.packet.RunTimeLayoutInformation;
 import zhen.packet.Utility;
 
@@ -18,7 +18,7 @@ public class Framework implements Runnable{
 	private String TAG = "Framework";
 	private MonkeyExecuter executer;
 	private RunTimeLayoutInformation layoutInfo;
-	private TraversalGraph traversalGraph;
+	private GraphStructureLayoutInformation traversalGraph;
 	private boolean executeOnCommand = false;
 	private boolean debug = false;
 	private Scanner consoleInput;
@@ -26,7 +26,7 @@ public class Framework implements Runnable{
 	public Framework(String apkFilePath){
 		this.apkFilePath = apkFilePath;
 		executer = new MonkeyExecuter(this);
-		traversalGraph = new TraversalGraph();
+		traversalGraph = new GraphStructureLayoutInformation();
 	}
 	public ArrayList<String> actNameList;
 	
@@ -82,7 +82,7 @@ public class Framework implements Runnable{
 		//TODO
 	}
 
-	public TraversalGraph getTraversalGraph() {
+	public GraphStructureLayoutInformation getTraversalGraph() {
 		return traversalGraph;
 	}
 

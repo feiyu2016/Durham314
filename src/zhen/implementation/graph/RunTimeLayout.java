@@ -1,4 +1,4 @@
-package zhen.graph;
+package zhen.implementation.graph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,12 +10,44 @@ import inputGeneration.StaticLayout;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
 
-//this is our node for the graph
+/**
+ * An instance of this class should have a relation of one-to-one correspondence 
+ * with the actual layout on the device. 
+ * 
+ * Upon construction, 
+ * 	1.	it should try to find the associated static layout
+ * 	2.	build a set Event which could be applied on this layout
+ * 
+ * @author zhenxu
+ *
+ */
 public class RunTimeLayout {
+	
+	public static int UNVISITED = 0;
+	public static int INPROCESS = 1;
+	public static int VISITED = 2;
+	
 	static int counter = 0;
 	private String name;
 	private ArrayList<ViewNode> linearReference;
-	private Map<ViewNode,Map<String,String>> additionalProperty;
+	private ArrayList<Event[]> possibleViewEventList;
+	private ArrayList<Event> possibleOtherEventList;
+	
+	
+//	private Map<ViewNode,Map<String,String>> additionalProperty;
+	private Map<String,Object> extraInfo = new HashMap<String,Object>();
+	
+	private boolean isReachable = true;
+	private int status = UNVISITED;
+	private boolean newLayout; 
+	private ViewNode layoutRoot;
+	private StaticLayout associated;
+	private String actName;
+	private List<Event> ineffectiveEvents;
+	
+	public int visitCount = 0;
+	public boolean isLauncher = false;
+	
 	public RunTimeLayout(String actName, ViewNode layoutRoot){
 		this.layoutRoot = layoutRoot;
 		this.actName = actName;
@@ -23,8 +55,13 @@ public class RunTimeLayout {
 		String[] parts = actName.split("\\.");
 		name = parts[parts.length - 1]+"_"+counter;
 		counter += 1;
-		toLinear(layoutRoot);
-		additionalProperty = new HashMap<ViewNode,Map<String,String>>();
+		
+		if(layoutRoot != null){
+			toLinear(layoutRoot); 
+			findStaticLayoutAssociation();
+			buildEventList();
+		}
+//		additionalProperty = new HashMap<ViewNode,Map<String,String>>();
 	}
 	
 	public RunTimeLayout(String actName, ViewNode layoutRoot, String name){
@@ -32,17 +69,19 @@ public class RunTimeLayout {
 		this.actName = actName;
 		ineffectiveEvents = new ArrayList<Event>();
 		this.name = name;
-		toLinear(layoutRoot);
-		additionalProperty = new HashMap<ViewNode,Map<String,String>>();
+		
+		if(layoutRoot != null){
+			toLinear(layoutRoot); 
+			findStaticLayoutAssociation();
+			buildEventList();
+		}
+//		additionalProperty = new HashMap<ViewNode,Map<String,String>>();
 	}
 	
-	private ViewNode layoutRoot;
-	private StaticLayout associated;
-	private String actName;
-	private List<Event> ineffectiveEvents;
+
 //	boolean isVisited;
 	
-	int visitCount = 0;
+	
 
 	public void addIneffectiveEvent(Event event){
 		ineffectiveEvents.add(event);
@@ -90,6 +129,10 @@ public class RunTimeLayout {
 		}
 		return true;
 	}
+	
+	public boolean hasTheSameViewNode(ViewNode other){
+		return compareViewNode(this.layoutRoot,other);
+	}
 
 	private void toLinear(ViewNode layoutRoot){
 		linearReference = new ArrayList<ViewNode>();
@@ -106,26 +149,34 @@ public class RunTimeLayout {
 		}
 	}
 	
-	
-	public void setViewNodeExtraProperty(ViewNode node, String key, String value){
-		if(additionalProperty.containsKey(node)){
-			Map<String, String> properties = additionalProperty.get(node);
-			properties.put(key, value);
-		}else{
-			Map<String, String> properties = new HashMap<String, String>();
-			additionalProperty.put(node, properties);
-			properties.put(key, value);
-		}
+	private void findStaticLayoutAssociation(){
+		//TODO
 	}
 	
-	public String getViewNodeExtraProperty(ViewNode node, String key){
-		if(additionalProperty.containsKey(node)){
-			return additionalProperty.get(node).get(key);
+	private void buildEventList(){
+		possibleViewEventList = new ArrayList<Event[]>();
+		possibleOtherEventList = new ArrayList<Event>();
+		
+		if(this.associated == null){
+			for(ViewNode node: linearReference){
+				this.possibleViewEventList.add(Event.getAllPossileEventForView(node));
+			}
 		}else{
-			return null;
+			//TODO
 		}
+		
+		
+		//TODO  populate the other event list. e.g. sensor? system?
+//		possibleOtherEventList.add(object)
 	}
 	
+	
+
+	
+	public ArrayList<Event[]> getPossibleViewEventList() {
+		return possibleViewEventList;
+	}
+
 	public ViewNode[] findViewsById(String id){
 		ArrayList<ViewNode> list = new ArrayList<ViewNode>();
 		for(ViewNode node : linearReference){
@@ -153,5 +204,55 @@ public class RunTimeLayout {
 	public void setActName(String actName) {
 		this.actName = actName;
 	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public boolean isNewLayout() {
+		return newLayout;
+	}
+
+	public void setNewLayout(boolean newLayout) {
+		this.newLayout = newLayout;
+	}
 	
+	public ArrayList<ViewNode> getNodeListReference(){
+		return this.linearReference;
+	}
+	
+	public boolean hasExtraInfo(String key){
+		return this.extraInfo.containsKey(key);
+	}
+	
+	public void putExtraInfo(String key, Object value){
+		this.extraInfo.put(key, value);
+	}
+	public Object getExtraInfo(String key){
+		return this.extraInfo.get(key);
+	}
 }
+
+
+//public void setViewNodeExtraProperty(ViewNode node, String key, String value){
+//	if(additionalProperty.containsKey(node)){
+//		Map<String, String> properties = additionalProperty.get(node);
+//		properties.put(key, value);
+//	}else{
+//		Map<String, String> properties = new HashMap<String, String>();
+//		additionalProperty.put(node, properties);
+//		properties.put(key, value);
+//	}
+//}
+//
+//public String getViewNodeExtraProperty(ViewNode node, String key){
+//	if(additionalProperty.containsKey(node)){
+//		return additionalProperty.get(node).get(key);
+//	}else{
+//		return null;
+//	}
+//}

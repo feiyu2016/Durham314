@@ -3,9 +3,9 @@ package zhen.test;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import zhen.graph.Event;
-import zhen.graph.EventType;
-import zhen.graph.TraversalGraph;
+import zhen.implementation.graph.Event;
+import zhen.implementation.graph.EventType;
+import zhen.implementation.graph.GraphStructureLayoutInformation;
 import zhen.packet.RunTimeLayoutInformation;
 
 import com.android.hierarchyviewerlib.models.ViewNode;

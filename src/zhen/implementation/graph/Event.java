@@ -1,4 +1,4 @@
-package zhen.graph;
+package zhen.implementation.graph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.jgrapht.graph.DefaultEdge;
+
+import android.view.KeyEvent;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
 
@@ -21,6 +23,10 @@ public class Event extends DefaultEdge{
 	private Map<String,String> attribute;
 	private int pathIndex;
 	private boolean isBroken =false;
+	private boolean isEffective = true;
+	private boolean needRefresh = true;
+	
+	public int operationCount = 0;
 	
 	public boolean isBroken() {
 		return isBroken;
@@ -61,7 +67,7 @@ public class Event extends DefaultEdge{
 	public ViewNode getAppliedViewNode(){
 		return this.appliedView;
 	}
-	public void addAttribute(String key,String value){
+	public void setAttribute(String key,String value){
 		this.attribute.put(key, value);
 	}
 	public String getAttribute(String key){
@@ -82,4 +88,49 @@ public class Event extends DefaultEdge{
 	public String getType() {
 		return type;
 	}
+	public boolean needRefresh() {
+		return this.needRefresh;
+	}
+	public void setRefreshFlag(boolean needRefresh) {
+		this.needRefresh = needRefresh;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+
+//	@Override
+//	public boolean equals(Object o){
+//		if(o instanceof Event){
+//			Event e = (Event)o;
+//			if(!this.type.equals(e.type)) return false;
+//			if(this.appliedView != e.appliedView) return false;
+////			if(this.source != e.source) return false;
+////			if(this.target != e.target) return false;
+//			return true;
+//		}
+//		return false;
+//	}
+	
+	public static Event getBackEvent(){
+		Event event = new Event(EventType.PRESS,null);
+		event.setAttribute("keycode", KeyEvent.KEYCODE_BACK+"");
+		return event;
+	}
+	
+	public static Event goToLauncherEvent(){
+		Event event = new Event(EventType.PRESS,null);
+		event.setAttribute("keycode", KeyEvent.KEYCODE_HOME+"");
+		return event;
+	}
+	public static Event adbCommandEvent(String actName, String command){
+		Event event = new Event(EventType.ADBCOMMAND,null);
+		event.setAttribute("adbcommand", command);
+		return event;
+	}
+	
+	public static Event[] getAllPossileEventForView(ViewNode node){
+		//TODO
+		return null;
+	}
+	
 }

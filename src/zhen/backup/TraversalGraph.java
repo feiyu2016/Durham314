@@ -1,4 +1,4 @@
-package zhen.graph;
+package zhen.backup;
 
 import java.applet.Applet;
 import java.awt.Color;
@@ -27,11 +27,19 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.DirectedMultigraph;
 
+import zhen.framework.AbstractDynamicInformation;
+import zhen.framework.Framework;
 import zhen.packet.Utility;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
 
-public class TraversalGraph {
+
+/**
+ * @author zhenxu
+ *
+ */
+
+public class TraversalGraph extends AbstractDynamicInformation{
 
 	public static String TAG = "TraversalGraph";
 	
@@ -70,12 +78,30 @@ public class TraversalGraph {
 	//the root for all connection
 	private RunTimeLayout launcher;
 	
-	public TraversalGraph(){
+	public TraversalGraph(Framework frame){
+		super(frame);
 		accessStack = new Stack<RunTimeLayout>(){
 			//TODO might want to modify pop
 		};
 		graph = new ListenableDirectedMultigraph<RunTimeLayout, Event>(Event.class);
 	}
+	
+	@Override
+	public void update() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public boolean init() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public void terminate() {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	//set up a list of activity names, usually should be done at the beginning.
 	public void defineActivityScope(String[] actName){
 		for(String name:actName){

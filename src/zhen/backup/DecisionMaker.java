@@ -1,13 +1,13 @@
-package zhen.underConsturction;
+package zhen.backup;
 
 import com.android.hierarchyviewerlib.models.Window;
 
-import zhen.graph.Event;
-import zhen.graph.TraversalGraph;
+import zhen.implementation.graph.Event;
+import zhen.implementation.graph.GraphStructureLayoutInformation;
 import zhen.packet.RunTimeLayoutInformation;
 
 public class DecisionMaker {
-	private TraversalGraph graphReference;
+	private GraphStructureLayoutInformation graphReference;
 	private RunTimeLayoutInformation layoutInfoReference;
 	private String launcherIdentifier;
 	private String[] actList;
