@@ -44,28 +44,35 @@ public class MonkeyExecuter extends AbstractExecuter{
 	public boolean carryOutEvent(Event... events) {
 		for(Event event:events){
 			String typeString = event.getType();
+			event.operationCount += 1;
+			System.out.println("executing:"+event.getType());
 			int type = EventType.stringToInt(typeString);
 			switch (type) {
 			case EventType.iLAUNCH: {
 				String actName = event.getAttribute("actname");
+				System.out.println("Launching: "+actName);
 				ADBControl.sendADBCommand("adb shell am start -n "+actName);
-			}
+			}break;
 			case EventType.iONBACK: {
 				this.press(KeyEvent.KEYCODE_BACK);
-			}
+			}break;
 			case EventType.iONCLICK: {
 				String x = event.getAttribute("x");
 				String y = event.getAttribute("y");
 				this.click(x, y);
-			}
+			}break;
 			case EventType.iPRESS:{
 				String keycode = event.getAttribute("keycode");
 				this.press(keycode);
-			}
+			}break;
 			case EventType.iADBCOMMAND:{
 				String command = event.getAttribute("adbcommand");
 				ADBControl.sendADBCommand(command);
-			}
+				event.setRefreshFlag(false);
+			}break;
+			case EventType.iSETUP:{
+				this.press(KeyEvent.KEYCODE_HOME);
+			}break;
 			default: {
 				Utility.log(TAG, "Unidentified command:"+typeString);
 			}

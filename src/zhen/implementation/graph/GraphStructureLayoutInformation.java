@@ -107,6 +107,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			Collection<RunTimeLayout> inScopeCollection = actCategoryReference.get(focusedActName);
 			boolean isInScopeActivity = (inScopeCollection != null);
 			if(isInScopeActivity){
+				System.out.println("isInScopeActivity");
 				ViewNode layoutRoot = layoutInfo.loadFocusedWindowData();
 				RunTimeLayout currentToBeUsed =  addToCollection(inScopeCollection,focusedActName,layoutRoot);
 				this.pointerLayout = currentToBeUsed;
@@ -122,13 +123,25 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		}
 		
 		Event event = events[0];
-		if(event == null || !event.needRefresh()) return ;
+		if(event == null) return;
+		
+		if(event.getType().equals(EventType.SETUP)){
+			Window win = layoutInfo.getFocusedWindow();
+			this.setLauncherActName(win.getTitle());
+			return;
+		}
+		
+//		if(!event.needRefresh()) return ;
 		if(pointerLayout != null){pointerLayout.setNewLayout(false);}
 		
 		Window focused = layoutInfo.getFocusedWindow();
 		String focusedActName = focused.getTitle();
 		boolean isLauncher = focusedActName.equals(this.launcherActName);
 		if(isLauncher){
+			if(pointerLayout == null){
+				throw new AssertionError();
+			}
+			
 			boolean isPreviousLauncher = pointerLayout.getActName().equals(launcherActName);
 			if(isPreviousLauncher) return; //no edge needed
 			else{//pointerLayout -> launcher
@@ -149,12 +162,18 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			if(type.equals(EventType.LAUNCH)){
 				event.setVertices(launcher, currentToBeUsed);
 				addDirectedEdge(launcher, currentToBeUsed,event);			
-			}else{
+			}else if( currentToBeUsed == pointerLayout){
+				 //the same layout 
+				event.setVertices(pointerLayout, currentToBeUsed);
+				currentToBeUsed.addIneffectiveEvent(event);
+			}
+			else {
 				if(pointerLayout == null) throw new AssertionError();
 				event.setVertices(pointerLayout, currentToBeUsed);
 				addDirectedEdge(pointerLayout, currentToBeUsed,event);		
 			}
 			pointerLayout = currentToBeUsed;
+			return;
 		}
 		
 		{	//out scope activity
@@ -178,8 +197,16 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		}
 	}
 	@Override
-	public boolean init(Map<String,Object> attribute) {
+	public boolean init(Map<String,Object> attributes) {
 		layoutInfo.init();
+		String[] actList = (String[]) attributes.get("actlist");
+		this.defineActivityScope(actList);
+		
+		appName = (String) attributes.get("package");
+		
+		this.enableGUI();
+		
+		
 		return true;
 	}
 	@Override
@@ -261,6 +288,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			}
 		}
 		
+		System.out.println("graph.addVertex");
 		graph.addVertex(layout);
 		collection.add(layout);
 		return layout;
@@ -351,6 +379,26 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	@Override
 	public List<Event> getEventSequence(RunTimeLayout dest) {
 		List<Event> sequence1 = DijkstraShortestPath.findPathBetween(graph, this.pointerLayout, dest);
+		if(sequence1 == null){
+			sequence1 = DijkstraShortestPath.findPathBetween(graph, this.launcher, dest);
+			Event stopCommand = new Event(EventType.ADBCOMMAND,null);
+			stopCommand.setAttribute("adbcommand", "adb shell am force-stop "+appName);
+			
+//			Event startCommand = new Event(EventType.ADBCOMMAND,null);
+//			startCommand.setAttribute("adbcommand", "adb shell am start -n "+dest.getActName());
+			
+			sequence1.add(0,stopCommand);
+//			sequence1.add(1,startCommand);
+			
+		}
+		
+		
+		
+		if(sequence1 == null){
+			System.out.println("get getEventSequence fails");
+		}else{
+			System.out.println(sequence1);
+		}
 //		Event goHome = Event.goToLauncherEvent();
 //		Event stopEvent = Event.adbCommandEvent(actName, command);
 //		sequence1.add(arg0);
@@ -359,6 +407,8 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	}
 
 	public ArrayList<RunTimeLayout> findPotentialLayout(String actName, String xmlName, String id) {
+		System.out.println("findPotentialLayout:"+actName+","+id);
+		
 		Map<String, ArrayList<RunTimeLayout>>  mapping = idLayoutMap.get(actName);
 		if(mapping == null){ return null; }
 		return mapping.get(id);

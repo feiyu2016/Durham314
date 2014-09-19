@@ -1,5 +1,6 @@
 package zhen.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -18,6 +19,7 @@ public class TestRunLayoutInfo {
 		Scanner sc = new Scanner(System.in);
 		ViewNode root = null;
 		Window win = null;
+		ArrayList<ViewNode> list = new ArrayList<ViewNode>();
 		while(true){
 			System.out.println("========================");
 			String read = sc.nextLine().trim();
@@ -32,9 +34,19 @@ public class TestRunLayoutInfo {
 			} else if(read.equals("3")){
 				win = info.getFocusedWindow();
 				root = info.loadFocusedWindowData();
- 
+				
+				ArrayList<ViewNode> queue = new ArrayList<ViewNode>();
+				queue.add(root);
+				while(!queue.isEmpty()){
+					ViewNode current = queue.remove(0);
+					System.out.println(current.id+","+current.left+","+current.top);
+					if(current.children == null) continue;
+					for(ViewNode child : current.children){
+						queue.add(child);
+					}
+				}
 			} else if(read.equals("4")){
-				win = info.getFocusedWindow();
+				
  
 			}
 		}

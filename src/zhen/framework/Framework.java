@@ -1,7 +1,9 @@
 package zhen.framework;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Stack;
 
 import zhen.implementation.MonkeyExecuter;
@@ -21,6 +23,9 @@ public class Framework {
 	boolean debug = true;
 //	final Stack<Event> eventStack;
 //	final Stack<RunTimeLayout> layoutStack;
+	
+	
+	private Scanner sc = new Scanner(System.in);
 	
 	private Map<String,Object> attribute;
 	String apkPath;
@@ -49,8 +54,11 @@ public class Framework {
 	}
 
 	public void execute(){
+		System.out.println("Executing");
 		while(operating){
+			String reading = sc.nextLine();
 			Event[] event = generater.nextEvent();
+			System.out.println(Arrays.toString(event));
 			if(event == null) continue;
 			executer.carryOutEvent(event);
 			dynamicInfo.update(event);
@@ -62,6 +70,7 @@ public class Framework {
 		executer.terminate();
 		dynamicInfo.terminate();
 		staticInfo.terminate();
+		if(sc != null) sc.close();
 	}
 
 	public void requestFinish(){

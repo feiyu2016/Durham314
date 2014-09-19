@@ -9,6 +9,7 @@ import java.util.Stack;
 import inputGeneration.StaticLayout;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
+import com.android.hierarchyviewerlib.models.ViewNode.Property;
 
 /**
  * An instance of this class should have a relation of one-to-one correspondence 
@@ -49,6 +50,9 @@ public class RunTimeLayout {
 	public boolean isLauncher = false;
 	
 	public RunTimeLayout(String actName, ViewNode layoutRoot){
+//		while(layoutRoot.parent != null)
+//			layoutRoot = layoutRoot.parent;
+		
 		this.layoutRoot = layoutRoot;
 		this.actName = actName;
 		ineffectiveEvents = new ArrayList<Event>();
@@ -111,8 +115,8 @@ public class RunTimeLayout {
 			if(!r1.id.equals(r2.id)) return false;
 			if(r1.left != r2.left) return false;
 			if(r1.top != r2.top) return false;
-			if(r1.width != r2.width) return false;
-			if(r1.height != r2.height) return false;
+//			if(r1.width != r2.width) return false;
+//			if(r1.height != r2.height) return false;
 			if(r1.children.size() != r2.children.size()) return false;
 			//check children
 			List<ViewNode> list1 = r1.children;
@@ -136,15 +140,15 @@ public class RunTimeLayout {
 
 	private void toLinear(ViewNode layoutRoot){
 		linearReference = new ArrayList<ViewNode>();
+		if(layoutRoot == null) return;
 		//layout should be a tree. Seem to be a rule to reinforce it. 
 		ArrayList<ViewNode> queue = new ArrayList<ViewNode>();
 		queue.add(layoutRoot);
 		while(!queue.isEmpty()){
 			ViewNode node = queue.remove(0);
-			if(node == null) return;
 			linearReference.add(node);
 			for(ViewNode child : node.children){
-				linearReference.add(child);
+				queue.add(child);
 			}
 		}
 	}
@@ -153,9 +157,26 @@ public class RunTimeLayout {
 		//TODO
 	}
 	
-	private void buildEventList(){
+	private void buildEventList(){ 
 		possibleViewEventList = new ArrayList<Event[]>();
 		possibleOtherEventList = new ArrayList<Event>();
+	
+		//use the stupid way
+		for(ViewNode node:this.linearReference){
+			ViewNode current = node;
+			int x=current.left;
+			int y=current.top;
+			while(current.parent != null){
+				current = current.parent;
+				if(current.left < 0 || current.top<0) break; 
+				x += current.left;
+				y += current.top;
+			}
+			Property p = new Property();
+			p.value =  x+","+y;
+			node.namedProperties.put("position",p);
+		}
+		
 		
 		if(this.associated == null){
 			for(ViewNode node: linearReference){
@@ -165,7 +186,7 @@ public class RunTimeLayout {
 			//TODO
 		}
 		
-		
+
 		//TODO  populate the other event list. e.g. sensor? system?
 //		possibleOtherEventList.add(object)
 	}
