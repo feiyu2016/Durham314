@@ -674,6 +674,7 @@ public class StaticInfo {
 				callMap.put(callSig, false);
 		}
 		// get callers of callers
+		ArrayList<String> newKeys = new ArrayList<String>();
 		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
 		for (Map.Entry<String, Boolean> entry: entrySets) {
 			if (entry.getValue())	continue;
@@ -682,9 +683,11 @@ public class StaticInfo {
 			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
 			for (String nLC : nextLevelCaller)
 				if (!callMap.containsKey(nLC))
-					callMap.put(nLC, false);
+					newKeys.add(nLC);
 			entry.setValue(true);
 		}
+		for (String newKey : newKeys)
+			callMap.put(newKey, false);
 		for (Map.Entry<String, Boolean> entry: callMap.entrySet())
 			result.add(entry.getKey());
 		return result;
@@ -810,8 +813,9 @@ public class StaticInfo {
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
-			String callerClass = caller.split(",")[0];
-			String callerMethodSig = caller.split(",")[1];
+			System.out.println(caller);
+			String callerClass = caller.split(":")[0];
+			String callerMethodSig = caller.split(":")[1];
 			if (isOnCreate(file, className, callerMethodSig))
 				onCreateCallers.add(callerClass);
 			ArrayList<String> eh = findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethodSig);

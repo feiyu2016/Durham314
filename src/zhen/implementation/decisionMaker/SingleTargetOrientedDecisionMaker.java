@@ -21,7 +21,8 @@ public class SingleTargetOrientedDecisionMaker extends AbstractDecisionMaker{
 		super(frame); 
 		layoutAccessStack = new Stack<RunTimeLayout>();
 	}
-	
+	private boolean keepgoing = true;
+	private boolean ignoreTarget = false;
 	private int targetIndex = 0;
 	private String[] targets;//which should be the ID
 	private String[] actNames;
@@ -70,8 +71,14 @@ public class SingleTargetOrientedDecisionMaker extends AbstractDecisionMaker{
 			System.out.println("getNextTarget");
 			target = getNextTarget();
 			if(target == null){ // which indicates no more job to do
-				this.frame.requestFinish();
-				return null;
+				if(keepgoing){
+					ignoreTarget = true;
+					this.state = 3;
+					return null;
+				}else{
+					this.frame.requestFinish();
+					return null;
+				}
 			}
 			
 			if(!target[0].startsWith(packegeName)){
@@ -233,7 +240,7 @@ public class SingleTargetOrientedDecisionMaker extends AbstractDecisionMaker{
 				}else if(current.visitCount <= 1){ //encounter a new layout
 					System.out.println("inner state: new layout ");
 					this.layoutAccessStack.push(current);
-					if(current.getActName().endsWith((target[0]))){
+					if(!ignoreTarget && current.getActName().endsWith((target[0]))){
 						System.out.println("Same act name as target");
 						int i = 0;
 						ViewNode lookingFor = null;
