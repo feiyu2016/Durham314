@@ -32,13 +32,30 @@ public class StaticInfo {
 	private static ArrayList<StaticLayout> layoutList = new ArrayList<StaticLayout>();
 	public static ArrayList<String> UIChanges = new ArrayList<String>();
 	private static Map<String, String> defLayouts = new HashMap<String, String>();
-	private static ArrayList<String> callGraph = new ArrayList<String>();
 	public static ArrayList<StaticNode> callGraphNodes = new ArrayList<StaticNode>();
 	
 	public static ArrayList<StaticLayout> getLayoutList(File file) {
 		return layoutList;
 	}
-		
+	
+	public static String getBytecodeSignature(File file, String className, String methodSig) {
+		File classFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv");
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(classFile));
+			String line;
+			while ((line = in.readLine())!=null) {
+				if (!line.startsWith("Method"))	continue;
+				String jimpleSig = line.split(",")[5];
+				if (jimpleSig.equals(methodSig)) {
+					in.close();
+					return line.split(",")[6];
+				}
+			}
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return "";
+	}
+	
 	public static ArrayList<String> getAllMethodSignatures(File file, String className) {
 		// returns all method signature within a class (jimple format)
 		// e.g.   void myMethod(java.lang.String int java.lang.String)
@@ -86,7 +103,7 @@ public class StaticInfo {
 		layoutList = new ArrayList<StaticLayout>();
 		UIChanges = new ArrayList<String>();
 		defLayouts = new HashMap<String, String>();
-		callGraph = new ArrayList<String>();
+		callGraphNodes = new ArrayList<StaticNode>();
 	}
 	
 	private static void readCGObject(File file) {
@@ -192,11 +209,12 @@ public class StaticInfo {
 	}
 	
 	public static ArrayList<String> getActivityNames(File file) {
+		ArrayList<String> tempResults = new ArrayList<String>();
 		ArrayList<String> results = new ArrayList<String>();
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
 		if (!manifestFile.exists()) {
 			System.out.println("can't find /apktool/AndroidManifest.xml! Run apktool first.");
-			return results;
+			return tempResults;
 		}
 		try {
 			String mainActvt = "";
@@ -207,7 +225,7 @@ public class StaticInfo {
 			for (int i = 0, len = activityList.getLength(); i < len; i++) {
 				Node activityNode = activityList.item(i);
 				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
-				results.add(activityName);
+				tempResults.add(activityName);
 				// check if its mainActvt
 				Element e =(Element) activityNode;
 				NodeList actionList = e.getElementsByTagName("action");
@@ -217,7 +235,7 @@ public class StaticInfo {
 						mainActvt = activityName;
 				}
 			}
-			// if mainActvt, process <activity-alias> for mainActvt
+			// if no mainActvt, process <activity-alias> for mainActvt
 			if (mainActvt.equals("")) {
 				NodeList aliasList = doc.getElementsByTagName("activity-alias");
 				for (int i = 0, len = aliasList.getLength(); i < len; i++) {
@@ -233,28 +251,23 @@ public class StaticInfo {
 				}
 			}
 			// put mainActvt to slot 0
-			for (int i = 0; i < results.size(); i++)
-				if (results.get(i).equals(mainActvt)) {
-					String temp = results.get(0);
-					results.set(0, results.get(i));
-					results.set(i, temp);
+			for (int i = 0; i < tempResults.size(); i++)
+				if (tempResults.get(i).equals(mainActvt)) {
+					String temp = tempResults.get(0);
+					tempResults.set(0, tempResults.get(i));
+					tempResults.set(i, temp);
 				}
 			// fix the name format
-			for (String activityName : results) {
+			for (String activityName : tempResults) {
 				if (activityName.startsWith("."))
 					activityName = activityName.substring(1, activityName.length());
 				if (activityName.indexOf(".")==-1)
 					activityName = StaticInfo.getPackageName(file) + "." + activityName;
 			}
-			for (int i = 0, len = results.size(); i < len; i++) {
-				String activityName = results.get(i);
-				if (activityName.startsWith("."))
-					activityName = activityName.substring(1, activityName.length());
-				if (activityName.indexOf(".")==-1)
-					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+			// validate the activity name
+			for (String activityName : tempResults)
 				if (validateActivity(file, activityName))
-					results.set(i, activityName);
-			}
+					results.add(activityName);
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
 	}
@@ -266,7 +279,6 @@ public class StaticInfo {
 		if (classFile.exists())	result = true;
 		return result;
 	}
-	
 	
 	private static void parseXMLLayouts(File file) {
 		// create a Layout Object for each layout xml, also spot out the custom layouts
@@ -378,7 +390,7 @@ public class StaticInfo {
 	private static void parseJavaLayouts(File file) {
 		// TODO parse java layouts and add views
 		// first read the code of those custom layouts, then scan the others
-		collectLayoutTypes(file);
+		//collectLayoutTypes(file);
 		for (StaticLayout l : layoutList) {
 			if (!l.isCustomLayout())	continue;
 			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
@@ -674,19 +686,20 @@ public class StaticInfo {
 				callMap.put(callSig, false);
 		}
 		// get callers of callers
-		Map<String, Boolean> dummyMap = callMap;
+		ArrayList<String> toAdd = new ArrayList<String>();
 		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
 		for (Map.Entry<String, Boolean> entry: entrySets) {
 			if (entry.getValue())	continue;
-			String nextClassName = entry.getKey().split(",")[0];
-			String nextMethodSubSig = entry.getKey().split(",")[1];
+			String nextClassName = entry.getKey().split(":")[0];
+			String nextMethodSubSig = entry.getKey().split(":")[1];
 			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
 			for (String nLC : nextLevelCaller)
-				if (!dummyMap.containsKey(nLC))
-					dummyMap.put(nLC, false);
+				if (!callMap.containsKey(nLC) && !toAdd.contains(nLC))
+					toAdd.add(nLC);
 			entry.setValue(true);
 		}
-		callMap = dummyMap;
+		for (String newKey : toAdd)
+			callMap.put(newKey, false);
 		for (Map.Entry<String, Boolean> entry: callMap.entrySet())
 			result.add(entry.getKey());
 		return result;
@@ -703,6 +716,7 @@ public class StaticInfo {
 				System.out.print("      " + e);
 			System.out.print("\n");
 		}
+		else System.out.println("  - no widgets found connecting to this method.");
 		if (isOnCreate)
 			System.out.println("  - this is the onCreate method for activity: " + targetClass);
 		ArrayList<String> callers = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
@@ -793,8 +807,6 @@ public class StaticInfo {
 		return result;
 	}
 	
-	
-
 	private static String solveSetContentView(File file, String className, String methodFileName, int lineNumber) throws Exception {
 		String result = "";
 		// Step 1, find target

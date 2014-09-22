@@ -30,17 +30,14 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Transform;
 import soot.Unit;
-import soot.Value;
 import soot.jimple.AbstractStmtSwitch;
 import soot.jimple.Jimple;
-import soot.jimple.RetStmt;
 import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.StringConstant;
 import soot.jimple.toolkits.callgraph.CHATransformer;
 import soot.util.Chain;
-import soot.util.Switch;
 
 
 public class Soot {
