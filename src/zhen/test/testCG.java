@@ -13,8 +13,8 @@ import java.util.Map;
 public class testCG {
 
 	public static void main(String[] args){
-		String path = "APK/testApp1.apk";
-		System.out.println(	testSubCompoenent(path,"traget1"));
+		String path = "APK/signed_backupHelper.apk";
+		System.out.println(	testSubCompoenent(path,"onChildClick"));
 	}
 	
 	public static ArrayList<String> testSubCompoenent(String path, String pattern){
@@ -34,7 +34,7 @@ public class testCG {
 		String targetClass = "";
 //		String targetClass = "com.example.simplecallgraphtestapp.SimpleTarget";
 		for(String className : clist){
-			if(className.endsWith("Target")){
+			if(className.endsWith("BackupActivity")){
 				targetClass = className;
 				break;
 			}
