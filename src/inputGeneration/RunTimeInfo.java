@@ -15,7 +15,7 @@ public class RunTimeInfo {
 	
 	public static ArrayList<String> readLogcat(File file) throws Exception {
 		ArrayList<String> result = new ArrayList<String>();
-		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " logcat -v time -d -s System.out | grep " + RunTimeInfo.getPID(file));
+		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " logcat -d -v thread -s System.out | grep " + RunTimeInfo.getPID(file));
 		BufferedReader in = new BufferedReader(new InputStreamReader(pc.getInputStream()));
 		String line;
 		while ((line = in.readLine())!=null)
