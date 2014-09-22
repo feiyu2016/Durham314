@@ -30,11 +30,17 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Transform;
 import soot.Unit;
+import soot.Value;
+import soot.jimple.AbstractStmtSwitch;
 import soot.jimple.Jimple;
+import soot.jimple.RetStmt;
+import soot.jimple.ReturnStmt;
+import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.StringConstant;
 import soot.jimple.toolkits.callgraph.CHATransformer;
 import soot.util.Chain;
+import soot.util.Switch;
 
 
 public class Soot {
@@ -84,8 +90,11 @@ public class Soot {
 							if (methodFileName.length() > 100) {methodFileName = method.getName() + "_" + longMethodNameID; longMethodNameID++;}
 							if ((System.getProperty("os.name").startsWith("Windows")))
 								methodFileName = methodFileName.replace("<", "[").replace(">", "]");
+							String bytecodeSig = method.getBytecodeSignature();
+							bytecodeSig = bytecodeSig.substring(1, bytecodeSig.length()-1).split(": ")[1];
 							out_Class.write(methodType + method.getName() + "," + method.getReturnType().toString() + "," + 
-											method.getModifiers() + "," + methodFileName + "," + method.getSubSignature().replace(",", " ") + "\n");
+											method.getModifiers() + "," + methodFileName + "," + 
+											method.getSubSignature().replace(",", " ") + "," + bytecodeSig + "\n");
 							if (method.isAbstract() || method.isNative())
 								continue;
 							Body b;
@@ -205,21 +214,24 @@ public class Soot {
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
+	public static int returnCounter = 1;
+	
 	public static void InstrumentEveryMethod(File file) throws Exception{
 		
 		File instrumentLog = new File(Paths.appDataDir + file.getName() + "/soot/Instrumentation/methodLevelLog.csv");
 		instrumentLog.getParentFile().mkdirs();
 		final PrintWriter out = new PrintWriter(new FileWriter(instrumentLog));
 		PackManager.v().getPack("jtp").add(new Transform("jtp.myTransform", new BodyTransformer() {
-			protected void internalTransform(Body b, String phaseName,Map<String, String> options) {
+			protected void internalTransform(final Body b, String phaseName,Map<String, String> options) {
 				String className = b.getMethod().getDeclaringClass().getName();
 				if (className.startsWith("android.support.v"))	return;
 				if (b.getMethod().getName().contains("<clinit>") || b.getMethod().getName().contains("<init>"))	return;
-				Local l_outPrint = Jimple.v().newLocal("outPrint", RefType.v("java.io.PrintStream"));
+				final Local l_outPrint = Jimple.v().newLocal("outPrint", RefType.v("java.io.PrintStream"));
 				b.getLocals().add(l_outPrint);
-				SootMethod out_println = Scene.v().getSootClass("java.io.PrintStream").getMethod("void println(java.lang.String)");
-				String methodSig = b.getMethod().getSignature();
+				final SootMethod out_println = Scene.v().getSootClass("java.io.PrintStream").getMethod("void println(java.lang.String)");
+				String methodSig = b.getMethod().getSignature().replace(",", " ");
 				PatchingChain<Unit> units = b.getUnits();
+				// first instrument the beginning
 				Iterator<Unit> unitsIT = b.getUnits().snapshotIterator();
 				for (int i = 0; i < b.getMethod().getParameterCount()+1; i++)
 					unitsIT.next();
@@ -228,8 +240,38 @@ public class Soot {
 						Jimple.v().newStaticFieldRef(Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())
 						), firstUnit);
 				units.insertBefore(Jimple.v().newInvokeStmt(
-						Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD BEING TRIGGERED: " + methodSig))
+						Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD_STARTING," + methodSig))
 						), firstUnit);
+				b.validate();
+				// then instrument the return
+				returnCounter = 1;
+				while (unitsIT.hasNext()) {
+					final Unit u = unitsIT.next();
+					u.apply(new AbstractStmtSwitch() {
+						public void caseReturnStmt(ReturnStmt rS) {
+							PatchingChain<Unit> units = b.getUnits();
+							String mSig = b.getMethod().getSignature().replace(",", " ");
+							units.insertBefore(Jimple.v().newAssignStmt(l_outPrint,
+									Jimple.v().newStaticFieldRef(Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())
+									), u);
+							units.insertBefore(Jimple.v().newInvokeStmt(
+									Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD_RETURNING," + mSig + "," + returnCounter))
+									), u);
+							returnCounter++;
+						}
+						public void caseReturnVoidStmt(ReturnVoidStmt rS) {
+							PatchingChain<Unit> units = b.getUnits();
+							String mSig = b.getMethod().getSignature().replace(",", " ");
+							units.insertBefore(Jimple.v().newAssignStmt(l_outPrint,
+									Jimple.v().newStaticFieldRef(Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())
+									), u);
+							units.insertBefore(Jimple.v().newInvokeStmt(
+									Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD_RETURNING," + mSig + "," + returnCounter))
+									), u);
+							returnCounter++;
+						}
+					});
+				}
 				b.validate();
 				out.write(className + "," + b.getMethod().getName() + "\n");
 			}
