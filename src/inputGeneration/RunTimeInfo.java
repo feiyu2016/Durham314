@@ -21,7 +21,6 @@ public class RunTimeInfo {
 		while ((line = in.readLine())!=null)
 			result.add(line);
 		in.close();
-		pc.waitFor();
 		return result;
 	}
 	
