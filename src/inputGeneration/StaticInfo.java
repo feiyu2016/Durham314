@@ -35,13 +35,15 @@ public class StaticInfo {
 	private static ArrayList<String> callGraph = new ArrayList<String>();
 	public static ArrayList<StaticNode> callGraphNodes = new ArrayList<StaticNode>();
 	
+	/** Returns the list of StaticLayout objects collected from static analysis*/
 	public static ArrayList<StaticLayout> getLayoutList(File file) {
 		return layoutList;
 	}
-		
+	
+	/** Returns the jimple signatures of all the methods in class 'className' of app 'file' 
+	 *  e.g. void myMethod(java.lang.String int java.lang.String)
+	 * */
 	public static ArrayList<String> getAllMethodSignatures(File file, String className) {
-		// returns all method signature within a class (jimple format)
-		// e.g.   void myMethod(java.lang.String int java.lang.String)
 		ArrayList<String> results = new ArrayList<String>();
 		try {
 			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv");
@@ -59,6 +61,14 @@ public class StaticInfo {
 		return results;
 	}
 	
+	
+	/** Prepares the statically retrievable data for later testing. The steps are:
+	 *  1. use 'apktool' to convert apk binaries to readable format. If the 'forceAllSteps' field is false and apktool has been run before, this step will be ignored.
+	 *  2. use 'soot' to generate basic class/method information and Call Graph. If the 'forceAllSteps' field is false and soot has been run before, this step will be ignored.
+	 *  3. parse XML layout files in '.../res/layout/' folder to generate StaticLayout objects.
+	 *  4. parse the layout-related operations in jimple code
+	 *  5. analyze the 'startActivity' and 'setContentView' APIs in jimple code
+	 *  */
 	public static void initAnalysis(File file, boolean forceAllSteps) {
 		File info = new File(Paths.appDataDir + file.getName() + "/apktool/apktool.yml");
 		if (!info.exists() || forceAllSteps)
@@ -98,7 +108,7 @@ public class StaticInfo {
 		}	catch (Exception e ) {e.printStackTrace();}
 	}
 	
-	public static void prepareCG(File file) {
+	private static void prepareCG(File file) {
 		File cgFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
 		try {
 			System.out.println("reading '/CallGraph.csv'...");
@@ -128,6 +138,7 @@ public class StaticInfo {
 		}
 	}
 	
+	/** given class name and method/field signature, find the StaticNode object */
 	public static StaticNode findStaticNode(String className, String signature) {
 		for (StaticNode cgNode : callGraphNodes)
 			if (cgNode.getDeclaringClassName().equals(className) && cgNode.getSignature().equals(signature))
@@ -135,6 +146,7 @@ public class StaticInfo {
 		return null;
 	}
 	
+	/** return a list of all the class names given an apk file */
 	public static ArrayList<String> getClassNames(File file) {
 		// return all class names within an app
 		ArrayList<String> results = new ArrayList<String>();
@@ -154,6 +166,7 @@ public class StaticInfo {
 		return results;
 	}
 	
+	/** check if an apk contains a class given apk file and class name*/
 	public static boolean hasClass(File file, String className) {
 		boolean result = false;
 		ArrayList<String> classNames = getClassNames(file);
@@ -163,6 +176,7 @@ public class StaticInfo {
 		return result;
 	}
 	
+	/** parse the AndroidManifest.xml of given apk file, returns the package name of the app */
 	public static String getPackageName(File file) {
 		String result = "";
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
@@ -178,6 +192,7 @@ public class StaticInfo {
 		return result;
 	}
 
+	/** given an apk file and a class name, parse the AndroidManifest.xml and check if the given class is an activity class*/
 	public static boolean isActivity(File file, String className) {
 		boolean result = false;
 		ArrayList<String> aa = getActivityNames(file);
@@ -187,10 +202,12 @@ public class StaticInfo {
 		return result;
 	}
 	
+	/** parse the AndroidManifest.xml and look for the name of the main activity class*/
 	public static String getMainActivityName(File file) {
 		return getActivityNames(file).get(0);
 	}
 	
+	/** parse the AndroidManifest.xml and returns a list of all the activity class names*/
 	public static ArrayList<String> getActivityNames(File file) {
 		ArrayList<String> results = new ArrayList<String>();
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
@@ -258,6 +275,7 @@ public class StaticInfo {
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
 	}
+	
 	
 	private static boolean validateActivity(File file, String activityName) {
 		// the activity name in AndroiManifest might be false, e.g., zhiming's Bugatti and bug.
@@ -415,6 +433,7 @@ public class StaticInfo {
 		return result;
 	}
 	
+	/** given the layout name, returns the StaticLayout object */
 	public static StaticLayout getLayoutObject(String name) {
 		StaticLayout result = null;
 		for (StaticLayout l: layoutList)
@@ -599,6 +618,7 @@ public class StaticInfo {
 		return targetLayout;
 	}
 	
+	/** given class name and method signature, look for its outgoing call targets in the CallGraph */
 	public static ArrayList<String> getOutCallTargets(String className, String methodSubsig) {
 		for (StaticNode cN : callGraphNodes) {
 			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig)) {
@@ -608,6 +628,7 @@ public class StaticInfo {
 		return new ArrayList<String>();
 	}
 	
+	/** given class name and method signature, look for its incoming call sources in the CallGraph */
 	public static ArrayList<String> getInCallSources(String className, String methodSubsig) {
 		for (StaticNode cN : callGraphNodes)
 			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig))
@@ -615,6 +636,7 @@ public class StaticInfo {
 		return new ArrayList<String>();
 	}
 	
+	/** given class name and method signature, return a list of call sequences from 'source methods' to the target method */
 	public static ArrayList<String> getPossibleCallSequences(String className, String methodSubsig) {
 		
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
@@ -657,6 +679,7 @@ public class StaticInfo {
 		return results;
 	}
 	
+	/** given class name and method signature, return a list of methods that will possibly call the target method(both directly and indirectly. */
 	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubsig) {
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
@@ -693,6 +716,7 @@ public class StaticInfo {
 		return result;
 	}
 	
+	/** given a method signature in an app, this API prints out the analysis result for this method. */
 	public static void methodAnalysis(File file, String targetClass, String targetMethod) {
 
 		ArrayList<String> directEHs = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(file, targetClass, targetMethod);
@@ -731,10 +755,12 @@ public class StaticInfo {
 		}
 	}
 	
+	/** given class name and method signature in an app, determine if this method is an onCreate handler for an activity */
 	public static boolean isOnCreate(File file, String className, String methodSubSig) {
 		return (methodSubSig.equals("void onCreate(android.os.Bundle)") && isActivity(file, className));
 	}
 	
+	/** given class name and method signature in an app, find out the widgets that are connected to this method (e.g., Button1,onClick, Button2,onTouch). */
 	public static ArrayList<String> findEventHandlersThatMightDirectlyCallThisMethod(File file, String className, String methodSubSig) {
 		ArrayList<String> result = new ArrayList<String>();
 		if (!StaticInfo.isActivity(file, className))	return result;
