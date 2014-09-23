@@ -79,15 +79,20 @@ public class Framework {
 	public void terminate(){
 		
 		
-		String method = (String)this.attribute.get("method");
-		if(method != null){
-			System.out.println(" sequence");
+//		String method = (String)this.attribute.get("method");
+//		if(method != null){
+//			
+//		}else{
+//			System.out.println("can find method");
+//		}
+		
+		String[] methods = (String[])this.attribute.get("methods");
+		for(String method : methods){
+			System.out.println("Sequence for "+method);
 			List<List<Event>>  llevent = this.dynamicInfo.findPotentialPathForHandler(method);
 			for(List<Event> levent: llevent){
 				System.out.println(levent);
 			}
-		}else{
-			System.out.println("can find method");
 		}
 
 //		dynamicInfo.printAllMethod();
@@ -103,7 +108,9 @@ public class Framework {
 		this.operating = false;
 	}
 
-
+//	public static interface TerminationCallback{
+//		
+//	}
 
 //	public Stack<Event> getEventStack() {
 //		return eventStack;
