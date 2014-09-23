@@ -1,8 +1,10 @@
 package zhen.framework;
 
+import main.Paths;
+
 public class Configuration {
 	
-	public static String androidSDKPath = "/home/zhenxu/tools/adt-bundle-linux-x86_64-20140702/";
+	public static String androidSDKPath = Paths.adbPath;
 	public static String appDataDir = "generated/";
 	
 	public static String androidToolPath = androidSDKPath+"sdk/tools/";
