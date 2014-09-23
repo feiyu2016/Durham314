@@ -25,8 +25,9 @@ public class RunTimeInfo {
 	}
 	
 	public static void installApp(File file) throws Exception {
-		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " install " + file.getAbsolutePath());
-		printStreams(pc);
+		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " install -r " + file.getAbsolutePath());
+		pc.waitFor();
+//		printStreams(pc);
 	}
 	
 	public static void startApp(File file) throws Exception {

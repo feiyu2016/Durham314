@@ -63,6 +63,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			case EventType.iLAUNCH: {
 				String actName = event.getAttribute("actname");
 				System.out.println("Launching: "+actName);
+				ADBControl.sendADBCommand("adb shell am force-stop "+this.packageName);
 				ADBControl.sendADBCommand("adb shell am start -n "+actName);
 				try { Thread.sleep(2000);
 				} catch (InterruptedException e) { }
@@ -94,6 +95,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			}break;
 			case EventType.iSETUP:{
 				this.press(KeyEvent.KEYCODE_HOME);
+				
 				try { Thread.sleep(1000);
 				} catch (InterruptedException e) { }
 			}break;
