@@ -147,23 +147,38 @@ public class SingleTargetOrientedDecisionMaker extends AbstractDecisionMaker{
 		case 3:{
 			System.out.println("exploring");
 			if(actLaunched){
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				System.out.println("inner state: actLaunched");
 				RunTimeLayout current = this.frame.dynamicInfo.getCurrentLayout();
 				if(current.isLauncher){
-					throw new AssertionError();
+					System.out.println("launching act failure");
+					
+				}else{
+					this.layoutAccessStack.push(current);
+					
 				}
-				this.layoutAccessStack.push(current);
 				actLaunched = false;
 				return null;
 			}else if(checkExpectenceOnRestart){
+				checkExpectenceOnRestart = false;
 				System.out.println("inner state: checkExpectenceOnRestart");
 				RunTimeLayout expectence = this.layoutAccessStack.peek();
 				RunTimeLayout current = this.frame.dynamicInfo.getCurrentLayout();
 				if(!expectence.equals(current)){
-					//TODO
-					throw new AssertionError();
+					layoutAccessStack.pop();
+					if(layoutAccessStack.size() > 0){
+						List<Event>  equence = this.frame.dynamicInfo.getEventSequence(this.frame.dynamicInfo.getLauncher(),layoutAccessStack.peek());
+						result = equence.toArray(new Event[0]);
+						checkExpectenceOnRestart = true;
+					}else{
+						
+					}
 				}
-				checkExpectenceOnRestart = false;
 				return result;
 			}else if(checkExpectenceOnBack){
 				System.out.println("inner state: checkExpectenceOnBack");

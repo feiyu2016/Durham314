@@ -17,6 +17,8 @@ import java.util.Stack;
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 
+import main.Paths;
+
 import org.jgraph.JGraph;
 import org.jgraph.graph.AttributeMap;
 import org.jgraph.graph.DefaultGraphCell;
@@ -92,7 +94,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	public GraphStructureLayoutInformation(Framework frame){
 		super(frame);
 		graph = new ListenableDirectedMultigraph<RunTimeLayout, Event>(Event.class);
-		layoutInfo = new RunTimeLayoutInformation(Configuration.adbPath);
+		layoutInfo = new RunTimeLayoutInformation(Paths.adbPath);
 	}
 	
 	@Override
@@ -547,4 +549,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		}
 	}
 
+	public RunTimeLayout getLauncher(){
+		return this.launcher;
+	}
 }

@@ -1,5 +1,6 @@
 package zhen.test;
 
+import inputGeneration.RunTimeInfo;
 import inputGeneration.StaticInfo;
 
 import java.io.File;
@@ -11,9 +12,20 @@ import zhen.framework.Framework;
 
 public class testFramework {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+//		String path = "APK/signed_KitteyKittey.apk";
+		
 		String path = "APK/signed_backupHelper.apk";
-		StaticInfo.initAnalysis(new File(path), false);
+		
+		File f = new File(path);
+//		System.out.println("file exists:"+f.exists());
+//		RunTimeInfo.installApp(f);
+//		System.out.println("installing finished");
+		StaticInfo.initAnalysis(f, false);
+		
+
+		
+		
 //		StaticInfo.methodAnalysis(new File(path), "com.example.backupHelper.BackupActivity", "boolean onChildClick(android.widget.ExpandableListView, android.view.View, int, int, long)".replace(",", " "));
 		
 		Map<String,Object> att = new HashMap<String,Object>();
@@ -37,8 +49,26 @@ public class testFramework {
 //		att.put("targets", targets);
 		
 		String[] methods = new String[]{
-				"com.example.backupHelper.BackupTask$1: boolean onKey(android.content.DialogInterface int android.view.KeyEvent)",	
+//				"com.example.backupHelper.BackupTask$1: boolean onKey(android.content.DialogInterface int android.view.KeyEvent)",	
+		
+//				"com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)"
+				
+				"com.example.backupHelper.BackupActivity: void onCreate(android.os.Bundle)",
+
+				"com.example.backupHelper.BackupActivity: boolean onCreateOptionsMenu(android.view.Menu)",
+
+				"com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)",
+				
+				"com.example.backupHelper.BackupActivity: boolean onChildClick(android.widget.ExpandableListView android.view.View int int long)",
+				
+				
 		};
+		
+		for(String s : methods){
+			s.replace(",", "");
+		}
+		
+		
 		
 		
 		att.put("methods", methods);

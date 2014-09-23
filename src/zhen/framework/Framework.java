@@ -95,7 +95,7 @@ public class Framework {
 			}
 		}
 
-//		dynamicInfo.printAllMethod();
+		dynamicInfo.printAllMethod();
 		if(sc != null) sc.close();
 		
 		generater.terminate();
