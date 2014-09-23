@@ -30,6 +30,7 @@ import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.DirectedMultigraph;
 
 import zhen.framework.AbstractDynamicInformation;
+import zhen.framework.AbstractExecuter.LogCatFeedBack;
 import zhen.framework.Configuration;
 import zhen.framework.Framework;
 import zhen.packet.RunTimeLayoutInformation;
@@ -95,6 +96,11 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	@Override
 	public void update(Event... events) {
 		if(events == null) return;
+		List<List<LogCatFeedBack>>  feedback = this.frame.executer.getFeedBack();
+
+		matchViewWithMethod(events, feedback);
+		
+		
 		if(events.length > 1){
 			//only update the reference
 			String focusedActName = layoutInfo.getFocusedWindow().getTitle();
@@ -412,5 +418,36 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		Map<String, ArrayList<RunTimeLayout>>  mapping = idLayoutMap.get(actName);
 		if(mapping == null){ return null; }
 		return mapping.get(id);
+	}
+
+	private void matchViewWithMethod(Event[] events, List<List<LogCatFeedBack>>  feedback ){
+		for(int i =0;i<events.length;i++){
+			Event singleEvent = events[i];
+			List<LogCatFeedBack> ithFeedBack = feedback.get(i);
+			
+			int type = EventType.stringToInt(singleEvent.getType());
+			switch(type){
+			case EventType.iSETUP:{
+				//no need 
+			}break;
+			case EventType.iLAUNCH:{
+				
+			}break;
+			case EventType.iONBACK:{
+				
+			}break;
+			case EventType.iONCLICK:{
+				
+			}break;
+			case EventType.iPRESS:{
+				
+			}break;
+			case EventType.iADBCOMMAND:{
+				
+			}break;
+			}
+
+			
+		}
 	}
 }

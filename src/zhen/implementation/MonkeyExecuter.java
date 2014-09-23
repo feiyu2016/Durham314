@@ -1,9 +1,16 @@
 package zhen.implementation;
 
+import inputGeneration.RunTimeInfo;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import android.view.KeyEvent;
@@ -39,10 +46,15 @@ public class MonkeyExecuter extends AbstractExecuter{
 	private BufferedOutputStream ostream = null;
 	private BufferedInputStream estream = null;
 	private BufferedInputStream istream = null;
-
+	private String packageName;
+	private List<List<LogCatFeedBack>> recentRecord;
+	
 	@Override
 	public boolean carryOutEvent(Event... events) {
+		recentRecord = new ArrayList<List<LogCatFeedBack>>();
 		for(Event event:events){
+			clearLogcat();
+			
 			String typeString = event.getType();
 			event.operationCount += 1;
 			System.out.println("executing:"+event.getType());
@@ -52,37 +64,54 @@ public class MonkeyExecuter extends AbstractExecuter{
 				String actName = event.getAttribute("actname");
 				System.out.println("Launching: "+actName);
 				ADBControl.sendADBCommand("adb shell am start -n "+actName);
+				try { Thread.sleep(2000);
+				} catch (InterruptedException e) { }
 			}break;
 			case EventType.iONBACK: {
 				this.press(KeyEvent.KEYCODE_BACK);
+				try { Thread.sleep(1000);
+				} catch (InterruptedException e) { }
 			}break;
 			case EventType.iONCLICK: {
 				String x = event.getAttribute("x");
 				String y = event.getAttribute("y");
 				this.click(x, y);
+				try { Thread.sleep(1500);
+				} catch (InterruptedException e) { }
 			}break;
 			case EventType.iPRESS:{
 				String keycode = event.getAttribute("keycode");
 				this.press(keycode);
+				try { Thread.sleep(1000);
+				} catch (InterruptedException e) { }
 			}break;
 			case EventType.iADBCOMMAND:{
 				String command = event.getAttribute("adbcommand");
 				ADBControl.sendADBCommand(command);
 				event.setRefreshFlag(false);
+				try { Thread.sleep(1000);
+				} catch (InterruptedException e) { }
 			}break;
 			case EventType.iSETUP:{
 				this.press(KeyEvent.KEYCODE_HOME);
+				try { Thread.sleep(1000);
+				} catch (InterruptedException e) { }
 			}break;
 			default: {
 				Utility.log(TAG, "Unidentified command:"+typeString);
 			}
 			}
-			
-			try { Thread.sleep(2000);
-			} catch (InterruptedException e) { }
+		
+			recentRecord.add(readApplicationLogcat(this.packageName));
 		}
 		return true;
 	}
+	
+	@Override
+	public List<List<LogCatFeedBack>> getFeedBack() {
+		return recentRecord;
+	}
+	
 	@Override
 	public boolean init(Map<String,Object> attribute) {
 		if (this.DEBUG)
@@ -120,6 +149,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 				Utility.log(TAG, "initialization fails");
 			return false;
 		}
+		packageName = (String) attribute.get("package");
 		return true;
 	}
 	@Override
@@ -334,5 +364,24 @@ public class MonkeyExecuter extends AbstractExecuter{
 		}
 		return null;
 	}
+
+	private void clearLogcat(){
+		try {
+			Runtime.getRuntime().exec(Paths.adbPath + " logcat -c").waitFor();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public static List<LogCatFeedBack> readApplicationLogcat(String packageName){
+		String pid = WrapperStaticInformation.getApplicationPid(packageName);
+		return WrapperStaticInformation.readLogcat(pid);
+	}
+	
 
 }

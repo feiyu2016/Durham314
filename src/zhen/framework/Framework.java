@@ -19,8 +19,11 @@ public class Framework {
 	public AbstractDecisionMaker generater;
 	public AbstractStaticInformation staticInfo;
 	
+
 	boolean operating = true;
 	boolean debug = true;
+	boolean enableLogcat= true;
+	boolean enableHumanControl = true;
 //	final Stack<Event> eventStack;
 //	final Stack<RunTimeLayout> layoutStack;
 	
@@ -56,9 +59,16 @@ public class Framework {
 	public void execute(){
 		System.out.println("Executing");
 		while(operating){
-			String reading = sc.nextLine();
+			if(enableHumanControl){
+				String reading = sc.nextLine();
+			}
+			
+
 			Event[] event = generater.nextEvent();
-			System.out.println(Arrays.toString(event));
+			
+
+			
+			System.out.println("Event:"+Arrays.toString(event));
 			if(event == null) continue;
 			executer.carryOutEvent(event);
 			dynamicInfo.update(event);
@@ -77,7 +87,7 @@ public class Framework {
 		this.operating = false;
 	}
 
-	
+
 
 //	public Stack<Event> getEventStack() {
 //		return eventStack;

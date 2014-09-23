@@ -2,12 +2,18 @@ package zhen.implementation;
 
 import inputGeneration.StaticInfo;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import main.Paths;
 import zhen.framework.AbstractStaticInformation;
 import zhen.framework.Framework;
+import zhen.framework.AbstractExecuter.LogCatFeedBack;
 
 public class WrapperStaticInformation extends AbstractStaticInformation {
 
@@ -90,5 +96,41 @@ public class WrapperStaticInformation extends AbstractStaticInformation {
 	public void terminate() {
 		// TODO Auto-generated method stub
 	}
-
+	
+	
+	public static List<LogCatFeedBack> readLogcat(String pid){
+		ArrayList<LogCatFeedBack> result = new ArrayList<LogCatFeedBack>();
+		Process pc;
+		try {
+			pc = Runtime.getRuntime().exec(Paths.adbPath + " logcat -v time -d -s System.out | grep " + pid);
+			BufferedReader in = new BufferedReader(new InputStreamReader(pc.getInputStream()));
+			String line;
+			while ((line = in.readLine())!=null)
+				result.add(new LogCatFeedBack(line));
+			in.close();
+		} catch (IOException e) { }		
+		return result;
+	}
+	
+	
+	public static String getApplicationPid(String packageName){
+		Process prc;
+		try {
+			prc = Runtime.getRuntime().exec(Paths.adbPath + " shell ps |grep " + packageName);
+			BufferedReader in = new BufferedReader(new InputStreamReader(prc.getInputStream()));
+			String line;
+			while ((line = in.readLine())!=null) {
+				if (!line.endsWith(packageName)) continue;
+				String[] parts = line.split(" ");
+				for (int i = 1; i < parts.length; i++) {
+					if (parts[i].equals(""))	continue;
+					return parts[i].trim();
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "-1";
+	}
 }

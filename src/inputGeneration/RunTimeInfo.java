@@ -3,11 +3,26 @@ package inputGeneration;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import main.Paths;
 
 public class RunTimeInfo {
 
+	public static void clearLogcat() throws Exception {
+		Runtime.getRuntime().exec(Paths.adbPath + " logcat -c").waitFor();
+	}
+	
+	public static ArrayList<String> readLogcat(File file) throws Exception {
+		ArrayList<String> result = new ArrayList<String>();
+		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " logcat -v time -d -s System.out | grep " + RunTimeInfo.getPID(file));
+		BufferedReader in = new BufferedReader(new InputStreamReader(pc.getInputStream()));
+		String line;
+		while ((line = in.readLine())!=null)
+			result.add(line);
+		in.close();
+		return result;
+	}
 	
 	public static void installApp(File file) throws Exception {
 		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " install " + file.getAbsolutePath());
@@ -69,4 +84,5 @@ public class RunTimeInfo {
 	public static String getCurrentUIStatus() {
 		return "";
 	}
+
 }
