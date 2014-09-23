@@ -10,4 +10,6 @@ public class Configuration {
 	public static String adbPath = androidPlatformToolPath+"adb";
 	public static String androidJarPath = "libs/android.jar";
 	public static String apktoolPath = "libs/apktool.jar";
+	
+	public static String InstrumentationTag = "System.out";//System.out
 }

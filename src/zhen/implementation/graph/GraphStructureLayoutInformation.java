@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -33,6 +34,7 @@ import zhen.framework.AbstractDynamicInformation;
 import zhen.framework.AbstractExecuter.LogCatFeedBack;
 import zhen.framework.Configuration;
 import zhen.framework.Framework;
+import zhen.packet.Pair;
 import zhen.packet.RunTimeLayoutInformation;
 import zhen.packet.Utility;
 
@@ -96,11 +98,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	@Override
 	public void update(Event... events) {
 		if(events == null) return;
-		List<List<LogCatFeedBack>>  feedback = this.frame.executer.getFeedBack();
-
-		matchViewWithMethod(events, feedback);
-		
-		
+		List<List<String>>  feedback = this.frame.executer.getInstrumentationFeedBack();
 		if(events.length > 1){
 			//only update the reference
 			String focusedActName = layoutInfo.getFocusedWindow().getTitle();
@@ -152,6 +150,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			if(isPreviousLauncher) return; //no edge needed
 			else{//pointerLayout -> launcher
 				event.setVertices(pointerLayout, launcher);
+				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(pointerLayout, launcher,event);
 //				this.frame.getLayoutStack().push(launcher);
 				pointerLayout = launcher;
@@ -167,15 +166,18 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			String type = event.getType();
 			if(type.equals(EventType.LAUNCH)){
 				event.setVertices(launcher, currentToBeUsed);
+				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(launcher, currentToBeUsed,event);			
 			}else if( currentToBeUsed == pointerLayout){
 				 //the same layout 
 				event.setVertices(pointerLayout, currentToBeUsed);
+				matchViewWithMethod(event,feedback.get(0));
 				currentToBeUsed.addIneffectiveEvent(event);
 			}
 			else {
 				if(pointerLayout == null) throw new AssertionError();
 				event.setVertices(pointerLayout, currentToBeUsed);
+				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(pointerLayout, currentToBeUsed,event);		
 			}
 			pointerLayout = currentToBeUsed;
@@ -188,11 +190,14 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			RunTimeLayout currentToBeUsed =  addToCollection(outScopeLayoutCollection,focusedActName, null);
 			if(type.equals(EventType.LAUNCH)){
 				event.setVertices(launcher, currentToBeUsed);
+				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(launcher, currentToBeUsed,event);			
 			}else{
 				if(pointerLayout == null) throw new AssertionError();
 				event.setVertices(pointerLayout, currentToBeUsed);
+				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(pointerLayout, currentToBeUsed,event);	
+				
 			}
 			if(pointerLayout.getActName().equals(currentToBeUsed.getActName())){
 				//the same as before, no need to do anything
@@ -382,6 +387,33 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	    }
 	}
 
+	public List<Event> getEventSequence(RunTimeLayout src, RunTimeLayout dest){
+		List<Event> sequence1 = DijkstraShortestPath.findPathBetween(graph, this.pointerLayout, dest);
+		if(sequence1 == null){
+			sequence1 = DijkstraShortestPath.findPathBetween(graph, src, dest);
+			Event stopCommand = new Event(EventType.ADBCOMMAND,null);
+			stopCommand.setAttribute("adbcommand", "adb shell am force-stop "+appName);
+			
+//			Event startCommand = new Event(EventType.ADBCOMMAND,null);
+//			startCommand.setAttribute("adbcommand", "adb shell am start -n "+dest.getActName());
+			
+			sequence1.add(0,stopCommand);
+//			sequence1.add(1,startCommand);
+			
+		}
+		
+		if(sequence1 == null){
+			System.out.println("get getEventSequence fails");
+		}else{
+			System.out.println(sequence1);
+		}
+//		Event goHome = Event.goToLauncherEvent();
+//		Event stopEvent = Event.adbCommandEvent(actName, command);
+//		sequence1.add(arg0);
+//		List<Event> sequence2 = DijkstraShortestPath.findPathBetween(graph, this.pointerLayout, dest);
+		return sequence1;
+	}
+	
 	@Override
 	public List<Event> getEventSequence(RunTimeLayout dest) {
 		List<Event> sequence1 = DijkstraShortestPath.findPathBetween(graph, this.pointerLayout, dest);
@@ -397,8 +429,6 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 //			sequence1.add(1,startCommand);
 			
 		}
-		
-		
 		
 		if(sequence1 == null){
 			System.out.println("get getEventSequence fails");
@@ -419,35 +449,102 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		if(mapping == null){ return null; }
 		return mapping.get(id);
 	}
+	
+	
+	private void matchViewWithMethod(Event event, List<String> feedback){
+		RunTimeLayout source = event.getSource();
+//		I(10395:10395) METHOD_STARTING,<com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)>
+		//to 
+		//com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)
+		if(source != null){
+			String tmp = null;
+			for(int i=0;i<feedback.size();i++){
+				try{
+					tmp = feedback.get(i);
+					String[] parts = tmp.split("METHOD_STARTING,<");
+//					if(parts.length <=1){
+//						parts = tmp.split("METHOD_RETURNING,<");
+//					}
 
-	private void matchViewWithMethod(Event[] events, List<List<LogCatFeedBack>>  feedback ){
-		for(int i =0;i<events.length;i++){
-			Event singleEvent = events[i];
-			List<LogCatFeedBack> ithFeedBack = feedback.get(i);
-			
-			int type = EventType.stringToInt(singleEvent.getType());
-			switch(type){
-			case EventType.iSETUP:{
-				//no need 
-			}break;
-			case EventType.iLAUNCH:{
-				
-			}break;
-			case EventType.iONBACK:{
-				
-			}break;
-			case EventType.iONCLICK:{
-				
-			}break;
-			case EventType.iPRESS:{
-				
-			}break;
-			case EventType.iADBCOMMAND:{
-				
-			}break;
+					String method = parts[1].split(">")[0];
+					System.out.println(method);
+					source.addMatchedEventWithHandler(method, event);
+				}catch(Exception e){
+//					System.out.println("cannot process: "+tmp);
+				}
 			}
-
-			
 		}
 	}
+
+	public List<List<Event>> findPotentialPathForHandler(String method){
+		//Set<Entry<String, Collection<RunTimeLayout>>>
+		List<List<Event>> reuslt = new ArrayList<List<Event>>();
+		
+		for(Entry<String, Collection<RunTimeLayout>> entry:actCategoryReference.entrySet() ){
+			Collection<RunTimeLayout> runTimeCollection = entry.getValue();
+			Iterator<RunTimeLayout>  iter = runTimeCollection.iterator();
+			while(iter.hasNext()){
+				RunTimeLayout layuout = iter.next();
+				ArrayList<Event> viewTriggerHandler = layuout.getPotentialEventForHandler(method);
+				if(viewTriggerHandler!=null && viewTriggerHandler.size() > 0){
+					List<Event>  sequence = this.getEventSequence(this.launcher, layuout);
+					for(Event trigger : viewTriggerHandler){
+						List<Event> sequence_copy = new ArrayList<Event>(sequence);
+						sequence_copy.add(trigger);
+						reuslt.add(sequence_copy);
+					}
+					
+				}
+			}
+		}
+		
+		for(Entry<String, Collection<RunTimeLayout>> entry:this.outOfScopeReference.entrySet() ){
+			Collection<RunTimeLayout> runTimeCollection = entry.getValue();
+			Iterator<RunTimeLayout>  iter = runTimeCollection.iterator();
+			while(iter.hasNext()){
+				RunTimeLayout layuout = iter.next();
+				ArrayList<Event> viewTriggerHandler = layuout.getPotentialEventForHandler(method);
+				if(viewTriggerHandler!=null && viewTriggerHandler.size() > 0){
+					List<Event>  sequence = this.getEventSequence(this.launcher, layuout);
+					for(Event trigger : viewTriggerHandler){
+						List<Event> sequence_copy = new ArrayList<Event>(sequence);
+						sequence_copy.add(trigger);
+						reuslt.add(sequence_copy);
+					}
+					
+				}
+			}
+		}
+		
+		return reuslt;
+	}
+	
+	public void printAllMethod(){
+		for(Entry<String, Collection<RunTimeLayout>> entry:actCategoryReference.entrySet() ){
+			Collection<RunTimeLayout> runTimeCollection = entry.getValue();
+			Iterator<RunTimeLayout>  iter = runTimeCollection.iterator();
+			while(iter.hasNext()){
+				RunTimeLayout layout = iter.next();
+				System.out.println("-----------------------");
+				List<Pair<String, Event>> list = layout.getEventHandlerList();
+				for(Pair<String, Event> pair : list){
+					System.out.println(pair.first+"\t;\t"+pair.second);
+				}
+			}
+		}
+		
+		for(Entry<String, Collection<RunTimeLayout>> entry:this.outOfScopeReference.entrySet() ){
+			Collection<RunTimeLayout> runTimeCollection = entry.getValue();
+			Iterator<RunTimeLayout>  iter = runTimeCollection.iterator();
+			while(iter.hasNext()){
+				RunTimeLayout layout = iter.next();
+				System.out.println("-----------------------");
+				List<Pair<String, Event>> list = layout.getEventHandlerList();
+				for(Pair<String, Event> pair : list){
+					System.out.println(pair.first+"\t;\t"+pair.second);
+				}
+			}
+		}
+	}
+
 }

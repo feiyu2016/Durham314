@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import zhen.packet.Pair;
 import inputGeneration.StaticLayout;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
@@ -45,6 +46,8 @@ public class RunTimeLayout {
 	private StaticLayout associated;
 	private String actName;
 	private List<Event> ineffectiveEvents;
+	
+	private List<Pair<String,Event>> eventHandlerList = new ArrayList<Pair<String,Event>>();
 	
 	public int visitCount = 0;
 	public boolean isLauncher = false;
@@ -256,6 +259,26 @@ public class RunTimeLayout {
 	public Object getExtraInfo(String key){
 		return this.extraInfo.get(key);
 	}
+	
+	public void addMatchedEventWithHandler(String handler, Event event){
+		this.eventHandlerList.add(new Pair<String,Event>(handler,event));
+	}
+	
+	public ArrayList<Event> getPotentialEventForHandler(String methodName){
+		ArrayList<Event> result= new ArrayList<Event>();
+		for(int i=0;i<eventHandlerList.size();i++){
+			 Pair<String,Event> pair = eventHandlerList.get(i);
+			 if(pair.first.equals(methodName)){
+				 result.add(pair.second); 
+			 }
+		}
+		return result;
+	}
+
+	public List<Pair<String, Event>> getEventHandlerList() {
+		return eventHandlerList;
+	}
+	
 }
 
 

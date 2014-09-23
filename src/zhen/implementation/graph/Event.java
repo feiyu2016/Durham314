@@ -62,7 +62,13 @@ public class Event extends DefaultEdge{
 	}
 	@Override
 	public String toString(){
-		return type;
+		String result = type;
+		if(type.equals(EventType.ONCLICK)){
+			result += " at ("+this.attribute.get("x") + ","+this.attribute.get("y")+")";
+		}
+		
+		
+		return result;
 	}
 	public void setAppliedViewNode(ViewNode view){
 		this.appliedView = view;

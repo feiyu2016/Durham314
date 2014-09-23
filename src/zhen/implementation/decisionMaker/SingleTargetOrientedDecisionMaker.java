@@ -198,6 +198,7 @@ public class SingleTargetOrientedDecisionMaker extends AbstractDecisionMaker{
 				launching.setAttribute("actname", actName);
 				result = new Event[]{ launching };
 				actLaunched = true;
+				this.labelActAsReached(actName);
 				return result;
 			}else{
 				RunTimeLayout current = this.frame.dynamicInfo.getCurrentLayout();

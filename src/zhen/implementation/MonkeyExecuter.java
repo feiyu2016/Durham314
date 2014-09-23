@@ -47,11 +47,11 @@ public class MonkeyExecuter extends AbstractExecuter{
 	private BufferedInputStream estream = null;
 	private BufferedInputStream istream = null;
 	private String packageName;
-	private List<List<LogCatFeedBack>> recentRecord;
+	private List<List<String>> recentRecord;
 	
 	@Override
 	public boolean carryOutEvent(Event... events) {
-		recentRecord = new ArrayList<List<LogCatFeedBack>>();
+		recentRecord = new ArrayList<List<String>>();
 		for(Event event:events){
 			clearLogcat();
 			
@@ -108,7 +108,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 	}
 	
 	@Override
-	public List<List<LogCatFeedBack>> getFeedBack() {
+	public List<List<String>> getInstrumentationFeedBack() {
 		return recentRecord;
 	}
 	
@@ -378,9 +378,11 @@ public class MonkeyExecuter extends AbstractExecuter{
 	}
 	
 	
-	public static List<LogCatFeedBack> readApplicationLogcat(String packageName){
+	public static List<String> readApplicationLogcat(String packageName){
 		String pid = WrapperStaticInformation.getApplicationPid(packageName);
-		return WrapperStaticInformation.readLogcat(pid);
+		List<String> result =  WrapperStaticInformation.readInstrumentationFeedBack(pid);
+		System.out.println(result);
+		return result;
 	}
 	
 

@@ -2,6 +2,7 @@ package zhen.framework;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
@@ -23,7 +24,7 @@ public class Framework {
 	boolean operating = true;
 	boolean debug = true;
 	boolean enableLogcat= true;
-	boolean enableHumanControl = true;
+	boolean enableHumanControl = false;
 //	final Stack<Event> eventStack;
 //	final Stack<RunTimeLayout> layoutStack;
 	
@@ -76,11 +77,26 @@ public class Framework {
 	}
 	
 	public void terminate(){
+		
+		
+		String method = (String)this.attribute.get("method");
+		if(method != null){
+			System.out.println(" sequence");
+			List<List<Event>>  llevent = this.dynamicInfo.findPotentialPathForHandler(method);
+			for(List<Event> levent: llevent){
+				System.out.println(levent);
+			}
+		}else{
+			System.out.println("can find method");
+		}
+
+//		dynamicInfo.printAllMethod();
+		if(sc != null) sc.close();
+		
 		generater.terminate();
 		executer.terminate();
 		dynamicInfo.terminate();
 		staticInfo.terminate();
-		if(sc != null) sc.close();
 	}
 
 	public void requestFinish(){

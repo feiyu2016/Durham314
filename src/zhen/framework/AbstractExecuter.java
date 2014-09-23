@@ -14,10 +14,12 @@ public abstract class AbstractExecuter extends BaseComponent{
 	 * The ith single list of LogCatFeedBack represents the response from the ith event 
 	 * @return
 	 */
-	public abstract List<List<LogCatFeedBack>> getFeedBack();
+	public abstract List<List<String>> getInstrumentationFeedBack();
 	
 	public static class LogCatFeedBack{
+		////I( 4771: 4771) clickme3
 		String msg;
+		String level; 
 		public LogCatFeedBack(String msg){
 			this.msg = msg;
 		}
