@@ -77,7 +77,9 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	
 	//for each activity. list all encountered different layout 
 	private Map<String, Collection<RunTimeLayout>> actCategoryReference = new HashMap<String, Collection<RunTimeLayout>>();
+	private Map<String, Collection<RunTimeLayout>> systemActivityReference = new HashMap<String, Collection<RunTimeLayout>>();
 	private Map<String, Collection<RunTimeLayout>> outOfScopeReference = new HashMap<String, Collection<RunTimeLayout>>();
+	
 	//for an activity, there should be a map between id and a list layout
 	//TODO well this structure is awkward... may want to change it sometime 
 	private Map<String, Map<String,ArrayList<RunTimeLayout>>> idLayoutMap = new HashMap<String, Map<String,ArrayList<RunTimeLayout>>>();

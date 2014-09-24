@@ -28,8 +28,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 		super(frame);
 	}
 
-	public static String PROGRAM_LOCATION = Paths.androidToolPath
-			+ "/monkeyrunner";
+	public static String PROGRAM_LOCATION = Paths.androidToolPath + "monkeyrunner";
 	public static final String UP = "MonkeyDevice.UP";
 	public static final String DOWN = "MonkeyDevice.DOWN";
 	public static final String DOWN_AND_UP = "MonkeyDevice.DOWN_AND_UP";
@@ -63,8 +62,8 @@ public class MonkeyExecuter extends AbstractExecuter{
 			case EventType.iLAUNCH: {
 				String actName = event.getAttribute("actname");
 				System.out.println("Launching: "+actName);
-				ADBControl.sendADBCommand("adb shell am force-stop "+this.packageName);
-				ADBControl.sendADBCommand("adb shell am start -n "+actName);
+				ADBControl.sendSellCommand("am force-stop "+this.packageName);
+				ADBControl.sendSellCommand("am start -n "+actName);
 				try { Thread.sleep(2000);
 				} catch (InterruptedException e) { }
 			}break;
