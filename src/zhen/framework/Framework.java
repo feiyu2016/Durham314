@@ -61,14 +61,18 @@ public class Framework {
 		System.out.println("Executing");
 		while(operating){
 			if(enableHumanControl){
-				String reading = sc.nextLine();
+				System.out.println("Commandline Interaction");
+				while(true){
+					System.out.print("Command:");
+					String reading = sc.nextLine();
+					if(reading.equals("1")){
+						dynamicInfo.printAllMethod();
+					}else break;
+				}
+				System.out.println("Continue Operation ");
 			}
 			
-
 			Event[] event = generater.nextEvent();
-			
-
-			
 			System.out.println("Event:"+Arrays.toString(event));
 			if(event == null) continue;
 			executer.carryOutEvent(event);
@@ -95,7 +99,7 @@ public class Framework {
 			}
 		}
 
-		dynamicInfo.printAllMethod();
+//		dynamicInfo.printAllMethod();
 		if(sc != null) sc.close();
 		
 		generater.terminate();

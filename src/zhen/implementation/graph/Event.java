@@ -35,7 +35,7 @@ public class Event extends DefaultEdge{
 		this.isBroken = isBroken;
 	}
 	public Event(String type, ViewNode appliedView){
-		System.out.println("Event Created for:"+type);
+//		System.out.println("Event Created for:"+type);
 		if(appliedView!=null)System.out.println(appliedView.id);
 		this.appliedView = appliedView;
 		this.type = type;

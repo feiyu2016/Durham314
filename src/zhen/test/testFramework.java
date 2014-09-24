@@ -1,10 +1,8 @@
 package zhen.test;
 
-import inputGeneration.RunTimeInfo;
 import inputGeneration.StaticInfo;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +12,8 @@ public class testFramework {
 
 	public static void main(String[] args) throws Exception {
 //		String path = "APK/signed_KitteyKittey.apk";
-		
 		String path = "APK/signed_backupHelper.apk";
+//		String path = "APK/signed_Butane.apk";
 		
 		File f = new File(path);
 //		System.out.println("file exists:"+f.exists());
@@ -57,9 +55,9 @@ public class testFramework {
 
 				"com.example.backupHelper.BackupActivity: boolean onCreateOptionsMenu(android.view.Menu)",
 
-				"com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)",
-				
-				"com.example.backupHelper.BackupActivity: boolean onChildClick(android.widget.ExpandableListView android.view.View int int long)",
+//				"com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)",
+//				
+//				"com.example.backupHelper.BackupActivity: boolean onChildClick(android.widget.ExpandableListView android.view.View int int long)",
 				
 				
 		};

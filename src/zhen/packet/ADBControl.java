@@ -5,14 +5,16 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import zhen.framework.Configuration;
+
 public class ADBControl {
-	public static String unlockScreenCommand = "adb shell input keyevent 82";
-	public static String clickPowerButtonCommand = "adb shell input keyevent KEYCODE_POWER";
+	public static String unlockScreenCommand = Configuration.adbPath+ " shell input keyevent 82";
+	public static String clickPowerButtonCommand = Configuration.adbPath+ " shell input keyevent KEYCODE_POWER";
 	public static boolean enableConsoleOutput = false;
 	public static boolean debug = false;
 	private static Logger  logger = Utility.setupLogger(ADBControl.class);
 	public static void sendSellCommand(String command){
-		sendADBCommand("adb shell "+command);
+		sendADBCommand(Configuration.adbPath+ " shell "+command);
 	}
 	
 	public static void sendADBCommand(String command , int timeout_ms){

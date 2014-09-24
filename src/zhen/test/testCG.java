@@ -13,8 +13,9 @@ import java.util.Map;
 public class testCG {
 
 	public static void main(String[] args){
+		//com.example.backupHelper.BackupFilesListAdapter: long getGroupId(int)
 		String path = "APK/signed_backupHelper.apk";
-		System.out.println(	testSubCompoenent(path,"onChildClick"));
+		System.out.println(	testSubCompoenent(path,"getGroupId"));
 	}
 	
 	public static ArrayList<String> testSubCompoenent(String path, String pattern){
@@ -34,7 +35,7 @@ public class testCG {
 		String targetClass = "";
 //		String targetClass = "com.example.simplecallgraphtestapp.SimpleTarget";
 		for(String className : clist){
-			if(className.endsWith("BackupActivity")){
+			if(className.endsWith("BackupFilesListAdapter")){
 				targetClass = className;
 				break;
 			}

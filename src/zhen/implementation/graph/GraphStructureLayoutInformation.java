@@ -198,11 +198,6 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 				pointerLayout = currentToBeUsed;
 				pointerLayout.addIneffectiveEvent(event);
 				matchViewWithMethod(event,feedback.get(0));
-				
-				if(pointerLayout == null) throw new AssertionError();
-				event.setVertices(pointerLayout, currentToBeUsed);
-				
-				addDirectedEdge(pointerLayout, currentToBeUsed,event);	
 			}else{
 				if(pointerLayout == null) throw new AssertionError();
 				event.setVertices(pointerLayout, currentToBeUsed);
@@ -309,7 +304,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			}
 		}
 		
-		System.out.println("graph.addVertex");
+//		System.out.println("graph.addVertex");
 		graph.addVertex(layout);
 		collection.add(layout);
 		return layout;
@@ -477,12 +472,15 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 //					}
 
 					String method = parts[1].split(">")[0];
-					System.out.println(method);
+//					System.out.println(method);
 					source.addMatchedEventWithHandler(method, event);
 				}catch(Exception e){
 //					System.out.println("cannot process: "+tmp);
 				}
 			}
+			System.out.println("Total methods triggered:"+feedback.size());
+		}else{
+			System.out.println("No method association due to missing source vertex");
 		}
 	}
 
@@ -526,10 +524,22 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			}
 		}
 		
+		{
+			ArrayList<Event> viewTriggerHandler = launcher.getPotentialEventForHandler(method);
+			if(viewTriggerHandler!=null && viewTriggerHandler.size() > 0){
+				List<Event>  sequence = new ArrayList<Event>();
+				for(Event trigger : viewTriggerHandler){
+					List<Event> sequence_copy = new ArrayList<Event>(sequence);
+					sequence_copy.add(trigger);
+					reuslt.add(sequence_copy);
+				}
+			}
+		}
 		return reuslt;
 	}
 	
 	public void printAllMethod(){
+		System.out.println("-----------------------");
 		for(Entry<String, Collection<RunTimeLayout>> entry:actCategoryReference.entrySet() ){
 			Collection<RunTimeLayout> runTimeCollection = entry.getValue();
 			Iterator<RunTimeLayout>  iter = runTimeCollection.iterator();
@@ -555,6 +565,13 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 				}
 			}
 		}
+		
+		System.out.println("-----------------------");
+		List<Pair<String, Event>> list = launcher.getEventHandlerList();
+		for(Pair<String, Event> pair : list){
+			System.out.println(pair.first+"\t;\t"+pair.second);
+		}
+		System.out.println("-----------------------");
 	}
 
 	public RunTimeLayout getLauncher(){
