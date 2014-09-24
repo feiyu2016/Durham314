@@ -194,12 +194,20 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 				event.setVertices(launcher, currentToBeUsed);
 				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(launcher, currentToBeUsed,event);			
+			}else if(pointerLayout.equals(currentToBeUsed)){
+				pointerLayout = currentToBeUsed;
+				pointerLayout.addIneffectiveEvent(event);
+				matchViewWithMethod(event,feedback.get(0));
+				
+				if(pointerLayout == null) throw new AssertionError();
+				event.setVertices(pointerLayout, currentToBeUsed);
+				
+				addDirectedEdge(pointerLayout, currentToBeUsed,event);	
 			}else{
 				if(pointerLayout == null) throw new AssertionError();
 				event.setVertices(pointerLayout, currentToBeUsed);
 				matchViewWithMethod(event,feedback.get(0));
 				addDirectedEdge(pointerLayout, currentToBeUsed,event);	
-				
 			}
 			if(pointerLayout.getActName().equals(currentToBeUsed.getActName())){
 				//the same as before, no need to do anything
