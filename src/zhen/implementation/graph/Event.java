@@ -138,7 +138,7 @@ public class Event extends DefaultEdge{
 	
 	static boolean ignoreLayout = true;
 	static boolean ignoreNoID = true;
-	public static Event[] getAllPossileEventForView(ViewNode node){
+	public static Event[] getAllPossileEventForView(ViewNode node, int width, int height){
 		//TODO right now only the onclick event
 		//ignore too small one
 		if(node.height <= 5 || node.width <= 5){
@@ -156,15 +156,19 @@ public class Event extends DefaultEdge{
 				return new Event[0];
 		}
 		
-		if(node.id.equalsIgnoreCase("no_id")){
-			return new Event[0];
-		}
+//		if(node.id.equalsIgnoreCase("no_id")){
+//			return new Event[0];
+//		}
 		
 //		System.out.println(node.namedProperties.get("position") == null);
 		String[] xy =node.namedProperties.get("position").value.split(",");
 		int x = Integer.parseInt(xy[0]);
 		int y = Integer.parseInt(xy[1]);
 		Event event = new Event(EventType.ONCLICK,node);
+		
+		int clickx,clicky;
+		
+		
 		event.attribute.put("x", (x+node.width/2)+"");
 		event.attribute.put("y", (y+node.height/2)+"");
 		return new Event[]{event};

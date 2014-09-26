@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import zhen.framework.Configuration;
+import zhen.packet.ADBControl;
 import zhen.packet.Pair;
 import inputGeneration.StaticLayout;
 
@@ -163,7 +165,13 @@ public class RunTimeLayout {
 	private void buildEventList(){ 
 		possibleViewEventList = new ArrayList<Event[]>();
 		possibleOtherEventList = new ArrayList<Event>();
-	
+		ViewNode root = linearReference.get(0);
+		while(root.parent!=null){
+			root = root.parent;
+		}
+		
+//		root.namedProperties.get(arg0)
+		
 		//use the stupid way
 		for(ViewNode node:this.linearReference){
 			ViewNode current = node;
@@ -180,10 +188,19 @@ public class RunTimeLayout {
 			node.namedProperties.put("position",p);
 		}
 		
+//		adb shell dumpsys window 
+//		ADBControl.clearStdoutBuffer();
+//		ADBControl.sendADBCommand(Configuration.adbPath+" shell dumpsys window | grep mRestrictedOverscanScreen ");
+//		String msg = ADBControl.getLatestStdoutMessage();
+//		System.out.println(Configuration.adbPath+" shell dumpsys window | grep mRestrictedOverscanScreen :"+msg);
+//		int width,height;
+//		String parts[] = msg.trim().split(" ")[1].split("x");
+//		width = Integer.parseInt(parts[0]);
+//		height = Integer.parseInt(parts[1]);
 		
 		if(this.associated == null){
 			for(ViewNode node: linearReference){
-				this.possibleViewEventList.add(Event.getAllPossileEventForView(node));
+				this.possibleViewEventList.add(Event.getAllPossileEventForView(node, 0, 0));
 			}
 		}else{
 			//TODO

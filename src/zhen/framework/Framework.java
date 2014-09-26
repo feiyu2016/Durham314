@@ -1,5 +1,7 @@
 package zhen.framework;
 
+import inputGeneration.RunTimeInfo;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +15,7 @@ import zhen.implementation.decisionMaker.SingleTargetOrientedDecisionMaker;
 import zhen.implementation.graph.Event;
 import zhen.implementation.graph.GraphStructureLayoutInformation;
 import zhen.implementation.graph.RunTimeLayout;
+import zhen.packet.ADBControl;
 
 public class Framework {
 	public GraphStructureLayoutInformation dynamicInfo;
@@ -50,6 +53,7 @@ public class Framework {
 			throw new AssertionError();
 		}
 		attribute.put("apkfile", apkFile);
+		ADBControl.sendADBCommand(Configuration.adbPath+" install -r "+apkPath);
 		
 		staticInfo.init(attribute);
 		dynamicInfo.init(attribute);
@@ -90,15 +94,7 @@ public class Framework {
 //			System.out.println("can find method");
 //		}
 		
-		String[] methods = (String[])this.attribute.get("methods");
-		for(String method : methods){
-			System.out.println("Sequence for "+method);
-			List<List<Event>>  llevent = this.dynamicInfo.findPotentialPathForHandler(method);
-			for(List<Event> levent: llevent){
-				System.out.println(levent);
-			}
-		}
-
+		
 //		dynamicInfo.printAllMethod();
 		if(sc != null) sc.close();
 		
@@ -106,6 +102,25 @@ public class Framework {
 		executer.terminate();
 		dynamicInfo.terminate();
 		staticInfo.terminate();
+	}
+	
+	public void reply(){
+		String[] methods = (String[])this.attribute.get("methods");
+		for(String method : methods){
+			System.out.println("Sequence for "+method);
+			List<List<Event>>  llevent = this.dynamicInfo.findPotentialPathForHandler(method);
+			for(List<Event> levent: llevent){
+				System.out.println(levent);
+				
+				
+//				this.executer.carryOutEvent(levent.toArray(new Event[0]));
+				
+				
+			}
+		}
+		
+		
+		//DO something 
 	}
 
 	public void requestFinish(){

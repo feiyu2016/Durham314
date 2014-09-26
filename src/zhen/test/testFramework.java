@@ -13,8 +13,8 @@ public class testFramework {
 	public static void main(String[] args) throws Exception {
 //		String path = "APK/signed_KitteyKittey.apk";
 //		String path = "APK/signed_backupHelper.apk";
-		String path = "APK/signed_Butane.apk";
-		
+//		String path = "APK/signed_Butane.apk";
+		String path = "APK/signed_CalcA.apk";
 		File f = new File(path);
 //		System.out.println("file exists:"+f.exists());
 //		RunTimeInfo.installApp(f);
@@ -76,6 +76,7 @@ public class testFramework {
 		
 		frame.init();
 		frame.execute();
+		frame.reply();
 		frame.terminate();
 	}
 

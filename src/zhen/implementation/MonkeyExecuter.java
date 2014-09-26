@@ -64,6 +64,8 @@ public class MonkeyExecuter extends AbstractExecuter{
 				System.out.println("Launching: "+actName);
 				ADBControl.sendSellCommand("am force-stop "+this.packageName);
 				ADBControl.sendSellCommand("am start -n "+actName);
+				
+				
 				try { Thread.sleep(2000);
 				} catch (InterruptedException e) { }
 			}break;
@@ -93,6 +95,9 @@ public class MonkeyExecuter extends AbstractExecuter{
 				} catch (InterruptedException e) { }
 			}break;
 			case EventType.iSETUP:{
+				//gather system information
+				
+				
 				this.press(KeyEvent.KEYCODE_HOME);
 				checkKeyboard = false;
 				try { Thread.sleep(1000);
