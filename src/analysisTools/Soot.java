@@ -184,8 +184,10 @@ public class Soot {
 			int classCount = Integer.parseInt(firstLine.split(",")[1]);
 			String[] oldClassNames = new String[classCount];
 			String[] newClassNames = new String[classCount];
-			for (int i = 0; i < classCount; i++)
-				oldClassNames[i] = in.readLine().split(",")[1];
+			for (int i = 0; i < classCount; i++) {
+				String line = in.readLine();
+				oldClassNames[i] = line.split(",")[1];
+			}
 			in.close();
 			Arrays.sort(oldClassNames);
 			ArrayList<String> activities = StaticInfo.getActivityNames(file);
@@ -194,7 +196,9 @@ public class Soot {
 			int counter = 0;
 			for (int k = 0; k < classCount; k++) {
 				boolean belong = false;
-				for (String actvt: activities)	if (oldClassNames[k].equals(actvt))	belong = true;
+				for (String actvt: activities)
+					if (oldClassNames[k].equals(actvt))
+						belong = true;
 				if (!belong) {
 					newClassNames[activities.size() + counter] = oldClassNames[k];
 					counter++;
@@ -202,13 +206,30 @@ public class Soot {
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(apkInfoFile));
 			out.write(firstLine + "\n");
-			out.write("MainActivity," + newClassNames[0] + "\n");
+			out.write("MainActivity," + newClassNames[0] + "," + getSuperClassName(file, newClassNames[0]) + "\n");
 			for (int l = 1; l < activities.size(); l++)
-				out.write("Activity," + newClassNames[l] + "\n");
+				out.write("Activity," + newClassNames[l] + "," + getSuperClassName(file, newClassNames[l]) + "\n");
 			for (int m = activities.size(); m < classCount; m++)
-				out.write("Class," + newClassNames[m] + "\n");
+				out.write("Class," + newClassNames[m] + "," + getSuperClassName(file, newClassNames[m]) + "\n");
 			out.close();
 		}	catch (Exception e) {e.printStackTrace();}
+	}
+	
+	private static String getSuperClassName(File file, String className) {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/soot/Jimples/" + className + ".jimple"));
+			String classSig = in.readLine();
+			in.close();
+			if (!classSig.contains(" class "))
+				System.out.println("CHECK THIS:  " + file.getName() + "/" + className);
+			if (classSig.contains(" extends ")) {
+				String superClassName = classSig.substring(classSig.indexOf(" extends ") + " extends ".length());
+				if (superClassName.contains(" "))
+					superClassName = superClassName.substring(0, superClassName.indexOf(" "));
+				return superClassName;
+			}
+		}	catch (Exception e) {e.printStackTrace();}
+		return "no super class";
 	}
 	
 	public static int returnCounter = 1;
@@ -241,6 +262,7 @@ public class Soot {
 						), firstUnit);
 				b.validate();
 				// then instrument the return
+				unitsIT = b.getUnits().snapshotIterator();
 				returnCounter = 1;
 				while (unitsIT.hasNext()) {
 					final Unit u = unitsIT.next();

@@ -61,9 +61,10 @@ public class StaticInfo {
 		// e.g.   void myMethod(java.lang.String int java.lang.String)
 		ArrayList<String> results = new ArrayList<String>();
 		try {
+			
 			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv");
 			if (!classInfoFile.exists()) {
-				System.out.println("can't find ClassInfo file! Did you use the correct class name, or call 'analysisTools.Soot.generateAPKData(file)' before this?");
+				System.out.println("can't find " + classInfoFile.getAbsolutePath() + "! Did you use the correct class name, or call 'analysisTools.Soot.generateAPKData(file)' before this?");
 				return results;
 			}
 			BufferedReader in = new BufferedReader(new FileReader(classInfoFile));
@@ -143,6 +144,66 @@ public class StaticInfo {
 		}	catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static String getSuperClassName(File file, String className) {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/ApkInfo.csv"));
+			String line;
+			in.readLine();
+			while ((line = in.readLine())!=null) {
+				if (line.split(",")[1].equals(className))
+					return line.split(",")[2];
+			}
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return "no super class";
+	}
+	
+	public static String isMethodDeadOrAlive(File file, String className, String methodSubSig) {
+		try {
+			String superClass = StaticInfo.getSuperClassName(file, className);
+			ArrayList<String> inCallers = StaticInfo.getAllPossibleIncomingCallers(className, methodSubSig);
+			ArrayList<String> eventHandlers = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(file, className, methodSubSig);
+			if (inCallers.size() < 1) { // is source
+				if (eventHandlers.size() > 0) {
+					for (String eH : eventHandlers) {
+						String layoutName = eH.split(",")[1];
+						if (isLayoutAlive(layoutName))
+							return "ALIVE";		// it's an event handler method
+					}
+				}
+				else {	// it's source, but not event handler
+					if (superClass.equals("java.lang.Object")) return "DEAD";
+				};
+				return "NOT SURE";
+			} else { // not source
+				boolean allDead = true;
+				for (String s : inCallers) {
+					String inCallerClass = s.split(":")[0];
+					String inCallerMethod = s.split(":")[1];
+					String inCallerStatus = isMethodDeadOrAlive(file, inCallerClass, inCallerMethod);
+					if (inCallerStatus.equals("DEAD"))
+						allDead = allDead && true;
+					else {
+						allDead = false;
+						break;
+					}
+				}
+				if (allDead)	return "DEAD";
+				else return "NOT SURE";
+			}
+		}	catch (Exception e) {e.printStackTrace();}
+		return "NOT SURE";
+	}
+	
+	public static boolean isLayoutAlive(String layoutName) {
+		for (String uic : UIChanges)
+			if (uic.startsWith("setContentView,1,")) {
+				if (layoutName.equals(uic.split(",")[7]))
+					return true;
+			}
+		return false;
 	}
 	
 	public static StaticNode findStaticNode(String className, String signature) {
@@ -251,18 +312,20 @@ public class StaticInfo {
 				}
 			}
 			// put mainActvt to slot 0
-			for (int i = 0; i < tempResults.size(); i++)
-				if (tempResults.get(i).equals(mainActvt)) {
-					String temp = tempResults.get(0);
-					tempResults.set(0, tempResults.get(i));
-					tempResults.set(i, temp);
-				}
+			if (tempResults.indexOf(mainActvt)!= 1) {
+				int mainIndex = tempResults.indexOf(mainActvt);
+				String temp = tempResults.get(0);
+				tempResults.set(0, mainActvt);
+				tempResults.set(mainIndex, temp);
+			}
 			// fix the name format
-			for (String activityName : tempResults) {
+			for (int i = 0; i < tempResults.size(); i++) {
+				String activityName = tempResults.get(i);
 				if (activityName.startsWith("."))
 					activityName = activityName.substring(1, activityName.length());
 				if (activityName.indexOf(".")==-1)
 					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+				tempResults.set(i, activityName);
 			}
 			// validate the activity name
 			for (String activityName : tempResults)
@@ -669,10 +732,19 @@ public class StaticInfo {
 		return results;
 	}
 	
-	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubsig) {
+	public static boolean isSourceMethod(String className, String methodSubSig) {
+		StaticNode node = StaticInfo.findStaticNode(className, methodSubSig);
+		if (node == null)
+			return true;
+		if (node.getInCallSources().size() < 1)
+			return true;
+		return false;
+	}
+	
+	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubSig) {
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
-		StaticNode node = StaticInfo.findStaticNode(className, methodSubsig);
+		StaticNode node = StaticInfo.findStaticNode(className, methodSubSig);
 		if (node == null)
 			return result;
 		// get direct callers
@@ -759,8 +831,9 @@ public class StaticInfo {
 				for (Map.Entry<String, String> entry: eHs.entrySet()) {
 					String eH = entry.getKey();
 					String eHMethodSig = entry.getValue() + "(android.view.View)";
-					if (methodSubSig.endsWith(eHMethodSig))
+					if (methodSubSig.endsWith(eHMethodSig)) {
 						result.add(className + "," + l.getName() + "," + id + "," + eH);
+					}
 				}
 			}
 		}
@@ -786,8 +859,8 @@ public class StaticInfo {
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
-			String callerClass = caller.split(",")[0];
-			String callerMethodSig = caller.split(",")[1];
+			String callerClass = caller.split(":")[0];
+			String callerMethodSig = caller.split(":")[1];
 			if (isOnCreate(file, className, callerMethodSig))
 				onCreateCallers.add(callerClass);
 			ArrayList<String> eh = findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethodSig);
@@ -824,8 +897,8 @@ public class StaticInfo {
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
-			String callerClass = caller.split(",")[0];
-			String callerMethodSig = caller.split(",")[1];
+			String callerClass = caller.split(":")[0];
+			String callerMethodSig = caller.split(":")[1];
 			if (isOnCreate(file, className, callerMethodSig))
 				onCreateCallers.add(callerClass);
 			ArrayList<String> eh = findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethodSig);
