@@ -52,8 +52,8 @@ public class MonkeyExecuter extends AbstractExecuter{
 	public boolean carryOutEvent(Event... events) {
 		recentRecord = new ArrayList<List<String>>();
 		for(Event event:events){
+			boolean checkKeyboard = true;
 			clearLogcat();
-			
 			String typeString = event.getType();
 			event.operationCount += 1;
 			System.out.println("executing:"+event.getType());
@@ -94,7 +94,7 @@ public class MonkeyExecuter extends AbstractExecuter{
 			}break;
 			case EventType.iSETUP:{
 				this.press(KeyEvent.KEYCODE_HOME);
-				
+				checkKeyboard = false;
 				try { Thread.sleep(1000);
 				} catch (InterruptedException e) { }
 			}break;
@@ -104,6 +104,15 @@ public class MonkeyExecuter extends AbstractExecuter{
 			}
 		
 			recentRecord.add(readApplicationLogcat(this.packageName));
+			if(checkKeyboard){
+				boolean keyboardVisible = this.frame.dynamicInfo.isKeyBoardUp();
+				if(keyboardVisible){ // close it.
+					System.out.println("Keyboard is visible, trying to close it. ");
+					this.press(KeyEvent.KEYCODE_BACK);
+					try { Thread.sleep(500);
+					} catch (InterruptedException e) { }
+				}
+			}
 		}
 		return true;
 	}

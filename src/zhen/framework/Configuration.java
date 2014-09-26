@@ -4,7 +4,7 @@ import main.Paths;
 
 public class Configuration {
 	
-	public static String androidSDKPath = Paths.adbPath;
+	public static String androidSDKPath = Paths.androidSDKPath;
 	public static String appDataDir = "generated/";
 	
 	public static String androidToolPath = androidSDKPath+"sdk/tools/";

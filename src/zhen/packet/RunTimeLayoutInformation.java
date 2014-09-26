@@ -20,6 +20,7 @@ public class RunTimeLayoutInformation {
 	
 	private Window[] windowList;
 	private int focusedWindowHash;
+	private String systemAct = "SearchPanelNavigationBarStatusBarKeyguardKeyguardScrimInputMethodcom.android.systemui.ImageWallpaper";
 	
 	public RunTimeLayoutInformation(String adbPosition){
 		path = adbPosition;
@@ -60,6 +61,39 @@ public class RunTimeLayoutInformation {
     
     public ViewNode loadFocusedWindowData(){
     	return loadWindowData(Window.getFocusedWindow(device));
+    }
+    
+    
+    public Window getTopWindow(){
+    	if(windowList == null) return null;
+    	int index = 0;
+    	for(Window win: windowList){
+    		if(win.getHashCode() == focusedWindowHash){
+    			break;
+    		}
+    		index+=1;
+    	}
+    	
+    	//is it possible for a popup or dialog to have the same name as a system act ?
+    	//try to find the actual "top" activity
+    	//1) the window list is actually a drawing priority list, 
+    	//2) some basic system app like input method always on the top
+    	//and 3) the app launched recently will be on the side by side. 
+    	
+    	//some popup could be an act in the list but not focused!
+    	int pointerIndex = index;
+    	while(pointerIndex > 0){
+    		String previousActTitle = this.windowList[pointerIndex-1].getTitle();
+    		if(systemAct.contains(previousActTitle)){ //it is a system app. 
+    			break;
+    		}
+    		pointerIndex -= 1;
+    	}
+    	return windowList[pointerIndex];
+    }
+    
+    public ViewNode loadTopWindowData(){
+    	return loadWindowData(getTopWindow());
     }
     
     public void invalidView(ViewNode node){

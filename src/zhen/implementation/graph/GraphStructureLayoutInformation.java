@@ -42,6 +42,7 @@ import zhen.packet.Utility;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
+import com.android.hierarchyviewerlib.models.ViewNode.Property;
 import com.jgraph.algebra.JGraphAlgebra;
 import com.jgraph.algebra.cost.JGraphCostFunction;
 
@@ -77,7 +78,6 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	
 	//for each activity. list all encountered different layout 
 	private Map<String, Collection<RunTimeLayout>> actCategoryReference = new HashMap<String, Collection<RunTimeLayout>>();
-	private Map<String, Collection<RunTimeLayout>> systemActivityReference = new HashMap<String, Collection<RunTimeLayout>>();
 	private Map<String, Collection<RunTimeLayout>> outOfScopeReference = new HashMap<String, Collection<RunTimeLayout>>();
 	
 	//for an activity, there should be a map between id and a list layout
@@ -99,13 +99,48 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		layoutInfo = new RunTimeLayoutInformation(Paths.adbPath);
 	}
 	
+	
+	/**
+	 *	Input:	A set of events
+	 *
+	 *	When there are multiple events, only update the current layout information stored in this class
+	 *
+	 *	When there is only one event, update both layout information, graph and matched event method.
+	 *
+	 */
 	@Override
-	public void update(Event... events) {
-		if(events == null) return;
+	public void update(Event... events) {	
+//		if(events == null || events.length == 0) return;
+//		
+//		if(events.length > 0){
+//			String topActName = layoutInfo.getTopWindow().getTitle();
+//			boolean isLauncher = topActName.equals(this.launcherActName);
+//			if(isLauncher){
+//				this.pointerLayout = this.launcher;
+//				return;
+//			}
+//			
+//		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		if(events == null || events.length == 0) return;
 		List<List<String>>  feedback = this.frame.executer.getInstrumentationFeedBack();
 		if(events.length > 1){
 			//only update the reference
-			String focusedActName = layoutInfo.getFocusedWindow().getTitle();
+			String focusedActName = layoutInfo.getTopWindow().getTitle();
 			boolean isLauncher = focusedActName.equals(this.launcherActName);
 			if(isLauncher){
 				this.pointerLayout = this.launcher;
@@ -116,7 +151,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 			boolean isInScopeActivity = (inScopeCollection != null);
 			if(isInScopeActivity){
 				System.out.println("isInScopeActivity");
-				ViewNode layoutRoot = layoutInfo.loadFocusedWindowData();
+				ViewNode layoutRoot = layoutInfo.loadTopWindowData();
 				RunTimeLayout currentToBeUsed =  addToCollection(inScopeCollection,focusedActName,layoutRoot);
 				this.pointerLayout = currentToBeUsed;
 				return;
@@ -134,7 +169,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		if(event == null) return;
 		
 		if(event.getType().equals(EventType.SETUP)){
-			Window win = layoutInfo.getFocusedWindow();
+			Window win = layoutInfo.getTopWindow();
 			this.setLauncherActName(win.getTitle());
 			return;
 		}
@@ -142,12 +177,24 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 //		if(!event.needRefresh()) return ;
 		if(pointerLayout != null){pointerLayout.setNewLayout(false);}
 		
-		Window focused = layoutInfo.getFocusedWindow();
+		Window focused = layoutInfo.getTopWindow();
 		String focusedActName = focused.getTitle();
 		boolean isLauncher = focusedActName.equals(this.launcherActName);
 		if(isLauncher){
 			if(pointerLayout == null){
-				throw new AssertionError();
+				if(this.launcher == null){
+					System.out.println("did not define launcher");
+				}else{
+					try {
+						Thread.sleep(3000);
+						Window nfocused = layoutInfo.getTopWindow();
+						String nfocusedActName = nfocused.getTitle();
+						boolean nisLauncher = nfocusedActName.equals(this.launcherActName);
+						if(nisLauncher){
+							System.out.println("ineffective launching application");
+						}
+					} catch (InterruptedException e) {}
+				}
 			}
 			
 			boolean isPreviousLauncher = pointerLayout.getActName().equals(launcherActName);
@@ -165,7 +212,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		Collection<RunTimeLayout> inScopeCollection = actCategoryReference.get(focusedActName);
 		boolean isInScopeActivity = (inScopeCollection != null);
 		if(isInScopeActivity){//needs to retrieve information in detail
-			ViewNode layoutRoot = layoutInfo.loadFocusedWindowData();
+			ViewNode layoutRoot = layoutInfo.loadTopWindowData();
 			RunTimeLayout currentToBeUsed =  addToCollection(inScopeCollection,focusedActName,layoutRoot);
 			String type = event.getType();
 			if(type.equals(EventType.LAUNCH)){
@@ -219,7 +266,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 		layoutInfo.init();
 		String[] actList = (String[]) attributes.get("actlist");
 		this.defineActivityScope(actList);
-		
+
 		appName = (String) attributes.get("package");
 		
 		this.enableGUI();
@@ -316,7 +363,7 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 	private Collection<RunTimeLayout> getLayoutCollection(Map<String, Collection<RunTimeLayout>> map, String actName){
 		if(map.containsKey(actName)){
 			return map.get(actName);
-		}else{
+		}else{	
 			Collection<RunTimeLayout> collection;
 			try {
 				collection = (Collection<RunTimeLayout>) containerType.newInstance();
@@ -578,5 +625,30 @@ public class GraphStructureLayoutInformation extends AbstractDynamicInformation{
 
 	public RunTimeLayout getLauncher(){
 		return this.launcher;
+	}
+	
+	public boolean isKeyBoardUp(){
+		for(Window win:	this.layoutInfo.getWindowList()){
+			if(win.getTitle().equalsIgnoreCase("inputmethod")){
+				ViewNode rootNode = this.layoutInfo.loadWindowData(win);
+				Property p = rootNode.namedProperties.get("getVisibility()");
+				return p.value.equals("VISIBLE");
+			}
+		}
+		return false;
+	}
+	
+	public boolean isInScopeAct(String actName){
+		//assuming actName can only have one "/"
+		String[] parts = actName.split("/");
+		if(parts.length == 1){
+			System.out.println("isInScopeAct? : "+actName);
+			return true;//no packetname should mean popup
+		}else if(parts.length == 2){
+			return parts[0].equals(this.appName);
+		}else{
+			System.out.println("Unexpected name:"+actName);
+			return false;
+		}
 	}
 }

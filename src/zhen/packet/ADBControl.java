@@ -11,7 +11,7 @@ public class ADBControl {
 	public static String unlockScreenCommand = Configuration.adbPath+ " shell input keyevent 82";
 	public static String clickPowerButtonCommand = Configuration.adbPath+ " shell input keyevent KEYCODE_POWER";
 	public static boolean enableConsoleOutput = false;
-	public static boolean debug = false;
+	public static boolean debug = true;
 	private static Logger  logger = Utility.setupLogger(ADBControl.class);
 	public static void sendSellCommand(String command){
 		sendADBCommand(Configuration.adbPath+ " shell "+command);
@@ -23,9 +23,9 @@ public class ADBControl {
 		InputStream stderr = null, stdout = null;
 		try {
 			task = Runtime.getRuntime().exec(command);
-			if(timeout_ms>0){
-				task.wait(timeout_ms);
-			}
+			if(timeout_ms>0){ task.wait(timeout_ms);
+			}else{ task.waitFor(); }
+			
 			stderr = task.getErrorStream();
 			int count = stderr.available();
 			if(count > 0){

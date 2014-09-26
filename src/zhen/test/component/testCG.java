@@ -1,4 +1,4 @@
-package zhen.test;
+package zhen.test.component;
 
 import inputGeneration.StaticInfo;
 import inputGeneration.StaticLayout;
