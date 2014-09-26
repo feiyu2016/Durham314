@@ -30,7 +30,10 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Transform;
 import soot.Unit;
+import soot.jimple.AbstractStmtSwitch;
 import soot.jimple.Jimple;
+import soot.jimple.ReturnStmt;
+import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.StringConstant;
 import soot.jimple.toolkits.callgraph.CHATransformer;
@@ -84,8 +87,11 @@ public class Soot {
 							if (methodFileName.length() > 100) {methodFileName = method.getName() + "_" + longMethodNameID; longMethodNameID++;}
 							if ((System.getProperty("os.name").startsWith("Windows")))
 								methodFileName = methodFileName.replace("<", "[").replace(">", "]");
+							String bytecodeSig = method.getBytecodeSignature();
+							bytecodeSig = bytecodeSig.substring(1, bytecodeSig.length()-1).split(": ")[1];
 							out_Class.write(methodType + method.getName() + "," + method.getReturnType().toString() + "," + 
-											method.getModifiers() + "," + methodFileName + "," + method.getSubSignature().replace(",", " ") + "\n");
+											method.getModifiers() + "," + methodFileName + "," + 
+											method.getSubSignature().replace(",", " ") + "," + bytecodeSig + "\n");
 							if (method.isAbstract() || method.isNative())
 								continue;
 							Body b;
@@ -178,8 +184,10 @@ public class Soot {
 			int classCount = Integer.parseInt(firstLine.split(",")[1]);
 			String[] oldClassNames = new String[classCount];
 			String[] newClassNames = new String[classCount];
-			for (int i = 0; i < classCount; i++)
-				oldClassNames[i] = in.readLine().split(",")[1];
+			for (int i = 0; i < classCount; i++) {
+				String line = in.readLine();
+				oldClassNames[i] = line.split(",")[1];
+			}
 			in.close();
 			Arrays.sort(oldClassNames);
 			ArrayList<String> activities = StaticInfo.getActivityNames(file);
@@ -188,7 +196,9 @@ public class Soot {
 			int counter = 0;
 			for (int k = 0; k < classCount; k++) {
 				boolean belong = false;
-				for (String actvt: activities)	if (oldClassNames[k].equals(actvt))	belong = true;
+				for (String actvt: activities)
+					if (oldClassNames[k].equals(actvt))
+						belong = true;
 				if (!belong) {
 					newClassNames[activities.size() + counter] = oldClassNames[k];
 					counter++;
@@ -196,14 +206,33 @@ public class Soot {
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(apkInfoFile));
 			out.write(firstLine + "\n");
-			out.write("MainActivity," + newClassNames[0] + "\n");
+			out.write("MainActivity," + newClassNames[0] + "," + getSuperClassName(file, newClassNames[0]) + "\n");
 			for (int l = 1; l < activities.size(); l++)
-				out.write("Activity," + newClassNames[l] + "\n");
+				out.write("Activity," + newClassNames[l] + "," + getSuperClassName(file, newClassNames[l]) + "\n");
 			for (int m = activities.size(); m < classCount; m++)
-				out.write("Class," + newClassNames[m] + "\n");
+				out.write("Class," + newClassNames[m] + "," + getSuperClassName(file, newClassNames[m]) + "\n");
 			out.close();
 		}	catch (Exception e) {e.printStackTrace();}
 	}
+	
+	private static String getSuperClassName(File file, String className) {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/soot/Jimples/" + className + ".jimple"));
+			String classSig = in.readLine();
+			in.close();
+			if (!classSig.contains(" class "))
+				System.out.println("CHECK THIS:  " + file.getName() + "/" + className);
+			if (classSig.contains(" extends ")) {
+				String superClassName = classSig.substring(classSig.indexOf(" extends ") + " extends ".length());
+				if (superClassName.contains(" "))
+					superClassName = superClassName.substring(0, superClassName.indexOf(" "));
+				return superClassName;
+			}
+		}	catch (Exception e) {e.printStackTrace();}
+		return "no super class";
+	}
+	
+	public static int returnCounter = 1;
 	
 	public static void InstrumentEveryMethod(File file) throws Exception{
 		
@@ -211,15 +240,16 @@ public class Soot {
 		instrumentLog.getParentFile().mkdirs();
 		final PrintWriter out = new PrintWriter(new FileWriter(instrumentLog));
 		PackManager.v().getPack("jtp").add(new Transform("jtp.myTransform", new BodyTransformer() {
-			protected void internalTransform(Body b, String phaseName,Map<String, String> options) {
+			protected void internalTransform(final Body b, String phaseName,Map<String, String> options) {
 				String className = b.getMethod().getDeclaringClass().getName();
 				if (className.startsWith("android.support.v"))	return;
 				if (b.getMethod().getName().contains("<clinit>") || b.getMethod().getName().contains("<init>"))	return;
-				Local l_outPrint = Jimple.v().newLocal("outPrint", RefType.v("java.io.PrintStream"));
+				final Local l_outPrint = Jimple.v().newLocal("outPrint", RefType.v("java.io.PrintStream"));
 				b.getLocals().add(l_outPrint);
-				SootMethod out_println = Scene.v().getSootClass("java.io.PrintStream").getMethod("void println(java.lang.String)");
-				String methodSig = b.getMethod().getSignature();
+				final SootMethod out_println = Scene.v().getSootClass("java.io.PrintStream").getMethod("void println(java.lang.String)");
+				String methodSig = b.getMethod().getSignature().replace(",", " ");
 				PatchingChain<Unit> units = b.getUnits();
+				// first instrument the beginning
 				Iterator<Unit> unitsIT = b.getUnits().snapshotIterator();
 				for (int i = 0; i < b.getMethod().getParameterCount()+1; i++)
 					unitsIT.next();
@@ -228,8 +258,39 @@ public class Soot {
 						Jimple.v().newStaticFieldRef(Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())
 						), firstUnit);
 				units.insertBefore(Jimple.v().newInvokeStmt(
-						Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD BEING TRIGGERED: " + methodSig))
+						Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD_STARTING," + methodSig))
 						), firstUnit);
+				b.validate();
+				// then instrument the return
+				unitsIT = b.getUnits().snapshotIterator();
+				returnCounter = 1;
+				while (unitsIT.hasNext()) {
+					final Unit u = unitsIT.next();
+					u.apply(new AbstractStmtSwitch() {
+						public void caseReturnStmt(ReturnStmt rS) {
+							PatchingChain<Unit> units = b.getUnits();
+							String mSig = b.getMethod().getSignature().replace(",", " ");
+							units.insertBefore(Jimple.v().newAssignStmt(l_outPrint,
+									Jimple.v().newStaticFieldRef(Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())
+									), u);
+							units.insertBefore(Jimple.v().newInvokeStmt(
+									Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD_RETURNING," + mSig + "," + returnCounter))
+									), u);
+							returnCounter++;
+						}
+						public void caseReturnVoidStmt(ReturnVoidStmt rS) {
+							PatchingChain<Unit> units = b.getUnits();
+							String mSig = b.getMethod().getSignature().replace(",", " ");
+							units.insertBefore(Jimple.v().newAssignStmt(l_outPrint,
+									Jimple.v().newStaticFieldRef(Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())
+									), u);
+							units.insertBefore(Jimple.v().newInvokeStmt(
+									Jimple.v().newVirtualInvokeExpr(l_outPrint, out_println.makeRef(), StringConstant.v("METHOD_RETURNING," + mSig + "," + returnCounter))
+									), u);
+							returnCounter++;
+						}
+					});
+				}
 				b.validate();
 				out.write(className + "," + b.getMethod().getName() + "\n");
 			}

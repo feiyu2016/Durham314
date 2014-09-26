@@ -32,23 +32,39 @@ public class StaticInfo {
 	private static ArrayList<StaticLayout> layoutList = new ArrayList<StaticLayout>();
 	public static ArrayList<String> UIChanges = new ArrayList<String>();
 	private static Map<String, String> defLayouts = new HashMap<String, String>();
-	private static ArrayList<String> callGraph = new ArrayList<String>();
 	public static ArrayList<StaticNode> callGraphNodes = new ArrayList<StaticNode>();
 	
-	/** Returns the list of StaticLayout objects collected from static analysis*/
 	public static ArrayList<StaticLayout> getLayoutList(File file) {
 		return layoutList;
 	}
 	
-	/** Returns the jimple signatures of all the methods in class 'className' of app 'file' 
-	 *  e.g. void myMethod(java.lang.String int java.lang.String)
-	 * */
+	public static String getBytecodeSignature(File file, String className, String methodSig) {
+		File classFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv");
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(classFile));
+			String line;
+			while ((line = in.readLine())!=null) {
+				if (!line.startsWith("Method"))	continue;
+				String jimpleSig = line.split(",")[5];
+				if (jimpleSig.equals(methodSig)) {
+					in.close();
+					return line.split(",")[6];
+				}
+			}
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return "";
+	}
+	
 	public static ArrayList<String> getAllMethodSignatures(File file, String className) {
+		// returns all method signature within a class (jimple format)
+		// e.g.   void myMethod(java.lang.String int java.lang.String)
 		ArrayList<String> results = new ArrayList<String>();
 		try {
+			
 			File classInfoFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + className + "/ClassInfo.csv");
 			if (!classInfoFile.exists()) {
-				System.out.println("can't find ClassInfo file! Did you use the correct class name, or call 'analysisTools.Soot.generateAPKData(file)' before this?");
+				System.out.println("can't find " + classInfoFile.getAbsolutePath() + "! Did you use the correct class name, or call 'analysisTools.Soot.generateAPKData(file)' before this?");
 				return results;
 			}
 			BufferedReader in = new BufferedReader(new FileReader(classInfoFile));
@@ -61,14 +77,6 @@ public class StaticInfo {
 		return results;
 	}
 	
-	
-	/** Prepares the statically retrievable data for later testing. The steps are:
-	 *  1. use 'apktool' to convert apk binaries to readable format. If the 'forceAllSteps' field is false and apktool has been run before, this step will be ignored.
-	 *  2. use 'soot' to generate basic class/method information and Call Graph. If the 'forceAllSteps' field is false and soot has been run before, this step will be ignored.
-	 *  3. parse XML layout files in '.../res/layout/' folder to generate StaticLayout objects.
-	 *  4. parse the layout-related operations in jimple code
-	 *  5. analyze the 'startActivity' and 'setContentView' APIs in jimple code
-	 *  */
 	public static void initAnalysis(File file, boolean forceAllSteps) {
 		File info = new File(Paths.appDataDir + file.getName() + "/apktool/apktool.yml");
 		if (!info.exists() || forceAllSteps)
@@ -96,7 +104,7 @@ public class StaticInfo {
 		layoutList = new ArrayList<StaticLayout>();
 		UIChanges = new ArrayList<String>();
 		defLayouts = new HashMap<String, String>();
-		callGraph = new ArrayList<String>();
+		callGraphNodes = new ArrayList<StaticNode>();
 	}
 	
 	private static void readCGObject(File file) {
@@ -108,7 +116,7 @@ public class StaticInfo {
 		}	catch (Exception e ) {e.printStackTrace();}
 	}
 	
-	private static void prepareCG(File file) {
+	public static void prepareCG(File file) {
 		File cgFile = new File(Paths.appDataDir + file.getName() + "/CallGraph.csv");
 		try {
 			System.out.println("reading '/CallGraph.csv'...");
@@ -138,7 +146,66 @@ public class StaticInfo {
 		}
 	}
 	
-	/** given class name and method/field signature, find the StaticNode object */
+	public static String getSuperClassName(File file, String className) {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(Paths.appDataDir + file.getName() + "/ApkInfo.csv"));
+			String line;
+			in.readLine();
+			while ((line = in.readLine())!=null) {
+				if (line.split(",")[1].equals(className))
+					return line.split(",")[2];
+			}
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return "no super class";
+	}
+	
+	public static String isMethodDeadOrAlive(File file, String className, String methodSubSig) {
+		try {
+			String superClass = StaticInfo.getSuperClassName(file, className);
+			ArrayList<String> inCallers = StaticInfo.getAllPossibleIncomingCallers(className, methodSubSig);
+			ArrayList<String> eventHandlers = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(file, className, methodSubSig);
+			if (inCallers.size() < 1) { // is source
+				if (eventHandlers.size() > 0) {
+					for (String eH : eventHandlers) {
+						String layoutName = eH.split(",")[1];
+						if (isLayoutAlive(layoutName))
+							return "ALIVE";		// it's an event handler method
+					}
+				}
+				else {	// it's source, but not event handler
+					if (superClass.equals("java.lang.Object")) return "DEAD";
+				};
+				return "NOT SURE";
+			} else { // not source
+				boolean allDead = true;
+				for (String s : inCallers) {
+					String inCallerClass = s.split(":")[0];
+					String inCallerMethod = s.split(":")[1];
+					String inCallerStatus = isMethodDeadOrAlive(file, inCallerClass, inCallerMethod);
+					if (inCallerStatus.equals("DEAD"))
+						allDead = allDead && true;
+					else {
+						allDead = false;
+						break;
+					}
+				}
+				if (allDead)	return "DEAD";
+				else return "NOT SURE";
+			}
+		}	catch (Exception e) {e.printStackTrace();}
+		return "NOT SURE";
+	}
+	
+	public static boolean isLayoutAlive(String layoutName) {
+		for (String uic : UIChanges)
+			if (uic.startsWith("setContentView,1,")) {
+				if (layoutName.equals(uic.split(",")[7]))
+					return true;
+			}
+		return false;
+	}
+	
 	public static StaticNode findStaticNode(String className, String signature) {
 		for (StaticNode cgNode : callGraphNodes)
 			if (cgNode.getDeclaringClassName().equals(className) && cgNode.getSignature().equals(signature))
@@ -146,7 +213,6 @@ public class StaticInfo {
 		return null;
 	}
 	
-	/** return a list of all the class names given an apk file */
 	public static ArrayList<String> getClassNames(File file) {
 		// return all class names within an app
 		ArrayList<String> results = new ArrayList<String>();
@@ -166,7 +232,6 @@ public class StaticInfo {
 		return results;
 	}
 	
-	/** check if an apk contains a class given apk file and class name*/
 	public static boolean hasClass(File file, String className) {
 		boolean result = false;
 		ArrayList<String> classNames = getClassNames(file);
@@ -176,7 +241,6 @@ public class StaticInfo {
 		return result;
 	}
 	
-	/** parse the AndroidManifest.xml of given apk file, returns the package name of the app */
 	public static String getPackageName(File file) {
 		String result = "";
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
@@ -192,7 +256,6 @@ public class StaticInfo {
 		return result;
 	}
 
-	/** given an apk file and a class name, parse the AndroidManifest.xml and check if the given class is an activity class*/
 	public static boolean isActivity(File file, String className) {
 		boolean result = false;
 		ArrayList<String> aa = getActivityNames(file);
@@ -202,18 +265,17 @@ public class StaticInfo {
 		return result;
 	}
 	
-	/** parse the AndroidManifest.xml and look for the name of the main activity class*/
 	public static String getMainActivityName(File file) {
 		return getActivityNames(file).get(0);
 	}
 	
-	/** parse the AndroidManifest.xml and returns a list of all the activity class names*/
 	public static ArrayList<String> getActivityNames(File file) {
+		ArrayList<String> tempResults = new ArrayList<String>();
 		ArrayList<String> results = new ArrayList<String>();
 		File manifestFile = new File(Paths.appDataDir + file.getName() + "/apktool/AndroidManifest.xml");
 		if (!manifestFile.exists()) {
 			System.out.println("can't find /apktool/AndroidManifest.xml! Run apktool first.");
-			return results;
+			return tempResults;
 		}
 		try {
 			String mainActvt = "";
@@ -224,7 +286,7 @@ public class StaticInfo {
 			for (int i = 0, len = activityList.getLength(); i < len; i++) {
 				Node activityNode = activityList.item(i);
 				String activityName = activityNode.getAttributes().getNamedItem("android:name").getNodeValue();
-				results.add(activityName);
+				tempResults.add(activityName);
 				// check if its mainActvt
 				Element e =(Element) activityNode;
 				NodeList actionList = e.getElementsByTagName("action");
@@ -234,7 +296,7 @@ public class StaticInfo {
 						mainActvt = activityName;
 				}
 			}
-			// if mainActvt, process <activity-alias> for mainActvt
+			// if no mainActvt, process <activity-alias> for mainActvt
 			if (mainActvt.equals("")) {
 				NodeList aliasList = doc.getElementsByTagName("activity-alias");
 				for (int i = 0, len = aliasList.getLength(); i < len; i++) {
@@ -250,32 +312,28 @@ public class StaticInfo {
 				}
 			}
 			// put mainActvt to slot 0
-			for (int i = 0; i < results.size(); i++)
-				if (results.get(i).equals(mainActvt)) {
-					String temp = results.get(0);
-					results.set(0, results.get(i));
-					results.set(i, temp);
-				}
+			if (tempResults.indexOf(mainActvt)!= 1) {
+				int mainIndex = tempResults.indexOf(mainActvt);
+				String temp = tempResults.get(0);
+				tempResults.set(0, mainActvt);
+				tempResults.set(mainIndex, temp);
+			}
 			// fix the name format
-			for (String activityName : results) {
+			for (int i = 0; i < tempResults.size(); i++) {
+				String activityName = tempResults.get(i);
 				if (activityName.startsWith("."))
 					activityName = activityName.substring(1, activityName.length());
 				if (activityName.indexOf(".")==-1)
 					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+				tempResults.set(i, activityName);
 			}
-			for (int i = 0, len = results.size(); i < len; i++) {
-				String activityName = results.get(i);
-				if (activityName.startsWith("."))
-					activityName = activityName.substring(1, activityName.length());
-				if (activityName.indexOf(".")==-1)
-					activityName = StaticInfo.getPackageName(file) + "." + activityName;
+			// validate the activity name
+			for (String activityName : tempResults)
 				if (validateActivity(file, activityName))
-					results.set(i, activityName);
-			}
+					results.add(activityName);
 		}	catch (Exception e) {e.printStackTrace();}
 		return results;
 	}
-	
 	
 	private static boolean validateActivity(File file, String activityName) {
 		// the activity name in AndroiManifest might be false, e.g., zhiming's Bugatti and bug.
@@ -284,7 +342,6 @@ public class StaticInfo {
 		if (classFile.exists())	result = true;
 		return result;
 	}
-	
 	
 	private static void parseXMLLayouts(File file) {
 		// create a Layout Object for each layout xml, also spot out the custom layouts
@@ -396,7 +453,7 @@ public class StaticInfo {
 	private static void parseJavaLayouts(File file) {
 		// TODO parse java layouts and add views
 		// first read the code of those custom layouts, then scan the others
-		collectLayoutTypes(file);
+		//collectLayoutTypes(file);
 		for (StaticLayout l : layoutList) {
 			if (!l.isCustomLayout())	continue;
 			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
@@ -433,7 +490,6 @@ public class StaticInfo {
 		return result;
 	}
 	
-	/** given the layout name, returns the StaticLayout object */
 	public static StaticLayout getLayoutObject(String name) {
 		StaticLayout result = null;
 		for (StaticLayout l: layoutList)
@@ -618,7 +674,6 @@ public class StaticInfo {
 		return targetLayout;
 	}
 	
-	/** given class name and method signature, look for its outgoing call targets in the CallGraph */
 	public static ArrayList<String> getOutCallTargets(String className, String methodSubsig) {
 		for (StaticNode cN : callGraphNodes) {
 			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig)) {
@@ -628,7 +683,6 @@ public class StaticInfo {
 		return new ArrayList<String>();
 	}
 	
-	/** given class name and method signature, look for its incoming call sources in the CallGraph */
 	public static ArrayList<String> getInCallSources(String className, String methodSubsig) {
 		for (StaticNode cN : callGraphNodes)
 			if (cN.getDeclaringClassName().equals(className) && cN.getSignature().equals(methodSubsig))
@@ -636,7 +690,6 @@ public class StaticInfo {
 		return new ArrayList<String>();
 	}
 	
-	/** given class name and method signature, return a list of call sequences from 'source methods' to the target method */
 	public static ArrayList<String> getPossibleCallSequences(String className, String methodSubsig) {
 		
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
@@ -679,11 +732,19 @@ public class StaticInfo {
 		return results;
 	}
 	
-	/** given class name and method signature, return a list of methods that will possibly call the target method(both directly and indirectly. */
-	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubsig) {
+	public static boolean isSourceMethod(String className, String methodSubSig) {
+		StaticNode node = StaticInfo.findStaticNode(className, methodSubSig);
+		if (node == null)
+			return true;
+		if (node.getInCallSources().size() < 1)
+			return true;
+		return false;
+	}
+	
+	public static ArrayList<String> getAllPossibleIncomingCallers(String className, String methodSubSig) {
 		Map<String, Boolean> callMap = new HashMap<String, Boolean>();
 		ArrayList<String> result = new ArrayList<String>();
-		StaticNode node = StaticInfo.findStaticNode(className, methodSubsig);
+		StaticNode node = StaticInfo.findStaticNode(className, methodSubSig);
 		if (node == null)
 			return result;
 		// get direct callers
@@ -697,7 +758,7 @@ public class StaticInfo {
 				callMap.put(callSig, false);
 		}
 		// get callers of callers
-		ArrayList<String> newKeys = new ArrayList<String>();
+		ArrayList<String> toAdd = new ArrayList<String>();
 		Set<Entry<String, Boolean>> entrySets = callMap.entrySet();
 		for (Map.Entry<String, Boolean> entry: entrySets) {
 			if (entry.getValue())	continue;
@@ -705,18 +766,17 @@ public class StaticInfo {
 			String nextMethodSubSig = entry.getKey().split(":")[1];
 			ArrayList<String> nextLevelCaller = getAllPossibleIncomingCallers(nextClassName, nextMethodSubSig);
 			for (String nLC : nextLevelCaller)
-				if (!callMap.containsKey(nLC))
-					newKeys.add(nLC);
+				if (!callMap.containsKey(nLC) && !toAdd.contains(nLC))
+					toAdd.add(nLC);
 			entry.setValue(true);
 		}
-		for (String newKey : newKeys)
+		for (String newKey : toAdd)
 			callMap.put(newKey, false);
 		for (Map.Entry<String, Boolean> entry: callMap.entrySet())
 			result.add(entry.getKey());
 		return result;
 	}
 	
-	/** given a method signature in an app, this API prints out the analysis result for this method. */
 	public static void methodAnalysis(File file, String targetClass, String targetMethod) {
 
 		ArrayList<String> directEHs = StaticInfo.findEventHandlersThatMightDirectlyCallThisMethod(file, targetClass, targetMethod);
@@ -728,6 +788,7 @@ public class StaticInfo {
 				System.out.print("      " + e);
 			System.out.print("\n");
 		}
+		else System.out.println("  - no widgets found connecting to this method.");
 		if (isOnCreate)
 			System.out.println("  - this is the onCreate method for activity: " + targetClass);
 		ArrayList<String> callers = StaticInfo.getAllPossibleIncomingCallers(targetClass, targetMethod);
@@ -755,12 +816,10 @@ public class StaticInfo {
 		}
 	}
 	
-	/** given class name and method signature in an app, determine if this method is an onCreate handler for an activity */
 	public static boolean isOnCreate(File file, String className, String methodSubSig) {
 		return (methodSubSig.equals("void onCreate(android.os.Bundle)") && isActivity(file, className));
 	}
 	
-	/** given class name and method signature in an app, find out the widgets that are connected to this method (e.g., Button1,onClick, Button2,onTouch). */
 	public static ArrayList<String> findEventHandlersThatMightDirectlyCallThisMethod(File file, String className, String methodSubSig) {
 		ArrayList<String> result = new ArrayList<String>();
 		if (!StaticInfo.isActivity(file, className))	return result;
@@ -772,8 +831,9 @@ public class StaticInfo {
 				for (Map.Entry<String, String> entry: eHs.entrySet()) {
 					String eH = entry.getKey();
 					String eHMethodSig = entry.getValue() + "(android.view.View)";
-					if (methodSubSig.endsWith(eHMethodSig))
+					if (methodSubSig.endsWith(eHMethodSig)) {
 						result.add(className + "," + l.getName() + "," + id + "," + eH);
+					}
 				}
 			}
 		}
@@ -799,8 +859,8 @@ public class StaticInfo {
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
-			String callerClass = caller.split(",")[0];
-			String callerMethodSig = caller.split(",")[1];
+			String callerClass = caller.split(":")[0];
+			String callerMethodSig = caller.split(":")[1];
 			if (isOnCreate(file, className, callerMethodSig))
 				onCreateCallers.add(callerClass);
 			ArrayList<String> eh = findEventHandlersThatMightDirectlyCallThisMethod(file, callerClass, callerMethodSig);
@@ -820,8 +880,6 @@ public class StaticInfo {
 		return result;
 	}
 	
-	
-
 	private static String solveSetContentView(File file, String className, String methodFileName, int lineNumber) throws Exception {
 		String result = "";
 		// Step 1, find target
@@ -839,7 +897,6 @@ public class StaticInfo {
 		ArrayList<String> onCreateCallers = new ArrayList<String>();
 		ArrayList<String> possibleCallers = getAllPossibleIncomingCallers(className, methodSubSig);
 		for (String caller: possibleCallers) {
-			System.out.println(caller);
 			String callerClass = caller.split(":")[0];
 			String callerMethodSig = caller.split(":")[1];
 			if (isOnCreate(file, className, callerMethodSig))
