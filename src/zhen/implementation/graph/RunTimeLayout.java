@@ -159,7 +159,7 @@ public class RunTimeLayout {
 	}
 	
 	private void findStaticLayoutAssociation(){
-		//TODO
+	
 	}
 	
 	private void buildEventList(){ 
@@ -170,7 +170,18 @@ public class RunTimeLayout {
 			root = root.parent;
 		}
 		
-//		root.namedProperties.get(arg0)
+		int rootWidth = Integer.parseInt(root.namedProperties.get("layout:getWidth()").value);
+		int rootHeight = Integer.parseInt(root.namedProperties.get("layout:getHeight()").value);
+		
+		ADBControl.clearStdoutBuffer();
+		ADBControl.sendADBCommand(Configuration.adbPath+" shell dumpsys window | grep mRestrictedOverscanScreen ");
+		String msg = ADBControl.getLatestStdoutMessage();
+		System.out.println(Configuration.adbPath+" shell dumpsys window | grep mRestrictedOverscanScreen :"+msg);
+		
+		String parts[] = msg.trim().split(" ")[1].split("x");
+		int screenWidth = Integer.parseInt(parts[0]);
+		int screenHeight = Integer.parseInt(parts[1]);
+		
 		
 		//use the stupid way
 		for(ViewNode node:this.linearReference){
@@ -183,24 +194,23 @@ public class RunTimeLayout {
 				x += current.left;
 				y += current.top;
 			}
+			
+			int actual_x = (int) (x/(rootWidth+0.0) *screenWidth);
+			int actual_y = (int) (y/(rootHeight+0.0) *screenHeight);
+			
 			Property p = new Property();
-			p.value =  x+","+y;
+			p.value =  actual_x+","+actual_y;
 			node.namedProperties.put("position",p);
+			
+			
+			Property p1 = new Property();
+			p1.value =  x+","+y;
+			node.namedProperties.put("original_position",p1);
 		}
-		
-//		adb shell dumpsys window 
-//		ADBControl.clearStdoutBuffer();
-//		ADBControl.sendADBCommand(Configuration.adbPath+" shell dumpsys window | grep mRestrictedOverscanScreen ");
-//		String msg = ADBControl.getLatestStdoutMessage();
-//		System.out.println(Configuration.adbPath+" shell dumpsys window | grep mRestrictedOverscanScreen :"+msg);
-//		int width,height;
-//		String parts[] = msg.trim().split(" ")[1].split("x");
-//		width = Integer.parseInt(parts[0]);
-//		height = Integer.parseInt(parts[1]);
 		
 		if(this.associated == null){
 			for(ViewNode node: linearReference){
-				this.possibleViewEventList.add(Event.getAllPossileEventForView(node, 0, 0));
+				this.possibleViewEventList.add(Event.getAllPossileEventForView(node));
 			}
 		}else{
 			//TODO

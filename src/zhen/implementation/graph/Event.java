@@ -138,7 +138,7 @@ public class Event extends DefaultEdge{
 	
 	static boolean ignoreLayout = true;
 	static boolean ignoreNoID = true;
-	public static Event[] getAllPossileEventForView(ViewNode node, int width, int height){
+	public static Event[] getAllPossileEventForView(ViewNode node){
 		//TODO right now only the onclick event
 		//ignore too small one
 		if(node.height <= 5 || node.width <= 5){
