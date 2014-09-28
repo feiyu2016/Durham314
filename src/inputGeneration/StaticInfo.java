@@ -27,6 +27,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import android.view.View;
+
 public class StaticInfo {
 	
 	private static ArrayList<StaticLayout> layoutList = new ArrayList<StaticLayout>();
@@ -458,11 +460,12 @@ public class StaticInfo {
 			if (!l.isCustomLayout())	continue;
 			File classFile = new File(Paths.appDataDir + file.getName() + "/soot/Jimples/" + l.getType() + ".jimple");
 			if (!classFile.exists())	continue;
+			View v = null;
 			
 		}
 	}
 	
-	private static String findViewNameByID(File file, String ID) {
+	public static String findViewNameByID(File file, String ID) {
 		// takes a hex ID string as input, look for the view Name in /res/values/public.xml
 		// this is to deal with 'findViewById()' in the jimple code
 		String result = "";

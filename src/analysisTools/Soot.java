@@ -52,7 +52,6 @@ public class Soot {
 	 *  	....
 	 *  	....
 	*/
-
 		PackManager.v().getPack("wjtp").add(new Transform("wjtp.myTransform", new SceneTransformer() {
 			
 			protected void internalTransform(String phaseName, Map<String, String> options) {
@@ -68,7 +67,10 @@ public class Soot {
 					String theTime = dateFormat.format(new Date());
 					out_ApkInfo.write(file.getAbsolutePath() + "," + classes.size() + "," + theTime + "\n");
 					for (SootClass c: classes) {
-						out_ApkInfo.write("Class," + c.getName() + "\n");
+						String classType = "Class";
+						if (c.isInterface())
+							classType = "Interface";
+						out_ApkInfo.write(classType + "," + c.getName() + "\n");
 						int longMethodNameID = 1;
 						if (c.getName().startsWith("android.support.v"))	continue;
 						File classFile = new File(Paths.appDataDir + file.getName() + "/ClassesInfo/" + c.getName() + "/ClassInfo.csv");
@@ -120,11 +122,11 @@ public class Soot {
 									SootField tgtField = stmt.getFieldRef().getField();
 									SootClass tgtfieldC = tgtField.getDeclaringClass();
 									if (classes.contains(tgtfieldC)) {
-										out_Method.write("Field," + tgtField.getName() + "," + 
+										out_Method.write("FieldRef," + tgtField.getName() + "," + 
 														tgtField.getType().toString() +"," + 
 														tgtfieldC.getName() + "," + 
 														stmtCounter + "\n");
-										out_CG.write("Field," + c.getName() + "," + 
+										out_CG.write("FieldRef," + c.getName() + "," + 
 													method.getSubSignature().replace(",", " ") + "," + 
 													tgtfieldC.getName() + "," + 
 													tgtField.getSubSignature() + "," + 
@@ -134,11 +136,11 @@ public class Soot {
 									SootMethod tgtMethod = stmt.getInvokeExpr().getMethod();
 									SootClass tgtMethod_Class = tgtMethod.getDeclaringClass();
 									if (classes.contains(tgtMethod_Class)) {
-										out_Method.write("Method," + tgtMethod.getName() + "," + 
+										out_Method.write("MethodCall," + tgtMethod.getName() + "," + 
 														tgtMethod_Class.getName() + "," + 
 														tgtMethod.getSubSignature().replace(",", " ") + "," + 
 														stmtCounter + "\n");
-										out_CG.write("Method," + c.getName() + "," + 
+										out_CG.write("MethodCall," + c.getName() + "," + 
 													method.getSubSignature().replace("," , " ") + "," + 
 													tgtMethod_Class.getName() + "," + 
 													tgtMethod.getSubSignature().replace("," , " ") + "," + 
@@ -170,9 +172,50 @@ public class Soot {
 		args = argsList.toArray(new String[0]);
 		soot.Main.main(args);
 		soot.G.reset();
-		sortClassNames(file);
+		sortClassNames1(file);
 	}
 
+	private static void sortClassNames1(File file) {
+		File apkInfoFile = new File(Paths.appDataDir + file.getName() + "/ApkInfo.csv");
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(apkInfoFile));
+			String firstLine = in.readLine();
+			int classCount = Integer.parseInt(firstLine.split(",")[1]);
+			String[] oldClassNames = new String[classCount];
+			String[] newClassNames = new String[classCount];
+			for (int i = 0; i < classCount; i++) {
+				oldClassNames[i] = in.readLine();
+				oldClassNames[i] = oldClassNames[i].substring(oldClassNames[i].indexOf(",")+1) + "," + oldClassNames[i].subSequence(0, oldClassNames[i].indexOf(","));
+				newClassNames[i] = oldClassNames[i];
+			}
+			in.close();
+			Arrays.sort(oldClassNames);
+			Arrays.sort(newClassNames);
+			ArrayList<String> activities = StaticInfo.getActivityNames(file);
+			String mainActivityName = activities.get(0);
+			int activityCounter =1, index = 0;
+			boolean mainActvtPlaced = false;
+			while (!mainActvtPlaced && activityCounter<activities.size()) {
+				String className = oldClassNames[index].split(",")[0];
+				if (className.equals(mainActivityName)) {
+					String temp = newClassNames[index];
+					newClassNames[index] = newClassNames[0];
+					newClassNames[0] = "MainActivity," + temp.substring(0, temp.lastIndexOf(","));
+					mainActvtPlaced = true;
+				} else if (activities.contains(className)) {
+					String temp = newClassNames[index];
+					newClassNames[index] = newClassNames[activityCounter];
+					newClassNames[activityCounter] = "Activity," + temp.substring(0, temp.lastIndexOf(","));
+					activityCounter++;
+				}
+				index++;
+			}
+			PrintWriter out = new PrintWriter(new FileWriter(apkInfoFile));
+			for (int i = 0, len = newClassNames.length; i < len; i++)
+				out.write(newClassNames[i] + "\n");
+			out.close();
+		}	catch (Exception e) {e.printStackTrace();}
+	}
 	
 	private static void sortClassNames(File file) {
 	// this method sorts the /AppData/(file name)/ApkInfo.csv
@@ -186,7 +229,7 @@ public class Soot {
 			String[] newClassNames = new String[classCount];
 			for (int i = 0; i < classCount; i++) {
 				String line = in.readLine();
-				oldClassNames[i] = line.split(",")[1];
+				oldClassNames[i] = line.split(",")[1] + "," + line.split(",")[0];
 			}
 			in.close();
 			Arrays.sort(oldClassNames);
@@ -197,7 +240,7 @@ public class Soot {
 			for (int k = 0; k < classCount; k++) {
 				boolean belong = false;
 				for (String actvt: activities)
-					if (oldClassNames[k].equals(actvt))
+					if (oldClassNames[k].split(",")[0].equals(actvt))
 						belong = true;
 				if (!belong) {
 					newClassNames[activities.size() + counter] = oldClassNames[k];
@@ -206,11 +249,11 @@ public class Soot {
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(apkInfoFile));
 			out.write(firstLine + "\n");
-			out.write("MainActivity," + newClassNames[0] + "," + getSuperClassName(file, newClassNames[0]) + "\n");
+			out.write("MainActivity," + newClassNames[0].split(",")[0] + "," + getSuperClassName(file, newClassNames[0]) + "\n");
 			for (int l = 1; l < activities.size(); l++)
-				out.write("Activity," + newClassNames[l] + "," + getSuperClassName(file, newClassNames[l]) + "\n");
+				out.write("Activity," + newClassNames[l].split(",")[0] + "," + getSuperClassName(file, newClassNames[l]) + "\n");
 			for (int m = activities.size(); m < classCount; m++)
-				out.write("Class," + newClassNames[m] + "," + getSuperClassName(file, newClassNames[m]) + "\n");
+				out.write("Class," + newClassNames[m].split(",")[0] + "," + getSuperClassName(file, newClassNames[m]) + "\n");
 			out.close();
 		}	catch (Exception e) {e.printStackTrace();}
 	}
