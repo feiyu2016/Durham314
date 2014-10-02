@@ -15,6 +15,7 @@ import zhen.version1.component.UIState;
 import zhen.version1.framework.UIExplorer.StepControlCallBack;
 
 public class Framework {
+	public static String TAG = "Framework";
 	
 	public StaticInformation sInfo;
 	public RunTimeInformation rInfo;
@@ -50,6 +51,13 @@ public class Framework {
 		
 		executer.wakeDeviceup();
 		CommandLine.executeCommand(CommandLine.unlockScreenCommand);
+	}
+	
+	public void terminate(){
+		this.rInfo.terminate();
+		this.traverser.terminate();
+		this.executer.terminate();
+		this.sInfo.terminate();
 	}
 	
 	/**

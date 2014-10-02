@@ -13,7 +13,7 @@ import com.android.hierarchyviewerlib.models.ViewNode;
 import android.view.KeyEvent;
 import zhen.version1.framework.Common;
 
-public class Event extends DefaultEdge implements Cloneable{
+public class Event extends DefaultEdge{
 	
 	public final static String EMPTY = "empty";
 	public final static String UPDATE = "update";
@@ -37,8 +37,15 @@ public class Event extends DefaultEdge implements Cloneable{
 	private List<String> methodHits = new ArrayList<String>();
 	private boolean isBroken =false;
 	private int eventType;
-	public final Map<String, Object> attributes = new HashMap<String, Object>();
+	public final Map<String, Object> attributes;
 	public boolean isIgnored = false;
+	
+	private Event(){ attributes = new HashMap<String, Object>(); }
+	public Event(Event other){
+		this.eventType = other.eventType;
+		//seems that shallow copy is sufficient
+		this.attributes = new HashMap<String, Object>(other.attributes);
+	}
 	
 	public void setVertices(UIState source, UIState target){
 		this.source = source; this.target = target;
@@ -105,25 +112,36 @@ public class Event extends DefaultEdge implements Cloneable{
 		return false;
 	}
 	
-	@Override
-	public Event clone(){
-		
-		return null;
-	}
+
 	
 	@Override
 	public String toString(){
-		String result = intToString(eventType);
+		String typename = intToString(eventType);
+		String result = "";
 		switch(this.eventType){
 		case iLAUNCH: 		
 		case iRESTART: 	 
-		case iREINSTALL:	return result;// + " "+this.getValue(Common.event_att_actname)
-		case iPRESS: 	 	return result + " keycode "+this.getValue(Common.event_att_keycode);
-		case iONCLICK: 	 	return result + " "+this.getValue(Common.event_att_click_x)+","+this.getValue(Common.event_att_click_y);
+		case iREINSTALL:	{
+			result = typename;	
+			break;
+		}
+		case iPRESS: 	 	{
+			result = typename + " keycode "+this.getValue(Common.event_att_keycode);
+			break;
+		}
+		case iONCLICK: 	 	{
+			result = typename + " "+this.getValue(Common.event_att_click_x)+","+this.getValue(Common.event_att_click_y);
+			break;
+		}
 		case iEMPTY:	
 		case iUPDATE:	
-		case iUNDEFINED:
+		case iUNDEFINED:	{
+			result = typename; 
+			break;
 		}
+		}
+		if(this.source != null) result += " in "+this.source;
+		if(this.target != null) result += " to "+this.target;
 		return result;
 	}
 	

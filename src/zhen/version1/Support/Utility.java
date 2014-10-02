@@ -48,7 +48,7 @@ public class Utility {
 			for(String part: parts){
 				if(part.contains("METHOD_STARTING")){
 					String methodName = part.split("METHOD_STARTING,<")[1].replace(">", "");
-					result.add(methodName);
+					result.add(methodName.trim());
 				}
 			}
 		}catch(Exception e){}
@@ -141,8 +141,9 @@ public class Utility {
 			tag = (String) tag.subSequence(0, tagSize);
 		}
 		String part1 = String.format("%-"+tagSize+"s", tag);
-		String[] part2 = String.format("%-"+msgSize+"s", (input==null?"null":input.toString())).split("\n");
+		String[] part2 = String.format("%-"+msgSize+"s", (input==null?"null":input.toString())).split("\r|\n");
 		for(String part: part2){
+			if(part == null || part.trim().equals("")) continue;
 			System.out.println(part1+"  "+part);
 		}
 	}

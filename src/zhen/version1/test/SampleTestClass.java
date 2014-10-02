@@ -1,5 +1,6 @@
 package zhen.version1.test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,15 +43,17 @@ public class SampleTestClass {
 		addOnTraverseFinishCallBack(frame);
 		
 		
-		//NOTE: right now it does require apk installed on the device
-		//		and please close the app previous opened
+		//NOTE: right now it does require apk installed on the device manually
+		//		and please close the app if previous opened
 		frame.setup();//initialize
 		frame.start();//start experiment
+		
+//		frame.terminate();
 		
 		System.out.println("Finish!");
 	}
 	
-	private static void addExplorerStepControl(Framework frame){
+	private static void addExplorerStepControl( Framework frame){
 		UIExplorer explorer = frame.explorer;
 		explorer.enableStepControl(true);
 		explorer.registerStepControlCallBack(new StepControlCallBack(){
@@ -71,6 +74,8 @@ public class SampleTestClass {
 						}
 					}else if(read.equals("h")){
 						Utility.info(UIExplorer.TAG,"1: show stack, 2: get method map");
+					}else if(read.equals("stop")){
+						frame.explorer.requestStop(); break;
 					}else break;
 				}	
 			}
@@ -81,18 +86,46 @@ public class SampleTestClass {
 		frame.registerOnTraverseFinishCallBack(new Framework.OnTraverseFinishCallBack(){
 			@Override
 			public void action(Framework frame) {
-				// show the map between method and event
+				Utility.info(Framework.TAG, "OnTraverseFinishCallBack ");
+				// show the map of method -> event
+				// and find a set possible events which leads to a method
+				String targetMethod = "com.example.backupHelper.BackupFilesListAdapter: void reset(boolean)";
 				Map<String, List<Event>> map = frame.rInfo.getMethodEventMap();
+				List<Event> events = null;
 				for(Entry<String, List<Event>> entry : map.entrySet()){
-					Utility.info(RunTimeInformation.TAG,entry);
+					String key = entry.getKey();
+					Utility.info(RunTimeInformation.TAG,entry);	//show everything
+					if(key.trim().equals(targetMethod)){
+						Utility.info(Framework.TAG, "found targetMethod");
+						events = entry.getValue(); break;
+					}
 				}
 				
-				//sample
+				//sample of entry.toString()
 				//	com.example.backupHelper.BackupFilesListAdapter: void reset(boolean)
 				//	=[launch com.example.backupHelper/com.example.backupHelper.BackupActivity]     
-
-				
-				
+				if(events!= null && !events.isEmpty()){
+					Utility.info(Framework.TAG, "Possible event set");
+					for(Event event : events){
+						Utility.info(Framework.TAG, event);
+					}
+					Event targetEvent = events.get(0);
+					UIState targetUI = targetEvent.getSource();
+					List<Event> path = frame.rInfo.getEventSequence(UIState.Launcher, targetUI);
+					if(path == null){
+						if(targetEvent.getEventType() == Event.iLAUNCH){
+							path = new ArrayList<Event>();
+							path.add(targetEvent);
+						}
+					}else{
+						path.add(targetEvent);
+					}
+					
+					Utility.info(Framework.TAG, "Path to UI with event which trigger the target");
+					Utility.info(Framework.TAG, path);
+				}else{
+					Utility.info(Framework.TAG, "Event set empty");
+				}
 			}
 		});
 	}

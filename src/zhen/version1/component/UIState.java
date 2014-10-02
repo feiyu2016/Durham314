@@ -36,7 +36,6 @@ public class UIState {
 	
 	private List<Event> ineffectiveEventList = new ArrayList<Event>();
 	
-	
 	public final ViewNode root;
 	public final String actName, appName;
 	public final  WindowInformation winInfo;

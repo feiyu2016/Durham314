@@ -84,6 +84,9 @@ public class UIExplorer {
 		else return true;
 	}
 	
+	public void requestStop(){
+		this.operating = false;
+	}
 	
 	public void enableStepControl(boolean flag){
 		enableStepControl = flag;

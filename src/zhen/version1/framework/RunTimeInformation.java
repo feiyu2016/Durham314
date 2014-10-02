@@ -49,7 +49,7 @@ public class RunTimeInformation{
 	/**
 	 * Map between method name and event
 	 */
-	private Map<String,List<Event>> methodEventMap = new HashMap<String,List<Event>>();
+	private final Map<String,List<Event>> methodEventMap = new HashMap<String,List<Event>>();
 	
 	public RunTimeInformation(Framework frame){
 		this.frame = frame;
@@ -151,7 +151,7 @@ public class RunTimeInformation{
 		for(String hit : logcatFeedback){
 			if(methodEventMap.containsKey(hit)){
 				List<Event> eventList = methodEventMap.get(hit);
-				if(!eventList.contains(lastEvent)) eventList.add(lastEvent);
+				eventList.add(lastEvent);
 			}else{
 				List<Event> eventList = new ArrayList<Event>();
 				eventList.add(lastEvent);
@@ -179,10 +179,12 @@ public class RunTimeInformation{
 	}
 
 	public List<Event> getEventSequence(UIState source, UIState target){
-		List<Event> result = DijkstraShortestPath.findPathBetween(this.UIModel.getGraph(), source, target);
-		
-		
-		return result;
+		List<Event> path = DijkstraShortestPath.findPathBetween(this.UIModel.getGraph(), source, target);
+		List<Event> copyPath = new ArrayList<Event>();
+		for(Event event: path){
+			copyPath.add(new Event(event));
+		}
+		return copyPath;
 	}
 	public void terminate(){
 		deviceLayout.terminate();
