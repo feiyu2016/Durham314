@@ -1,5 +1,11 @@
 package zhen.version1.framework;
  
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Stack;
+import java.util.Map.Entry;
+
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -32,7 +38,30 @@ public class UIExplorer {
 	private boolean enableStepControl = false;
 	private int maxStep, currentStep;
 	private StepControlCallBack stepControl;
-	
+	public final static StepControlCallBack defaultCallBack = new StepControlCallBack(){
+		private Scanner sc = new Scanner(System.in);
+		@Override
+		public void action(Framework frame) {
+			while(true){
+				String read = sc.nextLine().trim();
+				if(read.equals("1")){
+					Stack<UIState> stack = frame.traverser.getUIStack();
+					for(UIState state : stack){
+						Utility.info(frame.traverser.TAG, state);
+					}
+				}else if(read.equals("2")){
+					Map<String, List<Event>> map = frame.rInfo.getMethodEventMap();
+					for(Entry<String, List<Event>> entry : map.entrySet()){
+						Utility.info(RunTimeInformation.TAG,entry);
+					}
+				}else if(read.equals("h")){
+					Utility.info(UIExplorer.TAG,"1: show stack, 2: get method map");
+				}else if(read.equals("stop")){
+					frame.explorer.requestStop(); break;
+				}else break;
+			}	
+		}
+	};
 	
 	protected Framework frame;
 	public UIExplorer(Framework frame){
@@ -91,7 +120,7 @@ public class UIExplorer {
 	public void enableStepControl(boolean flag){
 		enableStepControl = flag;
 	}
-	public void registerStepControlCallBack(StepControlCallBack callback){
+	public void setStepControlCallBack(StepControlCallBack callback){
 		stepControl = callback;
 	}
 	public static interface StepControlCallBack{

@@ -3,6 +3,8 @@ package zhen.version1.framework;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException; 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import main.Paths;
@@ -21,6 +23,7 @@ public class Executer {
 	private BufferedOutputStream ostream = null;
 	private BufferedInputStream estream = null;
 	private BufferedInputStream istream = null;
+	private List<Event> sequence = new ArrayList<Event>();
 	
 	public Executer(Framework frame){
 		this.frame = frame;
@@ -29,6 +32,7 @@ public class Executer {
 		this.applyEvent(Event.getOnBackEvent());
 	}
 	public void applyEvent(Event event){
+		sequence.add(event);
 		if(DEBUG){ Utility.log(TAG, event.toString()); }
 		Utility.clearLogcat();
 		int type = event.getEventType();
@@ -77,6 +81,12 @@ public class Executer {
 			this.applyEvent(singleEvnet);
 			this.frame.rInfo.checkVisibleWindowAndCloseKeyBoard();
 		}
+	}
+	public void registerEvent(Event event){
+		sequence.add(event);
+	}
+	public List<Event> getEventList(){
+		return this.sequence;
 	}
 	public Event getLastEventApplied(){
 		//TODO

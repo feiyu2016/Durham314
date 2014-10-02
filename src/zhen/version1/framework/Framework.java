@@ -26,7 +26,8 @@ public class Framework {
 	public String apkPath;
 	private File apkFile;
 	private Map<String, Object> attributes;
-	private OnTraverseFinishCallBack callback;
+	private OnProcedureEndsCallBack callback;
+	private boolean enableStdinMonitor =false;
 	
 	public Framework(Map<String, Object> attributes){
 		this.attributes = attributes;
@@ -58,12 +59,14 @@ public class Framework {
 		this.traverser.terminate();
 		this.executer.terminate();
 		this.sInfo.terminate();
+		
 	}
 	
 	/**
 	 * in the future, might want to put every thing into loop
 	 */
-	public void start(){
+	public void start(){	
+		if(enableStdinMonitor) stdinMonitor.start();
 		//make decision
 		
 		//expand knowledge on the UI model
@@ -71,6 +74,26 @@ public class Framework {
 		
 		callback.action(this);
 	}
+	
+	public void enableStdinMonitor(boolean input){
+		enableStdinMonitor = input;
+	}
+	
+	private Thread stdinMonitor = new Thread(new Runnable(){
+		private Scanner sc = new Scanner(System.in);
+		@Override
+		public void run() {  
+			String reading ="";
+			while(sc.hasNextLine()){
+				reading=sc.nextLine();
+				if(reading.equals("stop")){
+					explorer.requestStop();
+					break;
+				}
+			} 	
+			sc.close();
+		} 
+	});
 	
 	private void checkArguments(){
 		if(!this.attributes.containsKey(Common.apkPath)){
@@ -82,11 +105,11 @@ public class Framework {
 		this.attributes.put(Common.apkFile, apkFile);
 	}
 	
-	public void registerOnTraverseFinishCallBack(OnTraverseFinishCallBack callback){
+	public void setOnProcedureEndsCallBack(OnProcedureEndsCallBack callback){
 		this.callback = callback;
 	}
 	
-	public interface OnTraverseFinishCallBack{
+	public interface OnProcedureEndsCallBack{
 		public void action(Framework frame);
 	}
 }

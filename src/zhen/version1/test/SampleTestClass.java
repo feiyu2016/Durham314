@@ -42,6 +42,7 @@ public class SampleTestClass {
 		//add a call back method which is called after the finish of traversal
 		addOnTraverseFinishCallBack(frame);
 		
+		frame.enableStdinMonitor(true);
 		
 		//NOTE: right now it does require apk installed on the device manually
 		//		and please close the app if previous opened
@@ -56,34 +57,11 @@ public class SampleTestClass {
 	private static void addExplorerStepControl( Framework frame){
 		UIExplorer explorer = frame.explorer;
 		explorer.enableStepControl(true);
-		explorer.registerStepControlCallBack(new StepControlCallBack(){
-			private Scanner sc = new Scanner(System.in);
-			@Override
-			public void action(Framework frame) {
-				while(true){
-					String read = sc.nextLine().trim();
-					if(read.equals("1")){
-						Stack<UIState> stack = frame.traverser.getUIStack();
-						for(UIState state : stack){
-							Utility.info(frame.traverser.TAG, state);
-						}
-					}else if(read.equals("2")){
-						Map<String, List<Event>> map = frame.rInfo.getMethodEventMap();
-						for(Entry<String, List<Event>> entry : map.entrySet()){
-							Utility.info(RunTimeInformation.TAG,entry);
-						}
-					}else if(read.equals("h")){
-						Utility.info(UIExplorer.TAG,"1: show stack, 2: get method map");
-					}else if(read.equals("stop")){
-						frame.explorer.requestStop(); break;
-					}else break;
-				}	
-			}
-		});
+//		explorer.setStepControlCallBack(UIExplorer.defaultCallBack);
 	}
 	
 	private static void addOnTraverseFinishCallBack(Framework frame){
-		frame.registerOnTraverseFinishCallBack(new Framework.OnTraverseFinishCallBack(){
+		frame.setOnProcedureEndsCallBack(new Framework.OnProcedureEndsCallBack(){
 			@Override
 			public void action(Framework frame) {
 				Utility.info(Framework.TAG, "OnTraverseFinishCallBack ");
@@ -123,6 +101,11 @@ public class SampleTestClass {
 					
 					Utility.info(Framework.TAG, "Path to UI with event which trigger the target");
 					Utility.info(Framework.TAG, path);
+					
+					//reply the event sequence
+					if(path!=null && path.isEmpty()){
+						frame.executer.applyEventSequence(path.toArray(new Event[0]));
+					}
 				}else{
 					Utility.info(Framework.TAG, "Event set empty");
 				}
