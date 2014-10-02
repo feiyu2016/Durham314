@@ -15,8 +15,7 @@ import org.jgrapht.alg.DijkstraShortestPath;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
-
-import zhen.framework.Configuration;
+ 
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.RunTimeLayoutInformation;

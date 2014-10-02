@@ -1,8 +1,10 @@
 package zhen.version1.component;
 
 import java.util.Arrays;
+ 
 
-import zhen.framework.Configuration;
+
+import zhen.version1.framework.Configuration;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
@@ -25,7 +27,7 @@ public class RunTimeLayoutInformation {
 //	private String systemAct = "SearchPanelNavigationBarStatusBarKeyguardKeyguardScrimInputMethodcom.android.systemui.ImageWallpaper";
 	
 	public void init(){
-		DeviceBridge.initDebugBridge(Configuration.adbPath);
+		DeviceBridge.initDebugBridge(Configuration.ADBPath);
 		DeviceBridge.startListenForDevices(listener1);
 //		DeviceBridge.startListenForDevices(listener2);
 		while(mDevice == null){

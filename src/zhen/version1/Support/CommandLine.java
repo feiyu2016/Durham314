@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.Stack;
 import java.util.logging.Logger;
 
-import zhen.framework.Configuration;
+import zhen.version1.framework.Configuration;
+ 
 
 //	am start: start an Activity.  Options are:
 //    -D: enable debugging
@@ -22,8 +23,8 @@ import zhen.framework.Configuration;
 
 
 public class CommandLine {
-	public static String unlockScreenCommand = Configuration.adbPath+ " shell input keyevent 82";
-	public static String clickPowerButtonCommand = Configuration.adbPath+ " shell input keyevent KEYCODE_POWER";
+	public static String unlockScreenCommand = Configuration.ADBPath+ " shell input keyevent 82";
+	public static String clickPowerButtonCommand = Configuration.ADBPath+ " shell input keyevent KEYCODE_POWER";
 	public static boolean debug = false;
 	public static boolean autoClean = true;
 	public static int MaxCount = 100;
@@ -60,11 +61,11 @@ public class CommandLine {
 		return executeCommand(command,0);
 	}
 	public static int executeSellCommand(String command){
-		return executeCommand(Configuration.adbPath+ " shell "+command);
+		return executeCommand(Configuration.ADBPath+ " shell "+command);
 	}
 	
 	public static int executeAMCommand(String command){
-		return executeCommand(Configuration.adbPath+ " am "+command);
+		return executeCommand(Configuration.ADBPath+ " am "+command);
 	}
 	public static int executeCommand(String command , int timeout_ms){
 		if(debug) logger.info("command:"+command);

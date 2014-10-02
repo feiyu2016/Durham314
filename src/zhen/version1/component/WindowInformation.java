@@ -5,7 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import zhen.framework.Configuration;
+import zhen.version1.framework.Configuration;
+ 
 
 /**
  * Window information extracted from ADB shell dumpsys
@@ -56,7 +57,7 @@ public class WindowInformation {
 	 */
 	
 	public static WindowInformation[] getVisibleWindowInformation(){
-		String command = Configuration.adbPath+" shell dumpsys window visible | grep -E  'Window #|  Surface:|  mOwnerUid='";
+		String command = Configuration.ADBPath+" shell dumpsys window visible | grep -E  'Window #|  Surface:|  mOwnerUid='";
 		try {
 			Process info = Runtime.getRuntime().exec(command);
 			InputStream input = info.getInputStream();

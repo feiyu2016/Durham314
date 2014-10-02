@@ -16,8 +16,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import main.Paths;
-import zhen.framework.Configuration;
+import zhen.version1.framework.Configuration;
 
 public class Utility {
 	public static boolean DEBUG = true;
@@ -28,7 +27,7 @@ public class Utility {
 		 * Situation that the process never terminated happened.
 		 */
 		try{
-			final Process pc = Runtime.getRuntime().exec(Paths.adbPath + " logcat -v thread -d  -s "+Configuration.InstrumentationTag);
+			final Process pc = Runtime.getRuntime().exec(Configuration.ADBPath + " logcat -v thread -d  -s "+Configuration.InstrumentationTag);
 			InputStream in = pc.getInputStream();
 			long point1 = System.currentTimeMillis();
 			StringBuilder sb = new StringBuilder();
@@ -58,7 +57,7 @@ public class Utility {
 	
 	public static void clearLogcat(){
 		try {
-			Runtime.getRuntime().exec(Configuration.adbPath + " logcat -c").waitFor();
+			Runtime.getRuntime().exec(Configuration.ADBPath + " logcat -c").waitFor();
 		} catch (InterruptedException | IOException e) { 
 			e.printStackTrace();
 		}

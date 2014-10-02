@@ -2,7 +2,8 @@ package zhen.version1.framework;
 
 import java.util.Map;
 
-import zhen.implementation.graph.Event;
+import zhen.version1.component.Event;
+ 
 
 public abstract class AbstractEventGenerater {
 	protected UIExplorer frame;

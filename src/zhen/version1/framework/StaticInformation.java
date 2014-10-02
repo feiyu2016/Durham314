@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import main.Paths;
-import zhen.framework.Configuration;
+import main.Paths; 
 
 public class StaticInformation {
 	
