@@ -16,8 +16,6 @@ public class EventSetGenerater {
 	
 
 	public static void build(UIState ui){
-		
-		
 		//Build view Events
 		ViewNode root = ui.root;
 		if(root == null) return;
