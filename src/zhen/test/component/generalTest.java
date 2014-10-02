@@ -1,21 +1,23 @@
 package zhen.test.component;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import zhen.version1.component.Event;
+import zhen.version1.framework.Common;
 
 public class generalTest {
 	public static void main(String[] args){
-//		ArrayList<String> ad = new ArrayList<String>();
-//		ad.add("qwe");
-//		
-//		System.out.println("before : "+ad);
-//		ArrayList<String> qe = new ArrayList<String>(ad);
-//		qe.add("qw1e");
-//		System.out.println("after : "+ad);
+
+		Map<String, Object> extraInformation = new HashMap<String,Object>();
 		
+		extraInformation.put(Common.event_att_packname, "asd");
+		List<Event> list = new ArrayList<Event>();
+		extraInformation.put(Common.ui_extra_event, list);
 		
-		String as = "I(10395:10395) METHOD_STARTING,<com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)>";
-	
-	
-		System.out.println(as.split("METHOD_STARTING,<")[1].split(">")[0]);
+		System.out.println(extraInformation.get(Common.ui_extra_event));
 	}
 }
