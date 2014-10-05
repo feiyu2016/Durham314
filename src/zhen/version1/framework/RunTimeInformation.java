@@ -51,18 +51,21 @@ public class RunTimeInformation{
 	 */
 	private final Map<String,List<Event>> methodEventMap = new HashMap<String,List<Event>>();
 	
+	private List<Event> eventDeposit = new ArrayList<Event>();
+	
 	public RunTimeInformation(Framework frame){
 		this.frame = frame;
 		deviceLayout = new RunTimeLayoutInformation();
 		UIModel = new UIModelGraph();
 	}
-	
 	public void init(Map<String, Object> attributes){
 		this.packageName = (String) attributes.get(Common.packageName);
 		deviceLayout.init();
 		UIModel.init();
 	}
-	
+	public void terminate(){
+		deviceLayout.terminate();
+	}
 	public void enableGUI(){
 		this.UIModel.enableGUI();
 	}
@@ -70,13 +73,14 @@ public class RunTimeInformation{
 	/**
 	 * Synchronize with the device
 	 * and Update necessary information 
+	 * including feedback from logcat, layout.
 	 * @param lastEvent -- the last event being applied on the device
 	 */
 	public void update(Event lastEvent){
 		if(DEBUG) Utility.log(TAG, "update");
 		
 		//check if the event needs to be ignored 
-		if(lastEvent.isIgnored || lastEvent.getEventType() == Event.iEMPTY){ return; }
+		if(lastEvent.getEventType() == Event.iEMPTY){ return; }
 		
 		List<String> logcatFeedback = Utility.readInstrumentationFeedBack();
 		if(DEBUG) Utility.log(TAG, "readInstrumentationFeedBack finished");
@@ -112,6 +116,7 @@ public class RunTimeInformation{
 		if(DEBUG) Utility.log(TAG, "topWin, "+topWin);
 		//Maybe want to check which is first drawn, focused or top
 		
+		UIState previous = this.UIModel.getCurrentState();
 		String targetTitle = topWin.getTitle();
 		String parts[] = getAppAndActName(targetTitle);
 		String appName = parts[0];
@@ -131,6 +136,15 @@ public class RunTimeInformation{
 				newState = UIModel.getOrBuildState(appName, actName, null,targetInfo); 
 				newState.isInScopeUI = false;
 			}
+			if(lastEvent.operationCount > 0){
+				//which means in which target and source should not be null
+				//and check if they meet the expectation. only the target matters because it
+				//is a launch event
+				if(!previous.equals(lastEvent.getTarget())){
+					//does not meet the expectation
+					lastEvent = new Event(lastEvent);
+				}
+			}
 			this.UIModel.addLaunch(lastEvent, newState);
 		}break;
 		case Event.iONCLICK:
@@ -143,10 +157,17 @@ public class RunTimeInformation{
 				newState = UIModel.getOrBuildState(appName, actName, null,targetInfo); 
 				newState.isInScopeUI = false;
 			}
+			if(lastEvent.operationCount > 0){
+				//which means in which target and source should not be null
+				//and check if they meet the expectation. 
+				if(!previous.equals(lastEvent.getSource()) || !previous.equals(lastEvent.getTarget())){
+					//does not meet the expectation
+					lastEvent = new Event(lastEvent);
+				}
+			}
 			this.UIModel.addTransition(lastEvent, newState);
 		}break;
 		}
-		if(DEBUG) Utility.log(TAG, "update check point 4");
 		lastEvent.addMethodHiets(logcatFeedback);
 		for(String hit : logcatFeedback){
 			if(methodEventMap.containsKey(hit)){
@@ -158,10 +179,18 @@ public class RunTimeInformation{
 				methodEventMap.put(hit, eventList);
 			}
 		}
-		if(DEBUG) Utility.log(TAG, "update check point 5");
+		
+		lastEvent.operationCount += 1;
+		eventDeposit.add(lastEvent);
+		
+		
 		//check other system info
 		//TODO
 	}
+	/**
+	 * get a list of visible windows and if the keyboard is present close it
+	 * @return	a list of visible window information
+	 */
 	public WindowInformation[] checkVisibleWindowAndCloseKeyBoard(){
 		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation();
 		for(WindowInformation vwin : visibleWindows){
@@ -173,21 +202,34 @@ public class RunTimeInformation{
 		}
 		return visibleWindows;
 	}
-	
+	/**
+	 * get the current UI which the program believe the device is on.
+	 * @return
+	 */
 	public UIState getCurrentState(){
-		return this.UIModel.getPreviousState();
+		return this.UIModel.getCurrentState();
 	}
-
+	/**
+	 * get an event sequence from source UI to target UI
+	 * Both of the UIState must be known in the graph
+	 * @param source	
+	 * @param target
+	 * @return	a list of event 
+	 */
 	public List<Event> getEventSequence(UIState source, UIState target){
 		List<Event> path = DijkstraShortestPath.findPathBetween(this.UIModel.getGraph(), source, target);
-		List<Event> copyPath = new ArrayList<Event>();
-		for(Event event: path){
-			copyPath.add(new Event(event));
-		}
-		return copyPath;
+		return path;
 	}
-	public void terminate(){
-		deviceLayout.terminate();
+	/**
+	 * get the map which tells a method can be triggered by which events. 
+	 * @return
+	 */
+	public Map<String, List<Event>> getMethodEventMap() {
+		return methodEventMap;
+	}
+	
+	public List<Event> getAppliedEventSequence(){
+		return this.eventDeposit;
 	}
 	
 	private boolean isErrorPresent(List<String> logcatFeedback){
@@ -203,26 +245,13 @@ public class RunTimeInformation{
 	 * @param winInfo	- a newly retrieved information for a window in the app
 	 * @return
 	 */
-	public boolean needRetrieveLayout(Window target, WindowInformation winInfo){
-//		String[] parts = getAppAndActName(target.getTitle());
-//		String appName = parts[0];
-//		String actName = parts[1];
-//		if(DEBUG) Utility.log(TAG, "needRetrieveLayout,"+appName+","+actName);
-//		boolean result;
-//		if(appName.contains("launcher")){
-//			result = false;
-//		}if(appName.equals("")){	//empty app name, check the winInfo
-//			//only check one level, should be enough at thie point 
-//			//TODO 
-//			result = winInfo.pkgName.equals(this.packageName);
-//		}else result = appName.equals(this.packageName);
-		
+	private boolean needRetrieveLayout(Window target, WindowInformation winInfo){
 		boolean result = winInfo!=null;
 		if(DEBUG) Utility.log(TAG, "needRetrieveLayout,"+result);
 		return result;
 	}
 	
-	public static String[] getAppAndActName(String msg){ 
+	private static String[] getAppAndActName(String msg){ 
 		String parts[] = msg.split("/");
 		String appName = "";
 		String actName = "";
@@ -233,9 +262,5 @@ public class RunTimeInformation{
 			actName = parts[0];
 		}
 		return new String[]{appName,actName};
-	}
-
-	public Map<String, List<Event>> getMethodEventMap() {
-		return methodEventMap;
 	}
 }

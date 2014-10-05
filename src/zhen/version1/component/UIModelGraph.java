@@ -90,8 +90,6 @@ public class UIModelGraph {
 		this.lastState = newState;
 	}
 	
-	
-	
 	public ListenableDirectedMultigraph getGraph() {
 		return graph;
 	}
@@ -111,7 +109,7 @@ public class UIModelGraph {
 		jContainer.add(applet);
 	}
 	
-	public UIState getPreviousState(){
+	public UIState getCurrentState(){
 		return lastState;
 	}
 
@@ -124,8 +122,7 @@ public class UIModelGraph {
 		}
 		@Override
 		public boolean addEdge(UIState sourceVertex, UIState targetVertex, Event e){
-			System.out.println(sourceVertex+" -> "+targetVertex);
-			
+			if(DEBUG) Utility.log(TAG,"addEdge, "+sourceVertex+" -> "+targetVertex);
 			if(sourceVertex.equals(targetVertex)){
 				sourceVertex.addIneffectiveEvent(e);
 			}else{

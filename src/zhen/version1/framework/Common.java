@@ -15,4 +15,13 @@ public class Common {
 	public static final String node_actual_position = "node_actual_position";
 //	public static final String ui_extra_event = "ui_extra_list";
 //	public static final String ui_extra_index = "ui_extra_index";
+	
+	
+	public static final long NON_SLEEP = 0;
+	public static final long LAUNCH_SLEEP = 2000;
+	public static final long RESTART_SLEEP = 2000;
+	public static final long REINSTALL_SLEEP = 2000;
+	public static final long PRESS_SLEEP = 1500;
+	public static final long ONCLICK_SLEEP = 1500;
+	
 }

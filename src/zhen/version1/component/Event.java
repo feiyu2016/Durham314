@@ -33,18 +33,28 @@ public class Event extends DefaultEdge{
 	public final static int iPRESS = 3;
 	public final static int iONCLICK = 4;
 	
+	public final Map<String, Object> attributes;
+	public int operationCount = 0;
+//	public boolean isIgnored = false;
+	private static int avaliableIndex = 0;
 	private UIState source, target;
 	private List<String> methodHits = new ArrayList<String>();
 	private boolean isBroken =false;
+	private int index;
 	private int eventType;
-	public final Map<String, Object> attributes;
-	public boolean isIgnored = false;
 	
-	private Event(){ attributes = new HashMap<String, Object>(); }
+	
+	private Event(){ 
+		attributes = new HashMap<String, Object>(); 
+		this.index = avaliableIndex;
+		avaliableIndex += 1;
+	}
 	public Event(Event other){
 		this.eventType = other.eventType;
-		//seems that shallow copy is sufficient
+		//seems that shallow copy is sufficient at this point
 		this.attributes = new HashMap<String, Object>(other.attributes);
+		this.index = avaliableIndex;
+		avaliableIndex += 1;
 	}
 	
 	public void setVertices(UIState source, UIState target){
@@ -54,7 +64,6 @@ public class Event extends DefaultEdge{
 	public UIState getSource() {
 		return source;
 	}
-
 	public void setSource(UIState source) {
 		this.source = source;
 	}
@@ -62,23 +71,33 @@ public class Event extends DefaultEdge{
 	public UIState getTarget() {
 		return target;
 	}
-
 	public void setTarget(UIState target) {
 		this.target = target;
 	}
-
 	public List<String> getMethodHits() {
 		return methodHits;
 	}
-
 	public int getEventType() {
 		return eventType;
 	}
-
 	public void setEventType(int eventType) {
 		this.eventType = eventType;
 	}
-
+	public Object getValue(String key){
+		return this.attributes.get(key);
+	}
+	public void putValue(String key, Object value){
+		this.attributes.put(key, value);
+	}
+	
+	public void addMethodHiets(List<String> hits){
+		for(String hit : hits){
+			int index = Collections.binarySearch(methodHits, hit);
+			if(index < 0){ methodHits.add(hit); }
+			Collections.sort(methodHits);
+		}
+	}
+	
 	@Override	
 	public boolean equals(Object other){
 		if(other instanceof Event){
@@ -111,9 +130,6 @@ public class Event extends DefaultEdge{
 		}
 		return false;
 	}
-	
-
-	
 	@Override
 	public String toString(){
 		String typename = intToString(eventType);
@@ -145,13 +161,7 @@ public class Event extends DefaultEdge{
 		return result;
 	}
 	
-	public void addMethodHiets(List<String> hits){
-		for(String hit : hits){
-			int index = Collections.binarySearch(methodHits, hit);
-			if(index < 0){ methodHits.add(hit); }
-			Collections.sort(methodHits);
-		}
-	}
+
 	
 	public static String intToString(int type){
 		switch(type){
@@ -182,25 +192,17 @@ public class Event extends DefaultEdge{
 			return iONCLICK;
 		}else return iUNDEFINED;
 	}
-	
-	public Object getValue(String key){
-		return this.attributes.get(key);
-	}
-	public void putValue(String key, Object value){
-		this.attributes.put(key, value);
-	}
-	
 	public static long getNeededSleepDuration(int type){
 		switch(type){
-		case iLAUNCH: 	return 2000;
-		case iRESTART: 	return 2000;
-		case iREINSTALL: return 5000;
-		case iPRESS: 	return 1500;
-		case iONCLICK: 	return 1500;
+		case iLAUNCH: 	return Common.LAUNCH_SLEEP;
+		case iRESTART: 	return Common.RESTART_SLEEP;
+		case iREINSTALL: return Common.REINSTALL_SLEEP;
+		case iPRESS: 	return Common.PRESS_SLEEP;
+		case iONCLICK: 	return Common.ONCLICK_SLEEP;
 		case iEMPTY:
 		case iUPDATE:	
 		case iUNDEFINED:
-		default: return 0;
+		default: return Common.NON_SLEEP;
 		}
 	}
 	public static Event getOnBackEvent(){
