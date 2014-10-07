@@ -184,4 +184,8 @@ public class UIModelGraph {
 	        jgAdapter.edit(cellAttr, null, null, null);
 	    }
 	}
+	
+	public ArrayList<UIState> getKnownVertices() {
+		return (ArrayList<UIState>) knownVertices;
+	}
 }

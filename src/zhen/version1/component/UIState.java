@@ -148,4 +148,8 @@ public class UIState {
 		return this.isOnBackTried;
 	}
 	
+	public ArrayList<Event> getIneffectiveEventList(){
+		return (ArrayList<Event>) ineffectiveEventList;
+	}
+	
 }

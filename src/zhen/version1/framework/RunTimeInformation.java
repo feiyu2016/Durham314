@@ -263,4 +263,8 @@ public class RunTimeInformation{
 		}
 		return new String[]{appName,actName};
 	}
+	
+	public UIModelGraph getUIModel(){
+		return UIModel;
+	}
 }
