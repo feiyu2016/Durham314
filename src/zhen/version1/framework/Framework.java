@@ -112,4 +112,8 @@ public class Framework {
 	public interface OnProcedureEndsCallBack{
 		public void action(Framework frame);
 	}
+	
+	public Map<String,Object> getAttributes(){
+		return attributes;
+	}
 }
