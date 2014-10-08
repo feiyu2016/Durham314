@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
+import zhen.version1.component.WindowInformation;
 
 /**
  * Responsibility: Explore the UI until some condition is satisfied.
@@ -38,22 +39,31 @@ public class UIExplorer {
 	private boolean enableStepControl = false;
 	private int maxStep, currentStep;
 	private StepControlCallBack stepControl;
+	
+	/**
+	 * This is primarily for debug purpose
+	 * which allows the user to check information for each loop
+	 */
 	public final static StepControlCallBack defaultCallBack = new StepControlCallBack(){
 		private Scanner sc = new Scanner(System.in);
 		@Override
 		public void action(Framework frame) {
 			while(true){
 				String read = sc.nextLine().trim();
+				Utility.info(TAG,"Rcv:"+read);
 				if(read.equals("1")){
 					Stack<UIState> stack = frame.traverser.getUIStack();
 					for(UIState state : stack){
-						Utility.info(frame.traverser.TAG, state);
+						Utility.info( TAG, state);
 					}
 				}else if(read.equals("2")){
 					Map<String, List<Event>> map = frame.rInfo.getMethodEventMap();
 					for(Entry<String, List<Event>> entry : map.entrySet()){
 						Utility.info(RunTimeInformation.TAG,entry);
 					}
+				}else if(read.equals("3")){
+					WindowInformation win = frame.rInfo.getUIModel().getCurrentState().winInfo;
+					Utility.info(TAG, win!=null?win.toString():"null");
 				}else if(read.equals("h")){
 					Utility.info(UIExplorer.TAG,"1: show stack, 2: get method map");
 				}else if(read.equals("stop")){
@@ -68,12 +78,20 @@ public class UIExplorer {
 		this.frame = frame;
 	}
 	
+	/**
+	 * ask the program to start traversing
+	 */
 	public void traverse(){
 		this.traverse(-1,false);
 	}
 	public void traverse(int maxCount){
 		this.traverse(maxCount,false);
 	}
+	/**
+	 * DO NOT USE
+	 * @param maxStep
+	 * @param keepForwarding
+	 */
 	public void traverse(int maxStep, boolean keepForwarding){
 		//get a copy of references
 		TraversalEventGenerater traverser = frame.traverser;

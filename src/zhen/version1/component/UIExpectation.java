@@ -2,6 +2,11 @@ package zhen.version1.component;
 
 import zhen.version1.framework.RunTimeInformation;
 
+/**
+ * The expectation for the UI after an event applied
+ * @author zhenxu
+ *
+ */
 public class UIExpectation {
 	public final static String TAG = "UIExpectation";
 	public final static int FORCE_FAILURE = -2;
@@ -16,6 +21,11 @@ public class UIExpectation {
 		this.type = type; this.expected = expected;
 	}
 	
+	/**
+	 * Check if the expectation matches with current runtime information
+	 * @param info
+	 * @return
+	 */
 	public boolean check(RunTimeInformation info){
 		UIState currentState = info.getCurrentState();
 		switch(type){

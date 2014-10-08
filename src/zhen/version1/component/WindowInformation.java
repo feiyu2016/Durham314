@@ -3,6 +3,7 @@ package zhen.version1.component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import zhen.version1.framework.Configuration;
@@ -22,6 +23,8 @@ public class WindowInformation {
 	public String pkgName;
 	public String appop;
 	public double width, height, startx, starty;
+	
+	private static final String shellCommand = " shell dumpsys window visible | grep -E  'Window #|mAttachedWindow=|package=|mFrame='";
 	
 	@Override
 	public boolean equals(Object other){
@@ -57,7 +60,7 @@ public class WindowInformation {
 	 */
 	
 	public static WindowInformation[] getVisibleWindowInformation(){
-		String command = Configuration.ADBPath+" shell dumpsys window visible | grep -E  'Window #|  Surface:|  mOwnerUid='";
+		String command = Configuration.ADBPath+" "+shellCommand;
 		try {
 			Process info = Runtime.getRuntime().exec(command);
 			InputStream input = info.getInputStream();
@@ -75,18 +78,17 @@ public class WindowInformation {
 					String[] parts = line.split(" ");
 					last.name = parts[4].replace("}:", "");
 					last.encode = parts[2].replace("Window{", "");
-				}else if(line.startsWith("Surface:")){
+				}else if(line.startsWith("mFrame=")){
+					// mFrame=[0,0][1200,1824]
 					String[] parts = line.split(" ");
-					String rect=parts[4];
-					String sWidth = parts[5];
-					String sHeight = parts[7];
-					
-					last.width = Double.parseDouble(sWidth);
-					last.height = Double.parseDouble(sHeight);
-					
-					String subParts[] = rect.split("=")[1].replace("(", "").replace(")", "").split(",");
-					last.startx = Double.parseDouble(subParts[0]);
-					last.starty = Double.parseDouble(subParts[1]);
+					String contentPairValue = parts[0].split("=")[1];
+					String[] pair = contentPairValue.replaceAll("]|\\[", " ").trim().split("  ");
+					String[] start = pair[0].split(",");
+					last.startx = Double.parseDouble(start[0]);
+					last.starty = Double.parseDouble(start[1]);
+					String[] end = pair[1].split(",");
+					last.width = Double.parseDouble(end[0]) - last.startx;
+					last.height = Double.parseDouble(end[1]) - last.starty;
 				}else if(line.startsWith("mOwnerUid=")){
 					String[] parts = line.split(" ");
 					last.uid = parts[0].replace("mOwnerUid=", "");

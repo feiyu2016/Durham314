@@ -12,6 +12,11 @@ import java.util.Map;
 
 import main.Paths; 
 
+/**
+ * A wrapper class for the StaticInfo in case any further change 
+ * @author zhenxu
+ *
+ */
 public class StaticInformation {
 	
 	protected Framework frame;

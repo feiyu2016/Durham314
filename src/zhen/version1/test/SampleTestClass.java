@@ -27,7 +27,7 @@ public class SampleTestClass {
 				"signed_CalcA.apk",
 				"signed_KitteyKittey.apk",
 		};
-		int index = 0;
+		int index = 2;
 		String path = "APK/"+name[index];
 		
 		//setup input parameters
@@ -38,11 +38,11 @@ public class SampleTestClass {
 		
 		//once the step control is added, the program will wait for human instruction
 		//before entering next operation loop
-		addExplorerStepControl(frame);
+//		addExplorerStepControl(frame);
 		//add a call back method which is called after the finish of traversal
 		addOnTraverseFinishCallBack(frame);
 		
-		frame.enableStdinMonitor(true);
+//		frame.enableStdinMonitor(true);
 		
 		//NOTE: right now it does require apk installed on the device manually
 		//		and please close the app if previous opened
@@ -57,7 +57,7 @@ public class SampleTestClass {
 	private static void addExplorerStepControl( Framework frame){
 		UIExplorer explorer = frame.explorer;
 		explorer.enableStepControl(true);
-//		explorer.setStepControlCallBack(UIExplorer.defaultCallBack);
+		explorer.setStepControlCallBack(UIExplorer.defaultCallBack);
 	}
 	
 	private static void addOnTraverseFinishCallBack(Framework frame){

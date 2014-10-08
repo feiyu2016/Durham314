@@ -15,7 +15,12 @@ import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIExpectation;
 import zhen.version1.component.UIState;
- 
+
+/**
+ * An event generator designed to traverse the UIs
+ * @author zhenxu
+ *
+ */
 public class TraversalEventGenerater{
 	public static boolean DEBUG = true; 
 	public static String TAG = "TraversalEventGenerater";
@@ -64,10 +69,19 @@ public class TraversalEventGenerater{
 	}
 	public void terminate() {}
 	
+	/**
+	 * get the UI stack which store the path the program has previously encountered
+	 * @return
+	 */
 	public  Stack<UIState> getUIStack(){
 		return this.uiStack;
 	}
 	
+	/**
+	 * generate the next event given the known runtime information
+	 * @param info	-- the known information of runtime
+	 * @return	the next event
+	 */
 	public Event nextEvent(RunTimeInformation info){
 		Event reuslt;
 		if(DEBUG)Utility.log(TAG,"expectation,"+expectation);
