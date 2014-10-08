@@ -1,7 +1,10 @@
 package john.generateSequences;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import zhen.version1.framework.Framework;
 import zhen.version1.component.Event;
@@ -47,51 +50,83 @@ public class GenerateSequences {
 	{
 		ArrayList<String> sequences = new ArrayList<String>();
 		
-		for (UIState vertex: knownVertices) {
-			ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(vertex.Launcher, vertex);
+		for (String target: targetMethods) {
+			
+			for (UIState vertex: knownVertices) {
+				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(vertex.Launcher, vertex);
+				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
+				
+				for (Event event: el) {
+					for (String string: event.getMethodHits()) {
+						if (string.contains(target.trim())) {
+							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
+							break;
+						}
+					}
+				}
+				
+				for (Event event: ieel) {
+					for (String string: event.getMethodHits()) {
+						if (string.contains(target.trim())) {
+							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
+							break;
+						}
+					}
+				}
+				
+			}
 		}
+		
+		//if (debugMode) {
+			for (String sequence: sequences)
+				System.out.println(sequence);
+		//}
 		
 	}
 	
 	public ArrayList<String> generateMethodGroups()
 	{
-		ArrayList<String> groups = new ArrayList<String>();
+		HashMap<String, String> hasSeen = new HashMap<String, String>();
+		ArrayList<String> ret = new ArrayList<String>();
 		
-		for (String target: targetMethods) {
+		//for (String target: targetMethods) {
 			for (UIState vertex: knownVertices) {
 				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(vertex.Launcher, vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
-				String oneGroup = vertex.actName + "|" + target + "|leaving|";
 				
 				for (Event event: el) {
 					for (String string: event.getMethodHits()) {
-						if (string.contains(target.trim())) {
-							oneGroup += "(" + event.toString().trim().split("in")[0].trim() + ")|";
+						if (hasSeen.containsKey(string.trim())) {
+							String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim()/*.split(" ")[1].trim()*/;
+							hasSeen.put(string.trim(), newString);
+						}
+						else {
+							String newString = event.toString().trim().split("in")[0].trim()/*.split(" ")[1].trim()*/;
+							hasSeen.put(string.trim(), newString);
 						}
 					}
 				}
-				
-				oneGroup += "non-leaving|";
 				
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
-						if (string.contains(target.trim())) {
-							oneGroup += "(" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim() + ")|";
+						if (hasSeen.containsKey(string.trim())) {
+							String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim()/*.split(" ")[1].trim()*/;
+							hasSeen.put(string.trim(), newString);
+						}
+						else {
+							String newString = event.toString().trim().split("in")[0].trim()/*.split(" ")[1].trim()*/;
+							hasSeen.put(string.trim(), newString);
 						}
 					}
 				}
-				
-				if (oneGroup != null)
-					groups.add(oneGroup);
 			}
-		}
 		
-		//if (debugMode) {
-			for (String group: groups)
-				System.out.println(group);
-		//}
+			for(Entry<String, String> entry: hasSeen.entrySet()) {
+				System.out.println(entry.getKey() + "%" +entry.getValue());
+				ret.add(entry.getKey() + "%" + entry.getValue());
+			}
 		
-		return groups;
+			return ret;
 	}
 	
 	public void printKnownVertices()
@@ -125,5 +160,16 @@ public class GenerateSequences {
 	private ArrayList<UIState> getKnownVertices()
 	{
 		return (ArrayList<UIState>) fw.rInfo.getUIModel().getKnownVertices();
+	}
+	
+	private String eventSequenceToString(ArrayList<Event> el)
+	{
+		String string = "";
+		
+		for (Event event: el) {
+			string += event.toString().trim().split("in")[0].trim() + "|";
+		}
+		
+		return string;
 	}
 }
