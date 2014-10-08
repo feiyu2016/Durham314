@@ -11,6 +11,13 @@ import main.Paths;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.*;
 
+/**
+ * Execution of an event on the device
+ * It creates a MonkeyRunner process and send command via
+ * the stdin. 
+ * @author zhenxu
+ *
+ */
 public class Executer {
 	protected Framework frame;
 	public static final String TAG = "Executer";
@@ -27,9 +34,17 @@ public class Executer {
 	public Executer(Framework frame){
 		this.frame = frame;
 	}
+
+	/**
+	 * A convenient way for apply onBack event
+	 */
 	public void onBack(){
 		this.applyEvent(Event.getOnBackEvent());
 	}
+	/**
+	 * Apply an event on the device 
+	 * @param event	
+	 */
 	public void applyEvent(Event event){
 		if(DEBUG){ Utility.log(TAG, event.toString()); }
 		Utility.clearLogcat();
@@ -74,16 +89,31 @@ public class Executer {
 		try { Thread.sleep(Event.getNeededSleepDuration(type));
 		} catch (InterruptedException e) { }
 	}
+	/**
+	 * Apply a list of events,
+	 * It tries to close the keyboard each time after an event is applied 
+	 * @param events
+	 */
 	public void applyEventSequence(Event... events){
 		for(Event singleEvnet: events){
 			this.applyEvent(singleEvnet);
 			this.frame.rInfo.checkVisibleWindowAndCloseKeyBoard();
 		}
 	}
+	/**
+	 * get the last event applied
+	 * -- DO NOT USE
+	 * @return
+	 */
 	public Event getLastEventApplied(){
 		//TODO
 		return null;
 	}
+	/**
+	 * initialization function, primarily initialize a MonkeyRunner process
+	 * @param attributes -- input attributes
+	 * @return
+	 */
 	public boolean init(Map<String, Object> attributes){
 		if (DEBUG) Utility.log(TAG, "initialization starts");
 		try {
@@ -119,6 +149,9 @@ public class Executer {
 		} 
 		return true;
 	}
+	/**
+	 * Close/terminate necessary component
+	 */
 	public void terminate(){
 		if (monkeyProcess != null) {
 			try {
@@ -135,9 +168,21 @@ public class Executer {
 
 	/** Monkey method **/
 	
+	
+	/**
+	 * Click on a device
+	 * @param x
+	 * @param y
+	 */
 	public void click(String x, String y) {
 		touch(x, y, DOWN_AND_UP);
 	}
+	/**
+	 * Touch on a device 
+	 * @param x
+	 * @param y
+	 * @param type	-- allowed string is defined in this class
+	 */
 	public void touch(String x, String y, String type) {
 		String toWrite = "device.touch(" + x + "," + y + "," + type + ")\n";
 		try {
@@ -148,6 +193,10 @@ public class Executer {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * type msg to the device
+	 * @param msg
+	 */
 	public void type(String msg) {
 		String toWrite = "device.type('" + msg + "')\n";
 		try {
@@ -158,17 +207,32 @@ public class Executer {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * wake up device
+	 */
 	public void wakeDeviceup() {
 		sendCommand("device.wake()\n");
 	}
+	/**
+	 * press a key e.g. Home
+	 * @param keyCode -- see KeyEvent.KEYCODE_
+	 */
 	public void press(String keyCode) {
 		// http://developer.android.com/reference/android/view/KeyEvent.html
 		// all string name begins with "KEYCODE_"
 		sendCommand("device.press('" + keyCode + "')\n");
 	}
+	/**
+	 * press a key e.g. Home
+	 * @param keyCode -- see KeyEvent.KEYCODE_
+	 */
 	public void press(int keyCode) {
 		sendCommand("device.press('" + keyCode + "')\n");
 	}
+	/**
+	 * ask monkey to sleep for a duration
+	 * @param sec
+	 */
 	public void sleep(int sec) {
 		String toWrite = "MonkeyRunner.sleep(" + sec + ")\n";
 		try {
@@ -179,6 +243,10 @@ public class Executer {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * install an application 
+	 * @param apkPath 
+	 */
 	public void install(String apkPath) {
 		String toWrite = "device.installPackage('" + apkPath + "')\n";
 		try {
@@ -189,18 +257,6 @@ public class Executer {
 			e.printStackTrace();
 		}
 	}
-//	public void startActivity(String packageName, String actName) {
-//		String toWrite = "runComponent = " + packageName + " + '/.' + "
-//				+ actName + "\n"
-//				+ "device.startActivity(component=runComponent)\n";
-//		try {
-//			ostream.write(toWrite.getBytes());
-//			ostream.flush();
-//			sleepForMonekyReady();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
 	private void importLibrary() {
 		String toWrite = "from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice\n";
 		try {

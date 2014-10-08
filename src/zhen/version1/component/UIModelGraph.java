@@ -69,7 +69,7 @@ public class UIModelGraph {
 		knownVertices.add(UIState.Launcher);
 		lastState = UIState.Launcher;
 	}
-
+	
 	public void addLaunch(Event event, UIState newState){
 		if(newState.visitCount == 0){ 
 			knownVertices.add(newState); 
@@ -92,6 +92,14 @@ public class UIModelGraph {
 	
 	public ListenableDirectedMultigraph getGraph() {
 		return graph;
+	}
+	
+	/**
+	 * get all the UI encountered
+	 * @return
+	 */
+	public List<UIState> getKnownVertices() {
+		return knownVertices;
 	}
 
 	public void enableGUI(){
@@ -183,9 +191,5 @@ public class UIModelGraph {
 	        cellAttr.put(cell, attr);
 	        jgAdapter.edit(cellAttr, null, null, null);
 	    }
-	}
-	
-	public ArrayList<UIState> getKnownVertices() {
-		return (ArrayList<UIState>) knownVertices;
 	}
 }

@@ -2,6 +2,11 @@ package zhen.version1.framework;
 
 import main.Paths;
 
+/**
+ * Configuration file stores a list predefined variables
+ * @author zhenxu
+ *
+ */
 public class Configuration {
 	
 	public static String AndroidSDKPath = Paths.androidSDKPath;

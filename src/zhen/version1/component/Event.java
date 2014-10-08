@@ -13,6 +13,11 @@ import com.android.hierarchyviewerlib.models.ViewNode;
 import android.view.KeyEvent;
 import zhen.version1.framework.Common;
 
+/**
+ * The event class which also plays as edge in the graph 
+ * @author zhenxu
+ *
+ */
 public class Event extends DefaultEdge{
 	
 	public final static String EMPTY = "empty";
@@ -49,6 +54,10 @@ public class Event extends DefaultEdge{
 		this.index = avaliableIndex;
 		avaliableIndex += 1;
 	}
+	/**
+	 * Copy constructor
+	 * @param other
+	 */
 	public Event(Event other){
 		this.eventType = other.eventType;
 		//seems that shallow copy is sufficient at this point

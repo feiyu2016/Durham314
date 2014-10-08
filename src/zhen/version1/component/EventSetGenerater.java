@@ -10,11 +10,19 @@ import zhen.version1.framework.Common;
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.ViewNode.Property;
 
+/**
+ * Build a list event for a UIState
+ * @author zhenxu
+ *
+ */
 public class EventSetGenerater {
 	public static boolean DEBUG = false;
 	public static String TAG = "EventSetGenerater";
 	
-
+	/**
+	 * Build the event set for a UIState
+	 * @param ui
+	 */
 	public static void build(UIState ui){
 		//Build view Events
 		ViewNode root = ui.root;

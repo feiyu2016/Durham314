@@ -53,23 +53,44 @@ public class RunTimeInformation{
 	
 	private List<Event> eventDeposit = new ArrayList<Event>();
 	
+	/**
+	 * 
+	 * @param frame
+	 */
 	public RunTimeInformation(Framework frame){
 		this.frame = frame;
 		deviceLayout = new RunTimeLayoutInformation();
 		UIModel = new UIModelGraph();
 	}
+	/**
+	 * initialize components
+	 * @param attributes
+	 */
 	public void init(Map<String, Object> attributes){
 		this.packageName = (String) attributes.get(Common.packageName);
 		deviceLayout.init();
 		UIModel.init();
 	}
+	/**
+	 * close/release/terminate related component
+	 */
 	public void terminate(){
 		deviceLayout.terminate();
 	}
+	/**
+	 * Enable the GUI for the graph 
+	 */
 	public void enableGUI(){
 		this.UIModel.enableGUI();
 	}
 	
+	/**
+	 * get the UIModel being used
+	 * @return UIModel
+	 */
+	public UIModelGraph getUIModel() {
+		return UIModel;
+	}
 	/**
 	 * Synchronize with the device
 	 * and Update necessary information 
@@ -227,7 +248,11 @@ public class RunTimeInformation{
 	public Map<String, List<Event>> getMethodEventMap() {
 		return methodEventMap;
 	}
-	
+	/**
+	 * get the sequence of events that applied on the device by far
+	 * Note: OnBack due to keyboard is not included
+	 * @return
+	 */
 	public List<Event> getAppliedEventSequence(){
 		return this.eventDeposit;
 	}
@@ -262,9 +287,5 @@ public class RunTimeInformation{
 			actName = parts[0];
 		}
 		return new String[]{appName,actName};
-	}
-	
-	public UIModelGraph getUIModel(){
-		return UIModel;
 	}
 }
