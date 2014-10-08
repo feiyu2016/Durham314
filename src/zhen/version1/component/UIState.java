@@ -66,10 +66,21 @@ public class UIState {
 		if(this.winInfo != null) EventSetGenerater.build(this);
 	}
 	
+	/**
+	 * add an event which does not change layout into list 
+	 * @param event
+	 */
 	public void addIneffectiveEvent(Event event){
 		this.ineffectiveEventList.add(event);
 	}
 	
+	/**
+	 * get the list of events that does not change layout
+	 * @return
+	 */
+	public List<Event> getIneffectiveEventList() {
+		return ineffectiveEventList;
+	}
 	@Override
 	public String toString(){
 		String[] title = this.actName.split("\\.");
@@ -123,12 +134,26 @@ public class UIState {
 		return true;
 	}
 	
+	/**
+	 * set the list of possible events which will be later applied
+	 * @param eventList
+	 */
 	public void setPossibleEventList(List<Event> eventList) {
 		this.possibleEventLsit = eventList;
 	} 
+	
+	/**
+	 * set the index of event, eventIndex is not used yet
+	 * @param eventIndex
+	 */
 	public void setEventIndex(int eventIndex) {
 		this.eventIndex = eventIndex;
 	}
+	
+	/**
+	 * get the next possible event and increase the counter
+	 * @return
+	 */
 	public Event getNextPossibleEvent(){
 		Event result;
 		if(this.eventIndex >= this.possibleEventLsit.size()){
@@ -141,9 +166,17 @@ public class UIState {
 		return result;
 	}
 	
+	/**
+	 * set the onBack event has been applied
+	 */
 	public void setOnBackUsed(){
 		this.isOnBackTried = true;
 	}
+	
+	/**
+	 * check if onBack event is applied on the layout  
+	 * @return
+	 */
 	public boolean isOnBackUsed(){
 		return this.isOnBackTried;
 	}
