@@ -8,6 +8,7 @@ import java.util.Scanner;
 import java.util.Stack;
 import java.util.Map.Entry;
 
+import john.generateSequences.GenerateSequences;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -27,7 +28,7 @@ public class SampleTestClass {
 				"signed_CalcA.apk",
 				"signed_KitteyKittey.apk",
 		};
-		int index = 0;
+		int index = 3;
 		String path = "APK/"+name[index];
 		
 		//setup input parameters
@@ -42,7 +43,7 @@ public class SampleTestClass {
 		//add a call back method which is called after the finish of traversal
 		addOnTraverseFinishCallBack(frame);
 		
-		frame.enableStdinMonitor(true);
+		frame.enableStdinMonitor(false);
 		
 		//NOTE: right now it does require apk installed on the device manually
 		//		and please close the app if previous opened
@@ -50,6 +51,12 @@ public class SampleTestClass {
 		frame.start();//start experiment
 		
 //		frame.terminate();
+		ArrayList<String> targets = new ArrayList<String>();
+		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
+		//targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
+		System.out.println("START PRINTING MY STUFF");
+		new GenerateSequences(frame, targets).generateMethodGroups();
+		System.out.println("DONE PRINTING MY STUFF");
 		
 		System.out.println("Finish!");
 	}
@@ -67,7 +74,7 @@ public class SampleTestClass {
 				Utility.info(Framework.TAG, "OnTraverseFinishCallBack ");
 				// show the map of method -> event
 				// and find a set possible events which leads to a method
-				String targetMethod = "com.example.backupHelper.BackupFilesListAdapter: void reset(boolean)";
+				String targetMethod = "com.bae.drape.gui.calculaor.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)";
 				Map<String, List<Event>> map = frame.rInfo.getMethodEventMap();
 				List<Event> events = null;
 				for(Entry<String, List<Event>> entry : map.entrySet()){
