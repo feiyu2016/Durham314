@@ -53,6 +53,7 @@ public class SampleTestClass {
 		
 //		frame.terminate();
 		ArrayList<String> targets = new ArrayList<String>();
+		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
 		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
 		//targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
 		System.out.println("START PRINTING MY STUFF");
