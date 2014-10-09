@@ -13,9 +13,10 @@ import main.Paths;
 
 import org.jgrapht.alg.DijkstraShortestPath;
 
+import com.android.ddmlib.IDevice;
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
- 
+
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.RunTimeLayoutInformation;
@@ -103,7 +104,7 @@ public class RunTimeInformation{
 		//check if the event needs to be ignored 
 		if(lastEvent.getEventType() == Event.iEMPTY){ return; }
 		
-		List<String> logcatFeedback = Utility.readInstrumentationFeedBack();
+		List<String> logcatFeedback = Utility.readInstrumentationFeedBack(this.getParimaryDevice().getSerialNumber());
 		if(DEBUG) Utility.log(TAG, "readInstrumentationFeedBack finished");
 //		if(isErrorPresent(logcatFeedback)){	//TODO
 //			onApplicationError();
@@ -213,7 +214,8 @@ public class RunTimeInformation{
 	 * @return	a list of visible window information
 	 */
 	public WindowInformation[] checkVisibleWindowAndCloseKeyBoard(){
-		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation();
+		String serial = this.getParimaryDevice().getSerialNumber();
+		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation(serial);
 		for(WindowInformation vwin : visibleWindows){
 			//TODO to improve
 			if(vwin.name.toLowerCase().contains("inputmethod")){
@@ -255,6 +257,31 @@ public class RunTimeInformation{
 	 */
 	public List<Event> getAppliedEventSequence(){
 		return this.eventDeposit;
+	}
+	
+	/**
+	 * Find the sequence of events that reach the target UI for the first time
+	 * @param target
+	 * @return
+	 */
+	public List<Event> locateFirstOccurance(UIState target){
+		List<Event> list = new ArrayList<Event>();
+		for(int i=0;i<this.eventDeposit.size();i++){
+			Event current = eventDeposit.get(i);
+			list.add(current);
+			if(current.getSource().equals(target)){
+				return list;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * only get the very first device connected to the laptop
+	 * @return
+	 */
+	public IDevice getParimaryDevice(){
+		return deviceLayout.getPrimaryDevice();
 	}
 	
 	private boolean isErrorPresent(List<String> logcatFeedback){

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import main.Paths;
+import zhen.version1.Support.CommandLine;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.*;
 
@@ -47,19 +48,15 @@ public class Executer {
 	 */
 	public void applyEvent(Event event){
 		if(DEBUG){ Utility.log(TAG, event.toString()); }
-		Utility.clearLogcat();
+		Utility.clearLogcat(this.frame.rInfo.getParimaryDevice().getSerialNumber());
 		int type = event.getEventType();
 		switch(type){
 		case Event.iLAUNCH:{
 			String packageName = (String) event.getValue(Common.event_att_packname);
 			String actName = (String) event.getValue(Common.event_att_actname);
-//			this.startActivity(packageName, actName);
-			try {
-				Runtime.getRuntime().exec(Paths.adbPath + " shell am start -n " + packageName + "/" + actName);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			String serial = this.frame.rInfo.getParimaryDevice().getSerialNumber();
+			String shellCommand = "am start -n " + packageName + "/" + actName;
+			CommandLine.executeShellCommand(shellCommand, serial);
 		}break;
 		case Event.iRESTART:{
 			//TODO
@@ -124,12 +121,11 @@ public class Executer {
 			sleepForMonekyReady();
 			importLibrary();
 			connectDevice();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			Utility.readString(estream);
-			Utility.readString(istream);
+			
+			String s1 = Utility.readString(estream);
+			if(s1!= null)Utility.log(TAG, Utility.readString(estream));
+			String s2 = Utility.readString(istream);
+			if(s2!= null)Utility.log(TAG, Utility.readString(istream));
 			if (DEBUG) Utility.log(TAG, "initialization finishes");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -268,7 +264,8 @@ public class Executer {
 		}
 	}
 	public void connectDevice() {
-		String toWrite = "device = MonkeyRunner.waitForConnection()\n";
+		String serial = this.frame.rInfo.getParimaryDevice().getSerialNumber();
+		String toWrite = "device = MonkeyRunner.waitForConnection(60, '"+serial+"')\n";
 		if(DEBUG)Utility.log(TAG, "Connecting");
 		try {
 			ostream.write(toWrite.getBytes());
@@ -351,6 +348,4 @@ public class Executer {
 			e.printStackTrace();
 		}
 	}
-
-
 }

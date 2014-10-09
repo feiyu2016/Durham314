@@ -147,7 +147,7 @@ public class Event extends DefaultEdge{
 		case iLAUNCH: 		
 		case iRESTART: 	 
 		case iREINSTALL:	{
-			result = typename;	
+			result = typename+" "+this.getValue(Common.event_att_actname);	
 			break;
 		}
 		case iPRESS: 	 	{

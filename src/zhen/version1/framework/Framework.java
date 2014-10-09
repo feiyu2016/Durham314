@@ -61,10 +61,15 @@ public class Framework {
 		rInfo.init(attributes);
 		traverser.init(attributes);
 		executer.init(attributes);
-		rInfo.enableGUI();
+//		rInfo.enableGUI();
 		
 		executer.wakeDeviceup();
-		CommandLine.executeCommand(CommandLine.unlockScreenCommand);
+		try { Thread.sleep(500);
+		} catch (InterruptedException e) { }
+		
+		CommandLine.executeShellCommand(
+				CommandLine.unlockScreenShellCommand, 
+				this.rInfo.getParimaryDevice().getSerialNumber());
 	}
 	
 	/**
@@ -81,6 +86,7 @@ public class Framework {
 	 * in the future, might want to put every thing into loop
 	 */
 	public void start(){	
+		Utility.log(TAG, "APKPath, "+this.apkPath);
 		if(enableStdinMonitor) stdinMonitor.start();
 		//make decision
 		

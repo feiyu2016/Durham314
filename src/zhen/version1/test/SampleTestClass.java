@@ -27,7 +27,7 @@ public class SampleTestClass {
 				"signed_CalcA.apk",
 				"signed_KitteyKittey.apk",
 		};
-		int index = 2;
+		int index = 0;
 		String path = "APK/"+name[index];
 		
 		//setup input parameters
@@ -41,7 +41,7 @@ public class SampleTestClass {
 //		addExplorerStepControl(frame);
 		//add a call back method which is called after the finish of traversal
 		addOnTraverseFinishCallBack(frame);
-		
+
 //		frame.enableStdinMonitor(true);
 		
 		//NOTE: right now it does require apk installed on the device manually

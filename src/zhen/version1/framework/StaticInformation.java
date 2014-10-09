@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import zhen.version1.Support.Utility;
 import main.Paths; 
 
 /**
@@ -18,7 +19,8 @@ import main.Paths;
  *
  */
 public class StaticInformation {
-	
+	public static boolean DEBUG = true;
+	public static String TAG = "StaticInformation";
 	protected Framework frame;
 	public List<String> activityList;
 	public String packageName;
@@ -33,6 +35,8 @@ public class StaticInformation {
 		packageName = StaticInfo.getPackageName(apkFile);
 		
 		attributes.put(Common.packageName, packageName);
+		
+		if(DEBUG)Utility.log(TAG,"packageName, "+packageName);
 	}
 	
 	public void terminate(){

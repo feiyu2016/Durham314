@@ -166,6 +166,11 @@ public class UIState {
 		return result;
 	}
 	
+	public boolean hasNextEvent(){
+		if(this.isInScopeUI && !isLauncher) return isOnBackTried || this.eventIndex >= this.possibleEventLsit.size();
+		else return false;
+	}
+	
 	/**
 	 * set the onBack event has been applied
 	 */

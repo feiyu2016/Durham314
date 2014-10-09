@@ -133,7 +133,7 @@ public class UIModelGraph {
 			if(DEBUG) Utility.log(TAG,"addEdge, "+sourceVertex+" -> "+targetVertex);
 			if(sourceVertex.equals(targetVertex)){
 				sourceVertex.addIneffectiveEvent(e);
-			}else{
+			}else{				
 				super.addEdge(sourceVertex, targetVertex, e);
 			}
 			return true;

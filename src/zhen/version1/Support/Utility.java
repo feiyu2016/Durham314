@@ -21,13 +21,13 @@ import zhen.version1.framework.Configuration;
 public class Utility {
 	public static boolean DEBUG = true;
 	public static String TAG = "Utility";
-	public static List<String> readInstrumentationFeedBack(){
+	public static List<String> readInstrumentationFeedBack(String serial){
 		ArrayList<String> result = new ArrayList<String>();
 		/**
 		 * Situation that the process never terminated happened.
 		 */
 		try{
-			final Process pc = Runtime.getRuntime().exec(Configuration.ADBPath + " logcat -v thread -d  -s "+Configuration.InstrumentationTag);
+			final Process pc = Runtime.getRuntime().exec(Configuration.ADBPath + " -s "+serial+" logcat -v thread -d  -s "+Configuration.InstrumentationTag);
 			InputStream in = pc.getInputStream();
 			long point1 = System.currentTimeMillis();
 			StringBuilder sb = new StringBuilder();
@@ -55,9 +55,9 @@ public class Utility {
 		return result;
 	}
 	
-	public static void clearLogcat(){
+	public static void clearLogcat(String serial){
 		try {
-			Runtime.getRuntime().exec(Configuration.ADBPath + " logcat -c").waitFor();
+			Runtime.getRuntime().exec(Configuration.ADBPath + " -s "+serial+" logcat -c").waitFor();
 		} catch (InterruptedException | IOException e) { 
 			e.printStackTrace();
 		}
@@ -136,19 +136,14 @@ public class Utility {
 	}
 	
 	public static void info(String tag, Object input ){
-		int tagSize = 40, msgSize = 200;;
-		if(tag.length() > tagSize){
-			tag = (String) tag.subSequence(0, tagSize);
-		}
-		String part1 = String.format("%-"+tagSize+"s", tag);
-		String[] part2 = String.format("%-"+msgSize+"s", (input==null?"null":input.toString())).split("\r|\n");
-		for(String part: part2){
-			if(part == null || part.trim().equals("")) continue;
-			System.out.println(part1+"  "+part);
-		}
+		informationBuilder(tag,input);
 	}
 	
 	public static void log(String tag, Object input){
+		informationBuilder(tag,input);
+	}
+	
+	private static void informationBuilder(String tag, Object input){
 		int tagSize = 40, msgSize = 200;;
 		if(tag.length() > tagSize){
 			tag = (String) tag.subSequence(0, tagSize);
@@ -156,7 +151,10 @@ public class Utility {
 		String part1 = String.format("%-"+tagSize+"s", tag);
 		String[] part2 = String.format("%-"+msgSize+"s", (input==null?"null":input.toString())).split("\n");
 		for(String part: part2){
-			System.out.println(part1+"  "+part);
+			String tmp = (part==null)?"":part.trim();
+			if(!tmp.equals("")){
+				System.out.println(part1+"  "+tmp);
+			}
 		}
 	}
 }
