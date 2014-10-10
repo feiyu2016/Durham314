@@ -122,7 +122,7 @@ public class RunTimeInformation{
 //			onApplicationError();
 //		}
 		
-		WindowInformation[] visibleWindows = checkVisibleWindowAndCloseKeyBoard();
+		WindowInformation[] visibleWindows = checkVisibleWindowAndCloseKeyBoard(this.frame.traverseExecuter);
 		
 		WindowInformation targetInfo = null;
 		for(WindowInformation info : visibleWindows){
@@ -225,13 +225,13 @@ public class RunTimeInformation{
 	 * get a list of visible windows and if the keyboard is present close it
 	 * @return	a list of visible window information
 	 */
-	public WindowInformation[] checkVisibleWindowAndCloseKeyBoard(){
+	public WindowInformation[] checkVisibleWindowAndCloseKeyBoard(Executer executer){
 		String serial = this.getParimaryDevice().getSerialNumber();
 		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation(serial);
 		for(WindowInformation vwin : visibleWindows){
 			//TODO to improve
 			if(vwin.name.toLowerCase().contains("inputmethod")){
-				this.frame.traverseExecuter.onBack();
+				executer.onBack();
 				break;
 			}
 		}

@@ -134,7 +134,7 @@ public class Executer {
 		for(Event singleEvnet: events){
 			if(!jdb.isConnected())jdb.connect();
 			this.applyEvent(singleEvnet);
-			this.frame.rInfo.checkVisibleWindowAndCloseKeyBoard();
+			this.frame.rInfo.checkVisibleWindowAndCloseKeyBoard(this);
 		}
 	}
 	
