@@ -49,6 +49,6 @@ public class RuntimeValidation {
 	
 	public static void main(String args[])
 	{
-		new RuntimeValidation("calculatorScript").runAllScripts();
+		new RuntimeValidation("handleOperation").runAllScripts();
 	}
 }
