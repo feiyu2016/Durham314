@@ -1,5 +1,6 @@
 package zhen.version1.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Stack;
 import java.util.Map.Entry;
 
 import john.generateSequences.GenerateSequences;
+import john.runtimeValidation.GenerateValidationScripts;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -52,18 +54,38 @@ public class SampleTestClass {
 		frame.start();//start experiment
 		
 //		frame.terminate();
-		ArrayList<String> targets = new ArrayList<String>();
-		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
-		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
-		//targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
-		System.out.println("START PRINTING MY STUFF");
-		GenerateSequences gs = new GenerateSequences(frame, targets, false);
-		for (String string: gs.getEnhancedSequences()) {
-			System.out.println(string);
-		}
-		System.out.println("DONE PRINTING MY STUFF");
+		
+		johnsTest(frame);
 		
 		System.out.println("Finish!");
+	}
+	
+	private static void johnsTest(Framework frame)
+	{
+		ArrayList<String> targets = new ArrayList<String>();
+		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
+		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
+		//targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
+		
+		System.out.println("START PRINTING MY STUFF");
+		
+		GenerateSequences gs = new GenerateSequences(frame, targets, false);
+		ArrayList<String> enhancedSequences = gs.getEnhancedSequences();
+		
+		for (String string: enhancedSequences) {
+			System.out.println(string);
+		}
+		
+		GenerateValidationScripts gvs = new GenerateValidationScripts("handleOperation", "com.bae.drape.gui.calculator", "CalculatorActivity");
+		gvs.setEventSequences(enhancedSequences);
+		try {
+			gvs.generateScripts();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.out.println("DONE PRINTING MY STUFF");
 	}
 	
 	private static void addExplorerStepControl( Framework frame){
