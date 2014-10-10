@@ -104,7 +104,7 @@ public class SampleTestClass {
 					
 					//reply the event sequence
 					if(path!=null && path.isEmpty()){
-						frame.executer.applyEventSequence(path.toArray(new Event[0]));
+						frame.traverseExecuter.applyEventSequence(path.toArray(new Event[0]));
 					}
 				}else{
 					Utility.info(Framework.TAG, "Event set empty");

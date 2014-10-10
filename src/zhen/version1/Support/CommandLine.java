@@ -60,9 +60,13 @@ public class CommandLine {
 //		String command = "";
 //		return executeCommand(command);
 //	}
-
+	
 	public static int executeCommand(String command){
 		return executeCommand(command,0);
+	}
+	
+	public static int executeADBCommand(String command, String serial){
+		return executeCommand(Configuration.ADBPath+" -s "+serial+" "+command);
 	}
 	
 	public static int executeShellCommand(String command, String serial){

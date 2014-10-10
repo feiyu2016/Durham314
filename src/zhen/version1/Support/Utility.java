@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -156,5 +157,18 @@ public class Utility {
 				System.out.println(part1+"  "+tmp);
 			}
 		}
+	}
+	
+	public static boolean checkPortIsAvailable(int port){
+		ServerSocket socket = null;
+		boolean canUse = false;
+		try {
+			socket = new ServerSocket(port);
+			socket.close();
+			canUse=true;
+		} catch (IOException e) {
+			canUse = false;
+		}
+		return canUse;
 	}
 }

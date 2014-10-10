@@ -92,6 +92,18 @@ public class RunTimeInformation{
 	public UIModelGraph getUIModel() {
 		return UIModel;
 	}
+	
+	public List<IDevice> getDeviceList(){
+		return this.deviceLayout.getDeviceList();
+	}
+	
+	/**
+	 * get the list of events applied to the devices
+	 * @return
+	 */
+	public List<Event> getEventDeposit() {
+		return eventDeposit;
+	}
 	/**
 	 * Synchronize with the device
 	 * and Update necessary information 
@@ -219,7 +231,7 @@ public class RunTimeInformation{
 		for(WindowInformation vwin : visibleWindows){
 			//TODO to improve
 			if(vwin.name.toLowerCase().contains("inputmethod")){
-				this.frame.executer.onBack();
+				this.frame.traverseExecuter.onBack();
 				break;
 			}
 		}
@@ -268,8 +280,9 @@ public class RunTimeInformation{
 		List<Event> list = new ArrayList<Event>();
 		for(int i=0;i<this.eventDeposit.size();i++){
 			Event current = eventDeposit.get(i);
+			if(current.getEventType() == Event.iEMPTY) continue;
 			list.add(current);
-			if(current.getSource().equals(target)){
+			if(current.getSource()!=null && current.getSource().equals(target)){
 				return list;
 			}
 		}

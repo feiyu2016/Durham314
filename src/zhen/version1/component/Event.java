@@ -214,6 +214,31 @@ public class Event extends DefaultEdge{
 		default: return Common.NON_SLEEP;
 		}
 	}
+	
+	public static Event getRestartEvent(String appName, String actName){
+		Event result = new Event();
+		result.eventType = Event.iRESTART;
+		result.putValue(Common.event_att_packname, appName);
+		result.putValue(Common.event_att_actname, actName);
+		return result;
+	}
+	
+	public static Event getReinstallEvent(String apkPath){
+		Event result = new Event();
+		result.eventType = Event.iREINSTALL;
+		result.putValue(Common.apkPath, apkPath);
+		return result;
+	}
+	
+	public static Event getReinstallEventWithLaunch(String apkPath, String appName, String actName){
+		Event result = new Event();
+		result.eventType = Event.iREINSTALL;
+		result.putValue(Common.apkPath, apkPath);
+		result.putValue(Common.event_att_packname, appName);
+		result.putValue(Common.event_att_actname, actName);
+		return result;
+	}
+	
 	public static Event getOnBackEvent(){
 		Event result = new Event();
 		result.eventType = Event.iPRESS;

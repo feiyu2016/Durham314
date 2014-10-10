@@ -31,9 +31,25 @@ public class Executer {
 	private BufferedOutputStream ostream = null;
 	private BufferedInputStream estream = null;
 	private BufferedInputStream istream = null;
+	private String serial = null;
+	private JDBControl jdb;
+	private List<String> methodSigature;
 	
 	public Executer(Framework frame){
 		this.frame = frame;
+	}
+	
+	public Executer(Framework frame, String serial){
+		this.frame = frame;
+		this.serial = serial;
+	}
+	
+	public String getSerial(){
+		return this.serial;
+	}
+	
+	public void setMethodSigature(List<String> methodSigature) {
+		this.methodSigature = methodSigature;
 	}
 
 	/**
@@ -42,27 +58,49 @@ public class Executer {
 	public void onBack(){
 		this.applyEvent(Event.getOnBackEvent());
 	}
+	
+	public void setSerial(String serial){
+		this.serial = serial;
+	}
+	
 	/**
 	 * Apply an event on the device 
 	 * @param event	
 	 */
 	public void applyEvent(Event event){
 		if(DEBUG){ Utility.log(TAG, event.toString()); }
-		Utility.clearLogcat(this.frame.rInfo.getParimaryDevice().getSerialNumber());
+		Utility.clearLogcat(serial);
 		int type = event.getEventType();
 		switch(type){
 		case Event.iLAUNCH:{
 			String packageName = (String) event.getValue(Common.event_att_packname);
 			String actName = (String) event.getValue(Common.event_att_actname);
-			String serial = this.frame.rInfo.getParimaryDevice().getSerialNumber();
-			String shellCommand = "am start -n " + packageName + "/" + actName;
+			String shellCommand = "am start -f 32768 -W -n " + packageName + "/" + actName;
 			CommandLine.executeShellCommand(shellCommand, serial);
 		}break;
 		case Event.iRESTART:{
-			//TODO
+			String packageName = (String) event.getValue(Common.event_att_packname);
+			String actName = (String) event.getValue(Common.event_att_actname);
+			
+			String stopCommand = "am force-stop "+packageName;
+			CommandLine.executeShellCommand(stopCommand, serial);
+//			com.example.backupHelper/com.example.backupHelper.BackupActivity
+			String launchCommand = "am start -f 32768 -W -n " + packageName + "/" + actName;
+			CommandLine.executeShellCommand(launchCommand, serial);
 		}break;
 		case Event.iREINSTALL:{
-			//TODO
+			String packageName = (String) event.getValue(Common.event_att_packname);
+			String actName = (String) event.getValue(Common.event_att_actname);
+//			String uninstallCommand = "pm uninstall -k "+packageName;
+//			CommandLine.executeShellCommand(uninstallCommand, serial);
+			
+			String installCommand = "install -r "+ event.getValue(Common.apkPath);
+			CommandLine.executeADBCommand(installCommand, serial);
+			
+			if(actName != null){
+				String launchCommand = "am start  -f  32768 -W -n " + packageName + "/" + actName;
+				CommandLine.executeShellCommand(launchCommand, serial);
+			}
 		}break;
 		case Event.iPRESS:{
 			String keycode = (String)event.getValue(Common.event_att_keycode);
@@ -92,11 +130,20 @@ public class Executer {
 	 * @param events
 	 */
 	public void applyEventSequence(Event... events){
+		
 		for(Event singleEvnet: events){
+			if(!jdb.isConnected())jdb.connect();
 			this.applyEvent(singleEvnet);
 			this.frame.rInfo.checkVisibleWindowAndCloseKeyBoard();
 		}
 	}
+	
+	
+	
+	public JDBControl getJdb() {
+		return jdb;
+	}
+
 	/**
 	 * get the last event applied
 	 * -- DO NOT USE
@@ -126,6 +173,8 @@ public class Executer {
 			if(s1!= null)Utility.log(TAG, Utility.readString(estream));
 			String s2 = Utility.readString(istream);
 			if(s2!= null)Utility.log(TAG, Utility.readString(istream));
+			jdb = new JDBControl(serial,this.frame.sInfo.packageName);
+			if(this.serial == null) this.serial = frame.rInfo.getParimaryDevice().getSerialNumber();
 			if (DEBUG) Utility.log(TAG, "initialization finishes");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -264,7 +313,6 @@ public class Executer {
 		}
 	}
 	public void connectDevice() {
-		String serial = this.frame.rInfo.getParimaryDevice().getSerialNumber();
 		String toWrite = "device = MonkeyRunner.waitForConnection(60, '"+serial+"')\n";
 		if(DEBUG)Utility.log(TAG, "Connecting");
 		try {
