@@ -60,6 +60,9 @@ public class SampleTestClass {
 		System.out.println("Finish!");
 	}
 	
+	private static String device1 = "015d3c26c9540809";
+	private static String device2 = "015d3f1936080c05"; 
+	
 	private static void johnsTest(Framework frame)
 	{
 		ArrayList<String> targets = new ArrayList<String>();
@@ -76,7 +79,7 @@ public class SampleTestClass {
 			System.out.println(string);
 		}
 		
-		GenerateValidationScripts gvs = new GenerateValidationScripts("handleOperation", "com.bae.drape.gui.calculator", "CalculatorActivity");
+		GenerateValidationScripts gvs = new GenerateValidationScripts("handleOperation", "com.bae.drape.gui.calculator", "CalculatorActivity", device1);
 		gvs.setEventSequences(enhancedSequences);
 		try {
 			gvs.generateScripts();

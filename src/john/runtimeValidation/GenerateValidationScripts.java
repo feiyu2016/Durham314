@@ -13,6 +13,7 @@ public class GenerateValidationScripts {
 	private String scriptName;
 	private String packageName;
 	private String activityName;
+	private String deviceID;
 	
 	private ArrayList<String> eventSequences;
 	private boolean eventSequencesAreSet = false;
@@ -21,11 +22,12 @@ public class GenerateValidationScripts {
 
 	private PrintWriter writer;
 	
-	public GenerateValidationScripts(String scriptName, String packageName, String mainActivityName)
+	public GenerateValidationScripts(String scriptName, String packageName, String mainActivityName, String deviceID)
 	{
 		this.scriptName = scriptName;
 		this.packageName = packageName;
 		this.activityName = mainActivityName;
+		this.deviceID = deviceID;
 		sequenceNumber = 0;
 	}
 	
@@ -49,11 +51,11 @@ public class GenerateValidationScripts {
 		else {
 			writer.println("#!/usr/bin/python");
 			writer.println("from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice");
-			writer.println("device = MonkeyRunner.waitForConnection()");
-			writer.println("package = '" + packageName + "'");
-			writer.println("activity = '" + activityName + "'");
-			writer.println("runComponent = package + '/.' + activity");
-			writer.println("device.startActivity(component=runComponent)");
+			writer.println("device = MonkeyRunner.waitForConnection(10.0,'" + deviceID + "')");
+//			writer.println("package = '" + packageName + "'");
+//			writer.println("activity = '" + activityName + "'");
+//			writer.println("runComponent = package + '/.' + activity");
+//			writer.println("device.startActivity(component=runComponent)");
 			writer.println("MonkeyRunner.sleep(1)");
 		}
 	}
@@ -92,7 +94,7 @@ public class GenerateValidationScripts {
 					writer.println("device.touch(" + x + "," + y + "," + click + ")");
 					writer.println("MonkeyRunner.sleep(1)");
 				}
-				writer.println("device.shell('am force-stop " + packageName + "')");
+				//writer.println("device.shell('am force-stop " + packageName + "')");
 				closeFile();
 			}
 		} finally {}

@@ -31,5 +31,6 @@
 	<classpathentry kind="lib" path="libs/chimpchat.jar"/>
 	<classpathentry kind="lib" path="libs/hierarchyviewer2lib.jar"/>
 	<classpathentry kind="lib" path="libs/soot.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/StaticSniper"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
