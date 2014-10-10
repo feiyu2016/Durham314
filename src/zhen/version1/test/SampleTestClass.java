@@ -57,7 +57,10 @@ public class SampleTestClass {
 		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
 		//targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
 		System.out.println("START PRINTING MY STUFF");
-		new GenerateSequences(frame, targets).generateMethodGroups();
+		GenerateSequences gs = new GenerateSequences(frame, targets, false);
+		for (String string: gs.getEnhancedSequences()) {
+			System.out.println(string);
+		}
 		System.out.println("DONE PRINTING MY STUFF");
 		
 		System.out.println("Finish!");
