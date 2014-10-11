@@ -3,8 +3,8 @@ package john.runtimeValidation;
 import java.io.File;
 import java.util.ArrayList;
 
-import jdb.JDBStuff;
 import main.Paths;
+import john.jdb.JDBInterface;
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
@@ -16,7 +16,7 @@ public class RuntimeValidation implements Runnable{
 	private String mainActivity;
 	private StaticApp staticApp;
 	private StaticMethod targetMethod;
-	private int flag;
+	private int deviceNumber;
 	
 	private Process monkeyPC;
 	private String deviceID;
@@ -24,17 +24,14 @@ public class RuntimeValidation implements Runnable{
 
 
 	public void run() {
-		if (flag == 1)
-			this.runAllScripts();
-		else if (flag == 2)
-			this.runAllScripts();
+		runAllScripts();
 	}
 	
-	public RuntimeValidation(String string, int flag,
+	public RuntimeValidation(String string, int deviceNumber,
 			StaticMethod m, StaticApp staticApp, String deviceID, int tcpPort) {
 		this.targetMethod = m;
 		this.staticApp = staticApp;
-		this.flag = flag;
+		this.deviceNumber = deviceNumber;
 		this.scriptName = string;
 		this.deviceID = deviceID;
 		this.tcpPort = tcpPort;
@@ -66,34 +63,29 @@ public class RuntimeValidation implements Runnable{
 		try {
 			int scriptCounter = 1;
 			for (String script:scripts) {
-				
 				System.out.println("\nscript " + scriptCounter++ + "/" + scripts.size() + " running on Device " + deviceID + " ...");
 				startApp();
-				JDBStuff jdb = new JDBStuff();
-				jdb.setlocalTcpPort(tcpPort);
-				jdb.initJDB(packageName, deviceID, flag);
-
+				
+				JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
+				System.out.println("JDBInterface object created");
+				jdb.initJDB();
+				System.out.println("initJDB");
 				jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
+				System.out.println("setBreakPointsAtLines");
 				jdb.setMonitorStatus(true);
+				System.out.println("before monkey");
 				monkeyPC = Runtime.getRuntime().exec(Paths.androidToolPath + "monkeyrunner " + script);
+				
 				monkeyPC.waitFor();
 				jdb.exitJDB();
 				stopApp();
-				if (flag == 1) {
-					for (String bp: DualWielding.single_result_1) {
-						if (!DualWielding.overall_result1.contains(bp))
-							DualWielding.overall_result1.add(bp);
-						System.out.println("   " + bp);
-					}
+				
+				for (String bp: jdb.getBPsHit()) {
+					if (!DualWielding.overall_result.get(deviceNumber).contains(bp))
+						DualWielding.overall_result.get(deviceNumber).add(bp);
+					
+					System.out.println("    " + bp);
 				}
-				else if (flag ==2) {
-					for (String bp: DualWielding.single_result_2) {
-						if (!DualWielding.overall_result2.contains(bp))
-							DualWielding.overall_result2.add(bp);
-						System.out.println("   " + bp);
-					}
-				}
-
 			}
 		} catch (Exception e) {
 			System.out.println("Couldn't exec monkeyrunner or JDB.");

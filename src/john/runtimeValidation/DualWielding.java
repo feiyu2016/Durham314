@@ -9,51 +9,67 @@ import staticFamily.StaticMethod;
 
 public class DualWielding {
 
+	public static ArrayList<ArrayList<String>> overall_result = new ArrayList<ArrayList<String>>();
+	public static ArrayList<String> deviceIDs = new ArrayList<String>();
+	public static ArrayList<String> methodSigs = new ArrayList<String>();
+	public static ArrayList<String> scriptNames = new ArrayList<String>();
+	public static ArrayList<Thread> threads = new ArrayList<Thread>();
+	public static ArrayList<Integer> tcpPorts = new ArrayList<Integer>();
+	public static ArrayList<StaticMethod> methods = new ArrayList<StaticMethod>();
+	public static StaticApp appUnderTest;
 	
-	public static ArrayList<String> overall_result1 = new ArrayList<String>();
-	public static ArrayList<String> overall_result2 = new ArrayList<String>();
-	private static String device1 = "015d3c26c9540809";
-	private static String device2 = "015d3f1936080c05";
-	public static ArrayList<String> single_result_1 = new ArrayList<String>();
-	public static ArrayList<String> single_result_2 = new ArrayList<String>();
+	public DualWielding(File app) {
+		appUnderTest = new StaticApp(app);
+	}
+	
+	public static void addNewDevice(String deviceID, String methodSig, String scriptName, Integer tcpPort)
+	{
+		overall_result.add(new ArrayList<String>());
+		deviceIDs.add(deviceID);
+		methodSigs.add(methodSig);
+		methods.add(appUnderTest.findMethodByFullSignature(methodSig));
+		tcpPorts.add(tcpPort);
+		scriptNames.add(scriptName);
+	}
+	
+	public int getDeviceNumber(String ID)
+	{
+		return deviceIDs.indexOf(ID);
+	}
 	
 	public static void main(String args[])
 	{
-		StaticApp staticApp = new StaticApp(new File("APK/signed_CalcA.apk"));
+		appUnderTest = new StaticApp(new File("APK/signed_CalcA.apk"));
 		
-		staticAnalysis.StaticInfo.initAnalysis(staticApp, true);
+		staticAnalysis.StaticInfo.initAnalysis(appUnderTest, true);
 
 		String methodSig1 = "<com.bae.drape.gui.calculator.CalculatorActivity: "
 				+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>";
-		String methodsig2 = "<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>";
-		StaticMethod m1 = staticApp.findMethodByFullSignature(methodSig1);
-		StaticMethod m2 = staticApp.findMethodByFullSignature(methodsig2);
+		String methodSig2 = "<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>";
+		String device1 = "015d3c26c9540809";
+		String device2 = "015d3f1936080c05";
 		
-		Thread t1 = new Thread(new RuntimeValidation("handleOperation", 1, m1, staticApp, device1, 7772));
-		Thread t2 = new Thread(new RuntimeValidation("handleNumber", 2, m2, staticApp, device2, 7773));
-		t1.start();
-		t2.start();
-		try {
-			t1.join();
-			t2.join();
-		}	catch (Exception e) {e.printStackTrace();}
+		addNewDevice(device1, methodSig1, "handleOperation", 7772);
+		addNewDevice(device2, methodSig2, "handleNumber", 7773);
 		
-		int hitCount1 = overall_result1.size();
-		int total1 = m1.getAllSourceLineNumbers().size();
-		System.out.println("\nOverall break points hit: " + hitCount1 + "/" + total1 + ", " +
-				new DecimalFormat("#.##").format(100*(double)hitCount1/(double)total1) + "%");
-		for (String string: overall_result1) {
-			System.out.println(string);
+		for (int i = 0; i < deviceIDs.size(); i++) {
+			threads.add(new Thread(new RuntimeValidation(scriptNames.get(i), i, methods.get(i), appUnderTest, deviceIDs.get(i), tcpPorts.get(i))));
+			threads.get(i).start();
 		}
 		
-		int hitCount2 = overall_result2.size();
-		int total2 = m2.getAllSourceLineNumbers().size();
-		System.out.println("\nOverall break points hit: " + hitCount2 + "/" + total2 + ", " +
-				new DecimalFormat("#.##").format(100*(double)hitCount2/(double)total2) + "%");
-		for (String string: overall_result2) {
-			System.out.println(string);
+		for (int i = 0; i < threads.size(); i++) {
+			try {
+				threads.get(i).join();
+			} catch (InterruptedException e) { e.printStackTrace(); }
 		}
-
+		
+		for (int i = 0; i < deviceIDs.size(); i++) {
+			int hitCount = overall_result.get(i).size();
+			int total = methods.get(i).getAllSourceLineNumbers().size();
+			
+			System.out.println("\nOverall break points hit: " + hitCount + "/" + total + "," +
+					new DecimalFormat("#.##").format(100*(double)hitCount/(double)total) + "%");
+		}
 	}
 	
 }
