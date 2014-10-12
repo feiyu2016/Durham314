@@ -1,5 +1,6 @@
 package zhen.version1.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import zhen.version1.framework.Common;
  * @author zhenxu
  *
  */
-public class Event extends DefaultEdge{
+public class Event extends DefaultEdge implements Serializable{
 	
 	public final static String EMPTY = "empty";
 	public final static String UPDATE = "update";
