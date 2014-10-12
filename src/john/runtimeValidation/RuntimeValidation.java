@@ -67,15 +67,10 @@ public class RuntimeValidation implements Runnable{
 				startApp();
 				
 				JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
-				System.out.println("JDBInterface object created");
 				jdb.initJDB();
-				System.out.println("initJDB");
 				jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
-				System.out.println("setBreakPointsAtLines");
 				jdb.setMonitorStatus(true);
-				System.out.println("before monkey");
 				monkeyPC = Runtime.getRuntime().exec(Paths.androidToolPath + "monkeyrunner " + script);
-				
 				monkeyPC.waitFor();
 				jdb.exitJDB();
 				stopApp();

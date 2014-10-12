@@ -13,7 +13,7 @@ public class JDBMonitor implements Runnable {
 	public JDBMonitor (BufferedReader in) {
 		this.in = in;
 		this.exit = false;
-		this.BPsHit.clear();
+		this.BPsHit = new ArrayList<String>();
 	}
 	
 	@Override
@@ -28,7 +28,7 @@ public class JDBMonitor implements Runnable {
 	
 	public void exitThread()
 	{
-		this.exit = true;
+		exit = true;
 	}
 
 	private void monitor() {
@@ -37,9 +37,9 @@ public class JDBMonitor implements Runnable {
 		try {
 			while (exit == false) {
 				if ((line = in.readLine()) == null) continue;
-					
-				if (!line.startsWith("Breakpoint hit: \"")) continue;
 				
+				if (!line.startsWith("Breakpoint hit: \"")) continue;
+
 				String classAndMethod = line.split(",")[1].trim();
 				String className = classAndMethod.substring(0, classAndMethod.lastIndexOf("."));
 				String methodSig = classAndMethod.substring(classAndMethod.lastIndexOf(".")+1, classAndMethod.length());

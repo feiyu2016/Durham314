@@ -28,9 +28,10 @@ public class SampleTestClass {
 				"signed_backupHelper.apk",
 				"signed_Butane.apk",
 				"signed_CalcA.apk",
+				"soot_CalcA.apk",
 				"signed_KitteyKittey.apk",
 		};
-		int index = 2;
+		int index = 3;
 
 		String path = "APK/"+name[index];
 		
@@ -72,7 +73,7 @@ public class SampleTestClass {
 		
 		System.out.println("START PRINTING MY STUFF");
 		
-		GenerateSequences gs = new GenerateSequences(frame, targets, false);
+		GenerateSequences gs = new GenerateSequences(frame, targets, true);
 		ArrayList<String> enhancedSequences = gs.getEnhancedSequences();
 		
 		for (String string: enhancedSequences) {

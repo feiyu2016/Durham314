@@ -19,6 +19,21 @@ public class JDBInterface {
 	private JDBMonitor outMon;
 	private JDBMonitor errMon;
 	
+//	public static void main(String[] args) 
+//	{
+//		ArrayList<Integer> bps = new ArrayList<Integer>();
+//		bps.add(648);
+//		bps.add(649);
+//		bps.add(650);
+//		bps.add(651);
+//		
+//		JDBInterface jdb = new JDBInterface("015d3c26c9540809", "com.bae.drape.gui.calculator", 7777);
+//		
+//		jdb.initJDB();
+//		jdb.setBreakPointsAtLines("com.bae.drape.gui.calculator.CalculatorActivity", bps);
+//		jdb.setMonitorStatus(true);
+//		
+//	}
 	
 	public JDBInterface(String deviceID, String packageName, int tcpPort) {
 		this.deviceID = deviceID;
@@ -29,16 +44,15 @@ public class JDBInterface {
 	public void initJDB() 
 	{
 		String pID = getPID(packageName);
-		
+
 		try {
 			pc = Runtime.getRuntime().exec(Paths.adbPath +" -s " + deviceID + " forward tcp:" + tcpPort + " jdwp:" + pID);
 			pc.waitFor();
-			
 			pc = Runtime.getRuntime().exec("jdb -sourcepath " + srcPath + " -attach localhost:" + tcpPort);
-			pc.waitFor();
 		} catch (IOException | InterruptedException e) { e.printStackTrace(); }
 		
 		printStreams();
+		//System.out.println("here");
 		
 		out = pc.getOutputStream();
 		
@@ -78,17 +92,21 @@ public class JDBInterface {
 	public void setMonitorStatus(boolean OnOrOff)
 	{
 		try {	
-			if (OnOrOff)
+			if (OnOrOff) {
 				out.write("monitor cont\n".getBytes());
-			else 
+				out.flush();
+			}
+			else {
 				out.write("unmonitor 1\n".getBytes());
+				out.flush();
+			}
 		} catch (IOException e) {e.printStackTrace(); }
 	}
 	
 	private void printStreams() 
 	{
-		JDBMonitor outMon = new JDBMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream())));
-		JDBMonitor errMon = new JDBMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream())));
+		outMon = new JDBMonitor(new BufferedReader(new InputStreamReader(pc.getInputStream())));
+		errMon = new JDBMonitor(new BufferedReader(new InputStreamReader(pc.getErrorStream())));
 		
 		Thread outThread = new Thread(outMon);
 		Thread errThread = new Thread(errMon);
