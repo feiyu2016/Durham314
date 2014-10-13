@@ -23,12 +23,15 @@ import zhen.version1.framework.Configuration;
 
 
 public class CommandLine {
-	public static String unlockScreenCommand = Configuration.ADBPath+ " shell input keyevent 82";
-	public static String clickPowerButtonCommand = Configuration.ADBPath+ " shell input keyevent KEYCODE_POWER";
-	public static boolean debug = false;
+	public static boolean DEBUG = false;
+	public static String TAG = "CommandLine";
+
+	public static String unlockScreenShellCommand = "input keyevent 82";
+	public static String clickPowerButtonShellCommand = "input keyevent KEYCODE_POWER";
+	
 	public static boolean autoClean = true;
 	public static int MaxCount = 100;
-	private static Logger  logger = Utility.setupLogger(CommandLine.class);
+//	private static Logger  logger = Utility.setupLogger(CommandLine.class);
 	private static Stack<String> outputStack = new Stack<String>(){
 		@Override
 		public String push(String msg){
@@ -53,22 +56,30 @@ public class CommandLine {
 	};
 	
 	
-	public static int startActivity(String packageName, String actName){
-		String command = "";
-		return executeCommand(command);
-	}
+//	public static int startActivity(String packageName, String actName){
+//		String command = "";
+//		return executeCommand(command);
+//	}
+	
 	public static int executeCommand(String command){
 		return executeCommand(command,0);
 	}
-	public static int executeSellCommand(String command){
-		return executeCommand(Configuration.ADBPath+ " shell "+command);
+	
+	public static int executeADBCommand(String command, String serial){
+		return executeCommand(Configuration.ADBPath+" -s "+serial+" "+command);
 	}
 	
-	public static int executeAMCommand(String command){
-		return executeCommand(Configuration.ADBPath+ " am "+command);
+	public static int executeShellCommand(String command, String serial){
+		return executeCommand(Configuration.ADBPath+ " -s "+serial+" shell "+command);
 	}
+	public static int executeShellCommand(String command){
+		return executeCommand(Configuration.ADBPath+ " shell "+command);
+	}
+//	public static int executeAMCommand(String command){
+//		return executeShellCommand(" am "+command);
+//	}
 	public static int executeCommand(String command , int timeout_ms){
-		if(debug) logger.info("command:"+command);
+		if(DEBUG) Utility.log(TAG, "executeCommand, "+command);
 		Process task = null;
 		InputStream stderr = null, stdout = null;
 		try {
@@ -82,7 +93,7 @@ public class CommandLine {
 				byte[] buffer = new byte[count];
 				stderr.read(buffer);
 				String reading = new String(buffer);
-				if(debug) logger.info("stderr:"+reading);
+				if(DEBUG) Utility.log(TAG, "stderr, "+reading);
 				errStack.add(reading);
 			}
 			stdout = task.getInputStream();
@@ -91,7 +102,7 @@ public class CommandLine {
 				byte[] buffer = new byte[count];
 				stdout.read(buffer);
 				String reading = new String(buffer);
-				if(debug) logger.info("stdout:"+reading);
+				if(DEBUG) Utility.log(TAG, "stdout, "+reading);
 				outputStack.add(reading);
 			}
 			return task.exitValue();

@@ -1,5 +1,6 @@
 package zhen.version1.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,7 @@ import com.android.hierarchyviewerlib.models.ViewNode;
  * @author zhenxu
  *
  */
-public class UIState {
+public class UIState implements Serializable{
 	public static String TAG = "UIState";
 	public static boolean DEBUG = true;
 	
@@ -164,6 +165,11 @@ public class UIState {
 		}
 		if(DEBUG) Utility.log(TAG,"getNextPossibleEvent, #"+this.eventIndex+","+result);
 		return result;
+	}
+	
+	public boolean hasNextEvent(){
+		if(this.isInScopeUI && !isLauncher) return isOnBackTried || this.eventIndex >= this.possibleEventLsit.size();
+		else return false;
 	}
 	
 	/**
