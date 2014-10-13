@@ -10,6 +10,8 @@ import staticFamily.StaticMethod;
 public class DualWielding {
 
 	public static ArrayList<ArrayList<String>> overall_result = new ArrayList<ArrayList<String>>();
+	public static ArrayList<ArrayList<Integer>> result_hit = new ArrayList<ArrayList<Integer>>();
+	public static ArrayList<ArrayList<Integer>> result_nohit = new ArrayList<ArrayList<Integer>>();
 	public static ArrayList<String> deviceIDs = new ArrayList<String>();
 	public static ArrayList<String> methodSigs = new ArrayList<String>();
 	public static ArrayList<String> scriptNames = new ArrayList<String>();
@@ -25,6 +27,8 @@ public class DualWielding {
 	public static void addNewDevice(String deviceID, String methodSig, String scriptName, Integer tcpPort)
 	{
 		overall_result.add(new ArrayList<String>());
+		result_hit.add(new ArrayList<Integer>());
+		result_nohit.add(new ArrayList<Integer>());
 		deviceIDs.add(deviceID);
 		methodSigs.add(methodSig);
 		methods.add(appUnderTest.findMethodByFullSignature(methodSig));
@@ -80,13 +84,17 @@ public class DualWielding {
 			}
 			
 			for (Integer integer: lines) {
-				if (!intHits.contains(integer))
+				if (!intHits.contains(integer)) {
 					System.out.println("    line:" + integer);
+					result_nohit.get(i).add(integer);
+				}
 			}
 			System.out.println("    Hit targets:");
 			for (Integer integer: lines) {
-				if (intHits.contains(integer))
+				if (intHits.contains(integer)) {
 					System.out.println("    line:" + integer);
+					result_hit.get(i).add(integer);
+				}
 			}
 		}
 	}

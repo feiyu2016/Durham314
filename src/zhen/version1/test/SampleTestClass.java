@@ -31,7 +31,7 @@ public class SampleTestClass {
 				"soot_CalcA.apk",
 				"signed_KitteyKittey.apk",
 		};
-		int index = 3;
+		int index = 4;
 
 		String path = "APK/"+name[index];
 		
@@ -67,9 +67,9 @@ public class SampleTestClass {
 	private static void johnsTest(Framework frame)
 	{
 		ArrayList<String> targets = new ArrayList<String>();
-		targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
+		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
 		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
-		//targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
+		targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
 		
 		System.out.println("START PRINTING MY STUFF");
 		
@@ -80,7 +80,8 @@ public class SampleTestClass {
 			System.out.println(string);
 		}
 		
-		GenerateValidationScripts gvs = new GenerateValidationScripts("handleOperation", "com.bae.drape.gui.calculator", "CalculatorActivity", device1);
+		//GenerateValidationScripts gvs = new GenerateValidationScripts("handleOperation", "com.bae.drape.gui.calculator", "CalculatorActivity", device1);
+		GenerateValidationScripts gvs = new GenerateValidationScripts("nextButton", "com.cs141.kittey.kittey", "MainKitteyActivity", device1);
 		gvs.setEventSequences(enhancedSequences);
 		try {
 			gvs.generateScripts();
