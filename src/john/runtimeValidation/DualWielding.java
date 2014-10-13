@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+import smali.TaintAnalysis.TaintHelper;
 import staticFamily.StaticApp;
 import staticFamily.StaticMethod;
 
@@ -43,18 +44,20 @@ public class DualWielding {
 	
 	public static void main(String args[])
 	{
-		appUnderTest = new StaticApp(new File("APK/signed_CalcA.apk"));
+		//appUnderTest = new StaticApp(new File("APK/signed_CalcA.apk"));
+		appUnderTest = new StaticApp(new File("APK/smali_KitteyKittey.apk"));
 		
 		staticAnalysis.StaticInfo.initAnalysis(appUnderTest, true);
 
-		String methodSig1 = "<com.bae.drape.gui.calculator.CalculatorActivity: "
-				+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>";
-		String methodSig2 = "<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>";
+		//String methodSig1 = "<com.bae.drape.gui.calculator.CalculatorActivity: "
+				//+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>";
+		//String methodSig2 = "<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>";
+		String methodSig1 = "<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>";
 		String device1 = "015d3c26c9540809";
-		String device2 = "015d3f1936080c05";
+		//String device2 = "015d3f1936080c05";
 		
-		addNewDevice(device1, methodSig1, "handleOperationUE", 7772);
-		addNewDevice(device2, methodSig2, "handleNumberUE", 7773);
+		addNewDevice(device1, methodSig1, "nextButtonUE", 7772);
+		//addNewDevice(device2, methodSig2, "nextButton", 7773);
 		
 		for (int i = 0; i < deviceIDs.size(); i++) {
 			threads.add(new Thread(new RuntimeValidation(scriptNames.get(i), i, methods.get(i), appUnderTest, deviceIDs.get(i), tcpPorts.get(i))));
@@ -97,6 +100,22 @@ public class DualWielding {
 				}
 			}
 		}
+		
+		TaintHelper th = new TaintHelper(appUnderTest);
+		
+		for (int i = 0; i < deviceIDs.size(); i++) {
+			th.setMethod(methods.get(i));
+			th.setBPsHit(result_hit.get(i));
+			
+			for (int j : result_nohit.get(i)) {
+				ArrayList<String> strings = th.findTaintedMethods(j);
+				System.out.println("Line : " + j);
+				for (String string: strings) 
+					System.out.println(string);
+			}
+				
+		}
+			
 	}
 	
 }

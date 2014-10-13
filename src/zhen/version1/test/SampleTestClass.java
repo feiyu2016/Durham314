@@ -75,11 +75,18 @@ public class SampleTestClass {
 		
 		GenerateSequences gs = new GenerateSequences(frame, targets, true);
 		ArrayList<String> enhancedSequences = gs.getEnhancedSequences();
+		ArrayList<String> unenhancedSequences = gs.getUnenhancedSequences();
 		
+		System.out.println("Unenhanced Sequences:");
+		for (String string: unenhancedSequences) {
+			System.out.println(string);
+		}
+		System.out.println("End Unenhanced Sequences:");
+		System.out.println("Enhanced Sequences:");
 		for (String string: enhancedSequences) {
 			System.out.println(string);
 		}
-		
+		System.out.println("End Enhanced Sequences:");
 		//GenerateValidationScripts gvs = new GenerateValidationScripts("handleOperation", "com.bae.drape.gui.calculator", "CalculatorActivity", device1);
 		GenerateValidationScripts gvs = new GenerateValidationScripts("nextButton", "com.cs141.kittey.kittey", "MainKitteyActivity", device1);
 		gvs.setEventSequences(enhancedSequences);
