@@ -34,13 +34,13 @@ public class MainMain {
 				"tippytipper.apk"
 				
 		};
-		int appSelect = 3;
+		int appSelect = 2;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
-				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
-				"<com.bae.drape.gui.calculator.CalculatorActivity: "
-						+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
+//				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
+//				"<com.bae.drape.gui.calculator.CalculatorActivity: "
+//						+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
 				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
 		};
 		
@@ -49,7 +49,7 @@ public class MainMain {
 		System.out.println("Traversal Complete");
 		heuristicGenerationStep(frame, targetMethods);
 		System.out.println("Heuristic Generation Complete");
-		heuristicValidationStep(new File(appPath), frame, targetMethods);
+		heuristicValidationStep(new File(appPath), targetMethods);
 		
 	}
 	
@@ -85,7 +85,7 @@ public class MainMain {
 			String activityName = parseActivityName(target);
 			
 			GenerateSequences gs = new GenerateSequences(frame, targets, true);
-			GenerateValidationScripts gvs = new GenerateValidationScripts(scriptName, packageName, activityName, device2);
+			GenerateValidationScripts gvs = new GenerateValidationScripts(scriptName, packageName, activityName, device1);
 			
 			System.out.println("Unenhanced Sequences:");
 			for (String string : gs.getUnenhancedSequences()) {
@@ -105,13 +105,13 @@ public class MainMain {
 		//}
 	}
 	
-	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, Framework frame, String[] targets)
+	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, String[] targets)
 	{
-		DualWielding dw = new DualWielding(appUnderTest, frame);
+		DualWielding dw = new DualWielding(appUnderTest);
 		int tcpPort = 7772;
 		for (int i = 0; i < targets.length; i++) {
 			String scriptName = targets[i].trim().split(" ")[2].trim().split("\\(")[0];
-			dw.addNewDevice(device2, targets[i], scriptName, tcpPort++);
+			dw.addNewDevice(device1, targets[i], scriptName, tcpPort++);
 		}
 		
 		return dw.runTest();

@@ -34,7 +34,7 @@ public class StaticInformation {
 		File apkFile = (File)attributes.get(Common.apkFile);
 		
 		StaticApp app = new StaticApp(apkFile);
-		app = StaticInfo.initAnalysis(app, false);
+		app = StaticInfo.initAnalysis(app, true);
 		
 		List<StaticClass> classList =  app.getActivityList(); 
 		

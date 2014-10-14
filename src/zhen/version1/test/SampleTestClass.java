@@ -22,11 +22,7 @@ public class SampleTestClass {
 	public static void main(String[] args) {
 		//choose the name of apk file
 		String[] name = {
-				"signed_backupHelper.apk",
-				"signed_Butane.apk",
-				"signed_CalcA.apk",
-				"soot_CalcA.apk",
-				"signed_KitteyKittey.apk",
+				"CalcA.apk",
 		};
 
 		int index = 0;
@@ -52,6 +48,12 @@ public class SampleTestClass {
 		
 //		frame.terminate();
 		
+		
+		
+		System.out.println("sequence");
+		System.out.println(frame.rInfo.getEventSequence(UIState.Launcher, frame.rInfo.getUIModel().getKnownVertices().get(1)));
+		
+		
 		johnsTest(frame);
 		
 		System.out.println("Finish!");
@@ -65,21 +67,15 @@ public class SampleTestClass {
 	{
 		String[] targets = {
 		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
-		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
-			"com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)"
+		"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>",
+		//	"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>"
 		};
 		
 		System.out.println("START PRINTING MY STUFF");
 		
 		GenerateSequences gs = new GenerateSequences(frame, targets, true);
 		ArrayList<String> enhancedSequences = gs.getEnhancedSequences();
-		ArrayList<String> unenhancedSequences = gs.getUnenhancedSequences();
 		
-		System.out.println("Unenhanced Sequences:");
-		for (String string: unenhancedSequences) {
-			System.out.println(string);
-		}
-		System.out.println("End Unenhanced Sequences:");
 		System.out.println("Enhanced Sequences:");
 		for (String string: enhancedSequences) {
 			System.out.println(string);

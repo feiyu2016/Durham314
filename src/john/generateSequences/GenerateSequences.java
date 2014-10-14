@@ -1,6 +1,7 @@
 package john.generateSequences;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -51,7 +52,7 @@ public class GenerateSequences {
 		ArrayList<String> mG = methodGroups;
 		
 		for (String string: unenhancedSequences) {
-			uS.add(string.trim().split("\\)\\|")[1].trim());
+			uS.add(string.trim().split("\\|")[1].trim());
 		}
 		
 		for (String string: uS) {
@@ -75,17 +76,14 @@ public class GenerateSequences {
 	private ArrayList<String> generateUnenhancedSequences()
 	{
 		ArrayList<String> sequences = new ArrayList<String>();
-		
 		for (String target: targetMethods) {
-			
 			for (UIState vertex: knownVertices) {
-				@SuppressWarnings("static-access")
-				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(vertex.Launcher, vertex);
+				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
 				
 				for (Event event: el) {
 					for (String string: event.getMethodHits()) {
-						if (string.contains(target.trim())) {
+						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
 							break;
 						}
@@ -94,7 +92,7 @@ public class GenerateSequences {
 				
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
-						if (string.contains(target.trim())) {
+						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
 							break;
 						}
@@ -106,14 +104,18 @@ public class GenerateSequences {
 		
 		ArrayList<String> ret = new ArrayList<String>();
 		for (String sequence: sequences) {
-			if (sequence.trim().contains("|launch|")) {
-				sequence = sequence.trim().replace("|launch|", "|");
-				if (sequence.trim().contains("|android:onClick ")) {
-					ret.add(sequence.trim().replace("|android:onClick ", "|"));
-				}
-				else {
-					ret.add(sequence.trim());
-				}
+			//sequence = sequence.replace("<", "").replace(">", "");
+			sequence = sequence.split("\\>")[1];
+			String temp = "|";
+			for (int i = 2; i < sequence.split("\\|").length; i++) {
+				temp += sequence.split("\\|")[i] + "|";
+			}
+			sequence = temp;
+			if (sequence.trim().contains("|android:onClick ")) {
+				ret.add(sequence.trim().replace("|android:onClick ", "|"));
+			}
+			else {
+				ret.add(sequence.trim());
 			}
 		}
 		
@@ -132,8 +134,7 @@ public class GenerateSequences {
 		
 		//for (String target: targetMethods) {
 			for (UIState vertex: knownVertices) {
-				@SuppressWarnings("static-access")
-				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(vertex.Launcher, vertex);
+				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
 				
 				for (Event event: el) {
@@ -218,7 +219,9 @@ public class GenerateSequences {
 		ArrayList<String> input = new ArrayList<String>();
 		
 		for (String string: in) {
-			input.add(string.split("%")[1].trim());
+			String temp = string.split("%")[1].trim();
+			if (!temp.contains("."))
+				input.add(temp);
 		}
 		
 		boolean isIncluded[] = new boolean[input.size()];

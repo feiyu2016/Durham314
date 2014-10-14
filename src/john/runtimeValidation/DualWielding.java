@@ -4,11 +4,8 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-import smali.TaintAnalysis.TaintHelper;
 import staticFamily.StaticApp;
 import staticFamily.StaticMethod;
-import zhen.version1.component.Event;
-import zhen.version1.framework.Framework;
 
 public class DualWielding {
 
@@ -23,12 +20,9 @@ public class DualWielding {
 	public ArrayList<Integer> tcpPorts = new ArrayList<Integer>();
 	public ArrayList<StaticMethod> methods = new ArrayList<StaticMethod>();
 	public StaticApp appUnderTest;
-	public Framework frame;
-	public Event finalEvent;
 	
-	public DualWielding(File appUnderTest, Framework frame) {
+	public DualWielding(File appUnderTest) {
 		this.appUnderTest = new StaticApp(appUnderTest);
-		this.frame = frame;
 	}
 	
 	public void addNewDevice(String deviceID, String methodSig, String scriptName, Integer tcpPort)

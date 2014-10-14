@@ -69,7 +69,7 @@ public class Framework {
 		rInfo.init(attributes);
 		traverser.init(attributes);
 		
-//		rInfo.enableGUI();
+		rInfo.enableGUI();
 		
 		String serial = null;
 		while(serial == null || serial.equals("")){
