@@ -3,36 +3,37 @@ package john.runtimeValidation;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import smali.TaintAnalysis.TaintHelper;
 import staticFamily.StaticApp;
 import staticFamily.StaticMethod;
 import zhen.version1.component.Event;
-import zhen.version1.component.UIState;
 import zhen.version1.framework.Framework;
 
 public class DualWielding {
 
-	public static ArrayList<ArrayList<String>> overall_result = new ArrayList<ArrayList<String>>();
-	public static ArrayList<ArrayList<Integer>> result_hit = new ArrayList<ArrayList<Integer>>();
-	public static ArrayList<ArrayList<Integer>> result_nohit = new ArrayList<ArrayList<Integer>>();
-	public static ArrayList<String> deviceIDs = new ArrayList<String>();
-	public static ArrayList<String> methodSigs = new ArrayList<String>();
-	public static ArrayList<String> scriptNames = new ArrayList<String>();
-	public static ArrayList<Thread> threads = new ArrayList<Thread>();
-	public static ArrayList<Integer> tcpPorts = new ArrayList<Integer>();
-	public static ArrayList<StaticMethod> methods = new ArrayList<StaticMethod>();
-	public static StaticApp appUnderTest;
+	public ArrayList<ArrayList<String>> overall_result = new ArrayList<ArrayList<String>>();
+	public ArrayList<ArrayList<Integer>> result_hit = new ArrayList<ArrayList<Integer>>();
+	public ArrayList<ArrayList<Integer>> result_nohit = new ArrayList<ArrayList<Integer>>();
+	public ArrayList<String> deviceIDs = new ArrayList<String>();
+	public ArrayList<String> methodSigs = new ArrayList<String>();
+	public ArrayList<String> scriptNames = new ArrayList<String>();
+	public ArrayList<Thread> threads = new ArrayList<Thread>();
+	public ArrayList<RuntimeValidation> rtv = new ArrayList<RuntimeValidation>();
+	public ArrayList<Integer> tcpPorts = new ArrayList<Integer>();
+	public ArrayList<StaticMethod> methods = new ArrayList<StaticMethod>();
+	public StaticApp appUnderTest;
+	public Framework frame;
+	public Event finalEvent;
 	
-	public DualWielding(File app) {
-		appUnderTest = new StaticApp(app);
+	public DualWielding(File appUnderTest, Framework frame) {
+		this.appUnderTest = new StaticApp(appUnderTest);
+		this.frame = frame;
 	}
 	
-	public static void addNewDevice(String deviceID, String methodSig, String scriptName, Integer tcpPort)
+	public void addNewDevice(String deviceID, String methodSig, String scriptName, Integer tcpPort)
 	{
-		overall_result.add(new ArrayList<String>());
+		//overall_result.add(new ArrayList<String>());
 		result_hit.add(new ArrayList<Integer>());
 		result_nohit.add(new ArrayList<Integer>());
 		deviceIDs.add(deviceID);
@@ -47,31 +48,21 @@ public class DualWielding {
 		return deviceIDs.indexOf(ID);
 	}
 	
-	public static void main(String args[])
+	@SuppressWarnings("unchecked")
+	public ArrayList<ArrayList<Integer>> runTest()
 	{
-		//appUnderTest = new StaticApp(new File("APK/signed_CalcA.apk"));
-		appUnderTest = new StaticApp(new File("APK/smali_KitteyKittey.apk"));
-		
-		staticAnalysis.StaticInfo.initAnalysis(appUnderTest, true);
-
-		//String methodSig1 = "<com.bae.drape.gui.calculator.CalculatorActivity: "
-				//+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>";
-		//String methodSig2 = "<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>";
-		String methodSig1 = "<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>";
-		String device1 = "015d3c26c9540809";
-		//String device2 = "015d3f1936080c05";
-		
-		addNewDevice(device1, methodSig1, "nextButtonUE", 7772);
-		//addNewDevice(device2, methodSig2, "nextButton", 7773);
-		
 		for (int i = 0; i < deviceIDs.size(); i++) {
-			threads.add(new Thread(new RuntimeValidation(scriptNames.get(i), i, methods.get(i), appUnderTest, deviceIDs.get(i), tcpPorts.get(i))));
+			rtv.add(new RuntimeValidation(scriptNames.get(i), i, methods.get(i), 
+					appUnderTest, deviceIDs.get(i), tcpPorts.get(i)));
+			
+			threads.add(new Thread(rtv.get(i)));
 			threads.get(i).start();
 		}
 		
 		for (int i = 0; i < threads.size(); i++) {
 			try {
 				threads.get(i).join();
+				overall_result.add((ArrayList<String>) rtv.get(i).overall_result.clone());
 			} catch (InterruptedException e) { e.printStackTrace(); }
 		}
 		
@@ -106,22 +97,6 @@ public class DualWielding {
 			}
 		}
 		
-		TaintHelper th = new TaintHelper(appUnderTest);
-		
-		for (int i = 0; i < deviceIDs.size(); i++) {
-			th.setMethod(methods.get(i));
-			th.setBPsHit(result_hit.get(i));
-			
-			for (int j : result_nohit.get(i)) {
-				ArrayList<String> strings = th.findTaintedMethods(j);
-				System.out.println("Line : " + j);
-				for (String string: strings) 
-					System.out.println(string);
-			}
-				
-		}
-			
+		return result_hit;
 	}
-	
-	
 }

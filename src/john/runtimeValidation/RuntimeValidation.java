@@ -16,13 +16,14 @@ public class RuntimeValidation implements Runnable{
 	private String mainActivity;
 	private StaticApp staticApp;
 	private StaticMethod targetMethod;
-	private int deviceNumber;
+	//private int deviceNumber;
 	
 	private Process monkeyPC;
 	private String deviceID;
 	private int tcpPort;
 
-
+	public ArrayList<String> overall_result = new ArrayList<String>();
+	
 	public void run() {
 		runAllScripts();
 	}
@@ -31,7 +32,7 @@ public class RuntimeValidation implements Runnable{
 			StaticMethod m, StaticApp staticApp, String deviceID, int tcpPort) {
 		this.targetMethod = m;
 		this.staticApp = staticApp;
-		this.deviceNumber = deviceNumber;
+		//this.deviceNumber = deviceNumber;
 		this.scriptName = string;
 		this.deviceID = deviceID;
 		this.tcpPort = tcpPort;
@@ -76,8 +77,8 @@ public class RuntimeValidation implements Runnable{
 				stopApp();
 				
 				for (String bp: jdb.getBPsHit()) {
-					if (!DualWielding.overall_result.get(deviceNumber).contains(bp))
-						DualWielding.overall_result.get(deviceNumber).add(bp);
+					if (!overall_result.contains(bp))
+						overall_result.add(bp);
 					
 					System.out.println("    " + bp);
 				}

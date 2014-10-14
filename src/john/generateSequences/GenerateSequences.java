@@ -12,14 +12,14 @@ public class GenerateSequences {
 	
 	private Framework fw;
 	private ArrayList<UIState> knownVertices;
-	private ArrayList<String> targetMethods;
+	private String[] targetMethods;
 	private ArrayList<String> methodGroups;
 	private ArrayList<String> unenhancedSequences;
 	private ArrayList<String> enhancedSequences;
 	
 	public boolean debugMode;
 	
-	public GenerateSequences(Framework fw, ArrayList<String> targetMethods, boolean debugMode) {
+	public GenerateSequences(Framework fw, String[] targetMethods, boolean debugMode) {
 		this.fw = fw;
 		this.targetMethods = targetMethods;
 		this.debugMode = debugMode;

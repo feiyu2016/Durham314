@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Stack;
 import java.util.Map.Entry;
 
 import john.generateSequences.GenerateSequences;
@@ -18,7 +16,6 @@ import zhen.version1.framework.Common;
 import zhen.version1.framework.Framework;
 import zhen.version1.framework.RunTimeInformation;
 import zhen.version1.framework.UIExplorer;
-import zhen.version1.framework.UIExplorer.StepControlCallBack;
 
 public class SampleTestClass {
 	
@@ -61,14 +58,16 @@ public class SampleTestClass {
 	}
 	
 	private static String device1 = "015d3c26c9540809";
+	@SuppressWarnings("unused")
 	private static String device2 = "015d3f1936080c05"; 
 	
 	private static void johnsTest(Framework frame)
 	{
-		ArrayList<String> targets = new ArrayList<String>();
+		String[] targets = {
 		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
 		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
-		targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
+			"com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)"
+		};
 		
 		System.out.println("START PRINTING MY STUFF");
 		
@@ -99,6 +98,7 @@ public class SampleTestClass {
 		System.out.println("DONE PRINTING MY STUFF");
 	}
 	
+	@SuppressWarnings("unused")
 	private static void addExplorerStepControl( Framework frame){
 		UIExplorer explorer = frame.explorer;
 		explorer.enableStepControl(true);

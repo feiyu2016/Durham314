@@ -33,8 +33,11 @@ public class GenerateValidationScripts {
 	
 	private void createFile()
 	{
+		System.out.println("asdfasdf");
 		try {
+			System.out.println("jello");
 			writer = new PrintWriter(ScriptPath.scriptPath + scriptName + "_" + sequenceNumber + ".py", "UTF-8");
+			System.out.println("world");
 			sequenceNumber++;
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			System.out.println("Exception while creating file.");
