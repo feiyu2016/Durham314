@@ -29,6 +29,7 @@ public class TaintedEventGeneration {
 	public static List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
 		List<String> sourceHandler = getSourceHandler(methodList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
+		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
 		return expandToRealSequence(frame, relatedEventSequence);
 	}
 	
