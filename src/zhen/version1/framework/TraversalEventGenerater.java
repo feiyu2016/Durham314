@@ -93,15 +93,33 @@ public class TraversalEventGenerater{
 		return reuslt;
 	}
 	
+	private int uiIndex = 0;
 	private Event normalOperation(RunTimeInformation info){
 		if(DEBUG) Utility.log(TAG, "normalOperation");
 		repositionCounter = 0;
-		UIState state = info.getCurrentState();
-		if(DEBUG) Utility.log(TAG, "current state,"+state);
+		UIState uiList = info.getCurrentState();
+		if(DEBUG) Utility.log(TAG, "current state,"+uiList);
 		if(readyForNextActivity){
+			
+			readyForNextActivity = false;
+			List<UIState> states = info.getUIModel().getKnownVertices(); 
+			
+			/**
+			 * First check if any further events can be applied on known UIState
+			 */
+			if(DEBUG) Utility.log(TAG,"Checking known UI");
+			while(uiIndex < states.size()){
+				UIState ui = states.get(uiIndex);
+				uiIndex+=1;
+				if(ui.hasNextEvent()){
+					if(DEBUG) Utility.log(TAG,"Reposition to "+ui);
+					this.uiStack.add(ui);
+					this.setUIExpectation(new UIExpectation(UIExpectation.SPECIFICUI,ui));
+					return Event.getEmptyEvent();
+				}
+			}
 			if(DEBUG) Utility.log(TAG,"readyForNextActivity,"+readyForNextActivity+"");
 			String actName = findNextActivity();
-			readyForNextActivity = false;
 			if(actName == null){ return null;
 			}else{ 
 				this.setUIExpectation(InScopeExpectation);
@@ -109,9 +127,9 @@ public class TraversalEventGenerater{
 			}
 		}else if(uiStack.isEmpty()){
 			if(DEBUG) Utility.log(TAG,"uiStack.isEmpty");
-			Event next = state.getNextPossibleEvent();
+			Event next = uiList.getNextPossibleEvent();
 			if(next != null){
-				uiStack.push(state);
+				uiStack.push(uiList);
 				this.setUIExpectation(InScopeExpectation);
 				return next;
 			}else{
@@ -119,9 +137,9 @@ public class TraversalEventGenerater{
 				return Event.getPressEvent(KeyEvent.KEYCODE_HOME+"");
 			}
 		}else{
-			if(this.uiStack.peek().equals(state)){	//on the top
+			if(this.uiStack.peek().equals(uiList)){	//on the top
 				if(DEBUG) Utility.log(TAG,"uiStack.peek().equals(state)");
-				Event next = state.getNextPossibleEvent();
+				Event next = uiList.getNextPossibleEvent();
 				if(next != null){
 					this.setUIExpectation(InScopeExpectation);
 					return next;
@@ -129,17 +147,17 @@ public class TraversalEventGenerater{
 					this.uiStack.pop();
 					return reposition(info);
 				}
-			}else if(this.uiStack.contains(state)){	//in the stack body
+			}else if(this.uiStack.contains(uiList)){	//in the stack body
 				if(DEBUG) Utility.log(TAG,"uiStack.contains(state)");
 				return reposition(info);
-			}else if(state.isLauncher || !state.isInScopeUI){	
+			}else if(uiList.isLauncher || !uiList.isInScopeUI){	
 				if(DEBUG) Utility.log(TAG,"state.isLauncher || !state.isInScopeUI");
-				throw new AssertionError(state.isLauncher +"  "+state.isInScopeUI);
+				throw new AssertionError(uiList.isLauncher +"  "+uiList.isInScopeUI);
 			}else{	//not within the stack body
 				if(DEBUG) Utility.log(TAG,"not within the stack body");
-				Event next = state.getNextPossibleEvent();
+				Event next = uiList.getNextPossibleEvent();
 				if(next != null){	// expect a inscope ui
-					this.uiStack.push(state);
+					this.uiStack.push(uiList);
 					this.setUIExpectation(InScopeExpectation);
 					return next;
 				} else return reposition(info);
@@ -147,6 +165,12 @@ public class TraversalEventGenerater{
 		}
 	}
 	
+	/**
+	 * reposition to the ui which is on the top of the stack 
+	 * if no UI in the stack, go to the launcher
+	 * @param info
+	 * @return
+	 */
 	private Event reposition(RunTimeInformation info){
 		if(DEBUG) Utility.log(TAG,"reposition");
 		UIState targetState = null;

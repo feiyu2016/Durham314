@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import zhen.version1.Support.CommandLine;
 import zhen.version1.framework.Configuration;
  
 
@@ -24,7 +25,7 @@ public class WindowInformation {
 	public String appop;
 	public double width, height, startx, starty;
 	
-	private static final String shellCommand = " shell dumpsys window visible | grep -E  'Window #|mAttachedWindow=|package=|mFrame='";
+	private static final String shellCommand = "dumpsys window visible | grep -E  'Window #|mAttachedWindow=|package=|mFrame='";
 	
 	@Override
 	public boolean equals(Object other){
@@ -59,68 +60,42 @@ public class WindowInformation {
      *
 	 */
 	
-	public static WindowInformation[] getVisibleWindowInformation(){
-		String command = Configuration.ADBPath+" "+shellCommand;
-		try {
-			Process info = Runtime.getRuntime().exec(command);
-			InputStream input = info.getInputStream();
-			info.waitFor();
-			
-			ArrayList<WindowInformation> buffer = new ArrayList<WindowInformation>();
-			Scanner sc = new Scanner(input); 
-			
-			WindowInformation last = null;
-			while(sc.hasNext()){
-				String line = sc.nextLine().trim();
-				if(line.startsWith("Window #")){
-					last = new WindowInformation();
-					buffer.add(last);
-					String[] parts = line.split(" ");
-					last.name = parts[4].replace("}:", "");
-					last.encode = parts[2].replace("Window{", "");
-				}else if(line.startsWith("mFrame=")){
-					// mFrame=[0,0][1200,1824]
-					String[] parts = line.split(" ");
-					String contentPairValue = parts[0].split("=")[1];
-					String[] pair = contentPairValue.replaceAll("]|\\[", " ").trim().split("  ");
-					String[] start = pair[0].split(",");
-					last.startx = Double.parseDouble(start[0]);
-					last.starty = Double.parseDouble(start[1]);
-					String[] end = pair[1].split(",");
-					last.width = Double.parseDouble(end[0]) - last.startx;
-					last.height = Double.parseDouble(end[1]) - last.starty;
-				}else if(line.startsWith("mOwnerUid=")){
-					String[] parts = line.split(" ");
-					last.uid = parts[0].replace("mOwnerUid=", "");
-					last.showToUserOnly = parts[1].replace("mShowToOwnerOnly=", "");
-					last.pkgName = parts[2].replace("package=", "");
-					last.appop = parts[3].replace("appop=", "");
-				}
-			}	
+	public static WindowInformation[] getVisibleWindowInformation(String serial){
+		CommandLine.executeShellCommand(shellCommand, serial);
+		String msg = CommandLine.getLatestStdoutMessage();
+		Scanner sc = new Scanner(msg);
+		ArrayList<WindowInformation> buffer = new ArrayList<WindowInformation>();
 		
-			sc.close();
-			return buffer.toArray(new WindowInformation[0]);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-		//example
-//		  Window #7 Window{95ef9de0 u0 NavigationBar}:
-//		      Surface: shown=true layer=201000 alpha=1.0 rect=(0.0,1824.0) 1200.0 x 96.0
-//		  Window #6 Window{95ef6a00 u0 StatusBar}:
-//		      Surface: shown=true layer=161000 alpha=1.0 rect=(0.0,0.0) 1200.0 x 50.0
-//		  Window #3 Window{95ec3318 u0 PopupWindow:95c98778}:
-//		    mAttachedWindow=Window{95f19048 u0 com.example.testpopup/com.example.testpopup.AndroidPopupWindowActivity} mLayoutAttached=true
-//		      Surface: shown=true layer=21015 alpha=1.0 rect=(50.0,266.0) 333.0 x 314.0
-//		  Window #2 Window{95f19048 u0 com.example.testpopup/com.example.testpopup.AndroidPopupWindowActivity}:
-//		      Surface: shown=true layer=21010 alpha=1.0 rect=(0.0,0.0) 1200.0 x 1824.0
-		
-		return null;
+		WindowInformation last = null;
+		while(sc.hasNext()){
+			String line = sc.nextLine().trim();
+			if(line.startsWith("Window #")){
+				last = new WindowInformation();
+				buffer.add(last);
+				String[] parts = line.split(" ");
+				last.name = parts[4].replace("}:", "");
+				last.encode = parts[2].replace("Window{", "");
+			}else if(line.startsWith("mFrame=")){
+				// mFrame=[0,0][1200,1824]
+				String[] parts = line.split(" ");
+				String contentPairValue = parts[0].split("=")[1];
+				String[] pair = contentPairValue.replaceAll("]|\\[", " ").trim().split("  ");
+				String[] start = pair[0].split(",");
+				last.startx = Double.parseDouble(start[0]);
+				last.starty = Double.parseDouble(start[1]);
+				String[] end = pair[1].split(",");
+				last.width = Double.parseDouble(end[0]) - last.startx;
+				last.height = Double.parseDouble(end[1]) - last.starty;
+			}else if(line.startsWith("mOwnerUid=")){
+				String[] parts = line.split(" ");
+				last.uid = parts[0].replace("mOwnerUid=", "");
+				last.showToUserOnly = parts[1].replace("mShowToOwnerOnly=", "");
+				last.pkgName = parts[2].replace("package=", "");
+				last.appop = parts[3].replace("appop=", "");
+			}
+		}	
+	
+		sc.close();
+		return buffer.toArray(new WindowInformation[0]);
 	}
 }

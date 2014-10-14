@@ -39,7 +39,6 @@ public class UIExplorer {
 	private boolean enableStepControl = false;
 	private int maxStep, currentStep;
 	private StepControlCallBack stepControl;
-	
 	/**
 	 * This is primarily for debug purpose
 	 * which allows the user to check information for each loop
@@ -97,7 +96,7 @@ public class UIExplorer {
 		TraversalEventGenerater traverser = frame.traverser;
 		RunTimeInformation rInfo = frame.rInfo;
 		StaticInformation sInfo = frame.sInfo;
-		Executer executer = frame.executer;
+		Executer executer = frame.traverseExecuter;
 		
 		currentStep = 0;
 		while(checkRestriction()){
@@ -114,7 +113,7 @@ public class UIExplorer {
 		TraversalEventGenerater traverser = frame.traverser;
 		RunTimeInformation rInfo = frame.rInfo;
 		StaticInformation sInfo = frame.sInfo;
-		Executer executer = frame.executer;
+		Executer executer = frame.traverseExecuter;
 		
 //		rInfo.getEventSequence(layout)
 		

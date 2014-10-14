@@ -31,8 +31,8 @@ public class SampleTestClass {
 				"soot_CalcA.apk",
 				"signed_KitteyKittey.apk",
 		};
-		int index = 4;
 
+		int index = 0;
 		String path = "APK/"+name[index];
 		
 		//setup input parameters
@@ -46,9 +46,8 @@ public class SampleTestClass {
 //		addExplorerStepControl(frame);
 		//add a call back method which is called after the finish of traversal
 		addOnTraverseFinishCallBack(frame);
-		
-		frame.enableStdinMonitor(false);
 
+//		frame.enableStdinMonitor(true);
 		//NOTE: right now it does require apk installed on the device manually
 		//		and please close the app if previous opened
 		frame.setup();//initialize
@@ -150,7 +149,7 @@ public class SampleTestClass {
 					
 					//reply the event sequence
 					if(path!=null && path.isEmpty()){
-						frame.executer.applyEventSequence(path.toArray(new Event[0]));
+						frame.traverseExecuter.applyEventSequence(path.toArray(new Event[0]));
 					}
 				}else{
 					Utility.info(Framework.TAG, "Event set empty");

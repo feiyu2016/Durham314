@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,8 @@ import com.android.hierarchyviewerlib.models.ViewNode;
  * @author zhenxu
  *
  */
-public class UIModelGraph {
+public class UIModelGraph implements Serializable{
+	
 	public static boolean DEBUG = true;
 	private final static String TAG = "UIModelGraph";
 	private UIState lastState;
@@ -133,7 +135,7 @@ public class UIModelGraph {
 			if(DEBUG) Utility.log(TAG,"addEdge, "+sourceVertex+" -> "+targetVertex);
 			if(sourceVertex.equals(targetVertex)){
 				sourceVertex.addIneffectiveEvent(e);
-			}else{
+			}else{				
 				super.addEdge(sourceVertex, targetVertex, e);
 			}
 			return true;

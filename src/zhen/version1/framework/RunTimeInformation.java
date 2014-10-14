@@ -13,9 +13,10 @@ import main.Paths;
 
 import org.jgrapht.alg.DijkstraShortestPath;
 
+import com.android.ddmlib.IDevice;
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
- 
+
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.RunTimeLayoutInformation;
@@ -91,6 +92,18 @@ public class RunTimeInformation{
 	public UIModelGraph getUIModel() {
 		return UIModel;
 	}
+	
+	public List<IDevice> getDeviceList(){
+		return this.deviceLayout.getDeviceList();
+	}
+	
+	/**
+	 * get the list of events applied to the devices
+	 * @return
+	 */
+	public List<Event> getEventDeposit() {
+		return eventDeposit;
+	}
 	/**
 	 * Synchronize with the device
 	 * and Update necessary information 
@@ -103,13 +116,13 @@ public class RunTimeInformation{
 		//check if the event needs to be ignored 
 		if(lastEvent.getEventType() == Event.iEMPTY){ return; }
 		
-		List<String> logcatFeedback = Utility.readInstrumentationFeedBack();
+		List<String> logcatFeedback = Utility.readInstrumentationFeedBack(this.getParimaryDevice().getSerialNumber());
 		if(DEBUG) Utility.log(TAG, "readInstrumentationFeedBack finished");
 //		if(isErrorPresent(logcatFeedback)){	//TODO
 //			onApplicationError();
 //		}
 		
-		WindowInformation[] visibleWindows = checkVisibleWindowAndCloseKeyBoard();
+		WindowInformation[] visibleWindows = checkVisibleWindowAndCloseKeyBoard(this.frame.traverseExecuter);
 		
 		WindowInformation targetInfo = null;
 		for(WindowInformation info : visibleWindows){
@@ -212,12 +225,13 @@ public class RunTimeInformation{
 	 * get a list of visible windows and if the keyboard is present close it
 	 * @return	a list of visible window information
 	 */
-	public WindowInformation[] checkVisibleWindowAndCloseKeyBoard(){
-		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation();
+	public WindowInformation[] checkVisibleWindowAndCloseKeyBoard(Executer executer){
+		String serial = this.getParimaryDevice().getSerialNumber();
+		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation(serial);
 		for(WindowInformation vwin : visibleWindows){
 			//TODO to improve
 			if(vwin.name.toLowerCase().contains("inputmethod")){
-				this.frame.executer.onBack();
+				executer.onBack();
 				break;
 			}
 		}
@@ -255,6 +269,32 @@ public class RunTimeInformation{
 	 */
 	public List<Event> getAppliedEventSequence(){
 		return this.eventDeposit;
+	}
+	
+	/**
+	 * Find the sequence of events that reach the target UI for the first time
+	 * @param target
+	 * @return
+	 */
+	public List<Event> locateFirstOccurance(UIState target){
+		List<Event> list = new ArrayList<Event>();
+		for(int i=0;i<this.eventDeposit.size();i++){
+			Event current = eventDeposit.get(i);
+			if(current.getEventType() == Event.iEMPTY) continue;
+			list.add(current);
+			if(current.getSource()!=null && current.getSource().equals(target)){
+				return list;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * only get the very first device connected to the laptop
+	 * @return
+	 */
+	public IDevice getParimaryDevice(){
+		return deviceLayout.getPrimaryDevice();
 	}
 	
 	private boolean isErrorPresent(List<String> logcatFeedback){

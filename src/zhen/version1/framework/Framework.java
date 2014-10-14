@@ -1,12 +1,15 @@
 package zhen.version1.framework;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Stack;
+
+import com.android.ddmlib.IDevice;
 
 import zhen.version1.Support.CommandLine;
 import zhen.version1.Support.Utility;
@@ -28,8 +31,9 @@ public class Framework {
 	public StaticInformation sInfo;
 	public RunTimeInformation rInfo;
 	public TraversalEventGenerater traverser;
-	public Executer executer;
+	public Executer traverseExecuter;
 	public UIExplorer explorer;
+	public Validation validation;
 	
 	public String apkPath;
 	private File apkFile;
@@ -50,9 +54,13 @@ public class Framework {
 		explorer = new UIExplorer(this);
 		traverser = new TraversalEventGenerater(this);
 		rInfo = new RunTimeInformation(this);
-		executer = new Executer(this);
+		traverseExecuter = new Executer(this);
+		validation = new Validation(this);
 	}
 	
+	
+
+
 	/**
 	 * setup the environment, including install APP
 	 */
@@ -60,11 +68,24 @@ public class Framework {
 		sInfo.init(attributes, false);
 		rInfo.init(attributes);
 		traverser.init(attributes);
-		executer.init(attributes);
-		rInfo.enableGUI();
 		
-		executer.wakeDeviceup();
-		CommandLine.executeCommand(CommandLine.unlockScreenCommand);
+//		rInfo.enableGUI();
+		
+		String serial = null;
+		while(serial == null || serial.equals("")){
+			serial = this.rInfo.getParimaryDevice().getSerialNumber();
+		}
+		Utility.log(TAG, "Serial: "+serial);
+		traverseExecuter.setSerial(serial);
+		traverseExecuter.init(attributes);
+		
+		traverseExecuter.wakeDeviceup();
+		try { Thread.sleep(500);
+		} catch (InterruptedException e) { }
+		
+		CommandLine.executeShellCommand(
+				CommandLine.unlockScreenShellCommand, 
+				this.rInfo.getParimaryDevice().getSerialNumber());
 	}
 	
 	/**
@@ -73,7 +94,7 @@ public class Framework {
 	public void terminate(){
 		this.rInfo.terminate();
 		this.traverser.terminate();
-		this.executer.terminate();
+		this.traverseExecuter.terminate();
 		this.sInfo.terminate();
 	}
 	
@@ -81,6 +102,7 @@ public class Framework {
 	 * in the future, might want to put every thing into loop
 	 */
 	public void start(){	
+		Utility.log(TAG, "APKPath, "+this.apkPath);
 		if(enableStdinMonitor) stdinMonitor.start();
 		//make decision
 		
@@ -98,6 +120,24 @@ public class Framework {
 	public void enableStdinMonitor(boolean input){
 		enableStdinMonitor = input;
 	}
+	
+//	public void startValidation(List<List<Event>> sequenceList, List<String> targetMethods){
+//		if(traverseExecuter != null) traverseExecuter.terminate();
+//
+//		try { Thread.sleep(500);
+//		} catch (InterruptedException e1) { }
+//		List<Thread> list = new ArrayList<Thread>();
+//		for(IDevice device : this.rInfo.getDeviceList()){
+//			list.add(new Thread(new RunExecuter(device.getSerialNumber(), sequenceList)));
+//		}
+//		
+//		for(Thread thread : list){ thread.start(); }
+//		for(Thread thread : list){ try { thread.join(); } catch (InterruptedException e) {  e.printStackTrace(); } }
+//	
+//	
+//	
+//	}
+//	
 	
 	private Thread stdinMonitor = new Thread(new Runnable(){
 		private Scanner sc = new Scanner(System.in);
