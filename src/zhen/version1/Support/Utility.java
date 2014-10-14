@@ -35,7 +35,7 @@ public class Utility {
 			Thread.sleep(20);
 			while(true){
 				int count = in.available();
-				if(count < 0) break;
+				if(count <= 0) break;
 				byte[] buf = new byte[count];
 				in.read(buf);
 				sb.append(new String(buf));
