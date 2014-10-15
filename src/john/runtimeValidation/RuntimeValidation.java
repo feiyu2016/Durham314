@@ -2,12 +2,19 @@ package john.runtimeValidation;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import main.Paths;
 import john.jdb.JDBInterface;
+import main.Paths;
+import smali.TaintAnalysis.TaintHelper;
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
+import zhen.version1.component.Event;
+import zhen.version1.framework.Common;
+import zhen.version1.framework.Framework;
+import zhen.version1.test.TaintedEventGeneration;
 
 public class RuntimeValidation implements Runnable{
 	
@@ -16,25 +23,30 @@ public class RuntimeValidation implements Runnable{
 	private String mainActivity;
 	private StaticApp staticApp;
 	private StaticMethod targetMethod;
-	private int deviceNumber;
+	private Framework frame;
 	
-	private Process monkeyPC;
 	private String deviceID;
 	private int tcpPort;
 
-
-	public void run() {
-		runAllScripts();
-	}
+	public ArrayList<String> overall_result = new ArrayList<String>();
+	private ArrayList<Integer> overallInt = new ArrayList<Integer>();
+	private Integer[] targetLines;
 	
-	public RuntimeValidation(String string, int deviceNumber,
-			StaticMethod m, StaticApp staticApp, String deviceID, int tcpPort) {
+	public RuntimeValidation(String string, int deviceNumber, StaticMethod m, 
+			StaticApp staticApp, String deviceID, int tcpPort, Framework frame, Integer[] targetLines) {
 		this.targetMethod = m;
 		this.staticApp = staticApp;
-		this.deviceNumber = deviceNumber;
 		this.scriptName = string;
 		this.deviceID = deviceID;
 		this.tcpPort = tcpPort;
+		this.frame = frame;
+		this.targetLines = targetLines;
+	}
+	
+	public void run() {
+		this.runAllScripts();
+		this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
+		this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
 	}
 
 	private ArrayList<String> getAllScripts()
@@ -44,7 +56,8 @@ public class RuntimeValidation implements Runnable{
 		ArrayList<String> ret = new ArrayList<String>();
 		  
 		for (File file: files)  {  
-		   String string = file.toString();
+		   String string = file.getAbsolutePath();
+		   System.out.println("found SCRIPT " + string);
 		  if (string.contains(scriptName))
 			   ret.add(string); 
 		}
@@ -55,11 +68,9 @@ public class RuntimeValidation implements Runnable{
 	public void runAllScripts()
 	{
 		ArrayList<String> scripts = getAllScripts();
-
 		this.mainActivity = staticApp.getMainActivity().getName();
 		this.packageName = staticApp.getPackageName();
 		StaticClass c = targetMethod.getDeclaringClass(staticApp);
-
 		try {
 			int scriptCounter = 1;
 			for (String script:scripts) {
@@ -70,14 +81,15 @@ public class RuntimeValidation implements Runnable{
 				jdb.initJDB();
 				jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
 				jdb.setMonitorStatus(true);
-				monkeyPC = Runtime.getRuntime().exec(Paths.androidToolPath + "monkeyrunner " + script);
-				monkeyPC.waitFor();
+				Process PC = Runtime.getRuntime().exec(Paths.androidToolPath + "monkeyrunner " + script);
+				System.out.println("-HERE " + Paths.androidToolPath + "monkeyrunner " + script);
+				PC.waitFor();
 				jdb.exitJDB();
 				stopApp();
 				
 				for (String bp: jdb.getBPsHit()) {
-					if (!DualWielding.overall_result.get(deviceNumber).contains(bp))
-						DualWielding.overall_result.get(deviceNumber).add(bp);
+					if (!overall_result.contains(bp))
+						overall_result.add(bp);
 					
 					System.out.println("    " + bp);
 				}
@@ -88,14 +100,69 @@ public class RuntimeValidation implements Runnable{
 		}
 	}
 	
-	private void startApp() throws Exception {
-		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am start -n " + packageName + "/" + mainActivity);
-		pc.waitFor();
+	private void startApp() {
+		try {
+			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am start -n " + packageName + "/" + mainActivity);
+			pc.waitFor();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
-	private void stopApp() throws Exception {
-		Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am force-stop " + packageName);
-		pc.waitFor();
+	private void stopApp() {
+		try {
+			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am force-stop " + packageName);
+			pc.waitFor();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void getIntegerLineNumbersFromOverallResultsWhichIsAString()
+	{
+		for (String string : overall_result) {
+			overallInt.add(Integer.parseInt(string.trim().split(",")[2]));
+		}
+	}
+	
+	private ArrayList<Event> getFinalEvents() 
+	{
+		ArrayList<Event> result = new ArrayList<Event>();
+		Map<String, List<Event>> meMap = frame.rInfo.getMethodEventMap();
+		for (Map.Entry<String, List<Event>> entry : meMap.entrySet()) {
+			if (!result.contains(entry.getValue().get(entry.getValue().size()-1)))
+				result.add(entry.getValue().get(entry.getValue().size()-1));
+		}
+		return result;
+	}
+	
+	private void getNewEventSequencesAndRunThemImmediatelyAfterwards()
+	{
+		TaintHelper th = new TaintHelper(staticApp);
+		th.setMethod(targetMethod);
+		th.setBPsHit(overallInt);
+		
+		TaintedEventGeneration teg = new TaintedEventGeneration();
+		ValidationExecutor ve = new ValidationExecutor(deviceID);
+		ve.init();
+		
+		for (Integer target : targetLines) {
+			if (!overallInt.contains(target)) {
+				for (Event event : getFinalEvents()) {
+					for (Event[] array : teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event)) {
+						startApp();
+						for (Event event2 : array) {
+							String x = event2.getValue(Common.event_att_click_x).toString();
+							String y = event2.getValue(Common.event_att_click_y).toString();
+							ve.touch(x, y);
+							System.out.print("(" + x + "," + y + ")");
+						}
+						System.out.println();
+						stopApp();
+					}
+				}
+			}
+		}
 	}
 	
 }

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Stack;
 import java.util.Map.Entry;
 
 import john.generateSequences.GenerateSequences;
@@ -19,22 +17,24 @@ import zhen.version1.framework.Common;
 import zhen.version1.framework.Framework;
 import zhen.version1.framework.RunTimeInformation;
 import zhen.version1.framework.UIExplorer;
-import zhen.version1.framework.UIExplorer.StepControlCallBack;
 
 public class SampleTestClass {
 	
 	public static void main(String[] args) {
 		//choose the name of apk file
-		String[] name = {
-				"signed_backupHelper.apk",
-				"signed_Butane.apk",
-				"signed_CalcA.apk",
-				"soot_CalcA.apk",
-				"signed_KitteyKittey.apk",
-				"CalcA_soot.apk",
+		String[] name = { 
+				"CalcA.apk", 
 		};
 
-		int index = 3;
+		
+//		"signed_backupHelper.apk",
+//		"signed_Butane.apk",
+//		"signed_CalcA.apk",
+//		"soot_CalcA.apk",
+//		"signed_KitteyKittey.apk",
+//		"CalcA_soot.apk",
+		
+		int index = 0;
 		String path = "APK/"+name[index];
 		
 		//setup input parameters
@@ -63,32 +63,34 @@ public class SampleTestClass {
 		
 //		frame.terminate();
 		
+		
+		
+		System.out.println("sequence");
+		System.out.println(frame.rInfo.getEventSequence(UIState.Launcher, frame.rInfo.getUIModel().getKnownVertices().get(1)));
+		
+		
 		johnsTest(frame);
 		
 		System.out.println("Finish!");
 	}
 	
 	private static String device1 = "015d3c26c9540809";
+	@SuppressWarnings("unused")
 	private static String device2 = "015d3f1936080c05"; 
 	
 	private static void johnsTest(Framework frame)
 	{
-		ArrayList<String> targets = new ArrayList<String>();
+		String[] targets = {
 		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)");
-		//targets.add("com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)");
-		targets.add("com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)");
+		"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>",
+		//	"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>"
+		};
 		
 		System.out.println("START PRINTING MY STUFF");
 		
 		GenerateSequences gs = new GenerateSequences(frame, targets, true);
 		ArrayList<String> enhancedSequences = gs.getEnhancedSequences();
-		ArrayList<String> unenhancedSequences = gs.getUnenhancedSequences();
 		
-		System.out.println("Unenhanced Sequences:");
-		for (String string: unenhancedSequences) {
-			System.out.println(string);
-		}
-		System.out.println("End Unenhanced Sequences:");
 		System.out.println("Enhanced Sequences:");
 		for (String string: enhancedSequences) {
 			System.out.println(string);
@@ -107,6 +109,7 @@ public class SampleTestClass {
 		System.out.println("DONE PRINTING MY STUFF");
 	}
 	
+	@SuppressWarnings("unused")
 	private static void addExplorerStepControl( Framework frame){
 		UIExplorer explorer = frame.explorer;
 		explorer.enableStepControl(true);

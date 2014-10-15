@@ -11,15 +11,23 @@ import zhen.version1.component.UIState;
 import zhen.version1.framework.Framework;
 
 public class TaintedEventGeneration {
+	//Input: String target_method in Jimple format
+	//		 Framework frame
+	//output:Event finalEvent
+	//
+	//return frame.rInfo.getMethodEventMap().get(target_method);
+	public TaintedEventGeneration(){
+		
+	}
 	
 	/**
 	 * Find a list of sequence which should be applied
 	 * @param frame			-- the framework object which contains the UI model
 	 * @param methodList	-- the method list from tainted analysis
-	 * @param finalEvent	-- the final event that trigger the target method
+	 * @param finalEvent	-- the final event that triggered the target method
 	 * @return
 	 */
-	public static List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
+	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
 		List<String> sourceHandler = getSourceHandler(methodList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
@@ -27,7 +35,7 @@ public class TaintedEventGeneration {
 	}
 	
 	
-	private static List<Event[]> expandToRealSequence(Framework frame, List<Event[]> input){
+	private List<Event[]> expandToRealSequence(Framework frame, List<Event[]> input){
 		List<Event[]> result = new ArrayList<Event[]>();
 		for(Event[] el: input){
 			ArrayList<Event> list = new ArrayList<Event>();
@@ -48,7 +56,7 @@ public class TaintedEventGeneration {
 		return result;
 	}
 	
-	private static ArrayList<String> getSourceHandler(ArrayList<String> methodList, StaticApp testApp){
+	private ArrayList<String> getSourceHandler(ArrayList<String> methodList, StaticApp testApp){
 		ArrayList<String> result = new ArrayList<String>();
 		for(String msg:methodList){
 			StaticMethod method = testApp.findMethodByFullSignature(msg);
@@ -58,7 +66,7 @@ public class TaintedEventGeneration {
 		return result;
 	}
 	
-	private static List<Event[]> generateEventWithTaint(Framework frame, List<String> methodList,Event finalEvent){
+	private List<Event[]> generateEventWithTaint(Framework frame, List<String> methodList,Event finalEvent){
 		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>(); 
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
 		for(int j=0;j<methodList.size();j++){
@@ -80,7 +88,6 @@ public class TaintedEventGeneration {
 		return deposit;
 	}
 	
-	
 	private static void eventgenerateHelper(ArrayList<Event[]> eventMatrix,ArrayList<Integer> unused,ArrayList<Event> current, List<Event[]> deposit,Event finalEvent){
 		if(unused.isEmpty()){
 			current.add(finalEvent);
@@ -90,19 +97,43 @@ public class TaintedEventGeneration {
 		}
 		
 		int size = unused.size();
+		ArrayList<Integer> nextUnused = null;
 		for(int i=0;i<size;i++){
 			int beingUsed = unused.get(i);
-			unused.add(beingUsed);
+			nextUnused = new ArrayList<Integer>(unused);
+			nextUnused.remove(i);
 			
 			for(Event e : eventMatrix.get(beingUsed)){
 				current.add(e);
-				eventgenerateHelper(eventMatrix, unused, current,deposit,finalEvent);
+				eventgenerateHelper(eventMatrix, nextUnused, current,deposit,finalEvent);
 				current.remove(current.size()-1);
 			}
 //			eventgenerateHelper
-			
-			unused.remove(unused.size()-1);
 		}
 		 
 	}
+	
+	public static void main(String[] args){
+		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>();
+		eventMatrix.add(new Event[]{Event.getOnClickEvent(100, 101),
+									Event.getOnClickEvent(200, 201)});
+		
+		eventMatrix.add(new Event[]{Event.getOnBackEvent()});
+		
+		eventMatrix.add(new Event[]{Event.getOnClickEvent(300, 301),
+				Event.getOnClickEvent(400, 401)});
+		
+		Event finalEvent = Event.getOnClickEvent(500, 501);
+		
+		ArrayList<Event> current = new ArrayList<Event>();
+		List<Event[]> deposit = new ArrayList<Event[]>();
+		ArrayList<Integer> unsued = new ArrayList<Integer>();
+		for(int i=0;i<eventMatrix.size();i++){
+			unsued.add(i);
+		}
+		eventgenerateHelper(eventMatrix,unsued,current, deposit,finalEvent);
+
+		System.out.println(deposit.size());
+	}
 }
+
