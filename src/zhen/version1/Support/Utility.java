@@ -65,7 +65,7 @@ public class Utility {
 	}
 	
 	public static String getUid(String appName){
-		String command = "adb shell dumpsys "+appName+" | grep userId=";
+		String command = Configuration.ADBPath+ " shell dumpsys "+appName+" | grep userId=";
 		try {
 			Process exec = Runtime.getRuntime().exec(command);
 			exec.waitFor();

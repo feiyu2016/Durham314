@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import john.generateSequences.GenerateSequences;
 import john.runtimeValidation.GenerateValidationScripts;
+import zhen.version1.Support.CommandLine;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -30,9 +31,10 @@ public class SampleTestClass {
 				"signed_CalcA.apk",
 				"soot_CalcA.apk",
 				"signed_KitteyKittey.apk",
+				"CalcA_soot.apk",
 		};
 
-		int index = 0;
+		int index = 3;
 		String path = "APK/"+name[index];
 		
 		//setup input parameters
@@ -46,12 +48,18 @@ public class SampleTestClass {
 //		addExplorerStepControl(frame);
 		//add a call back method which is called after the finish of traversal
 		addOnTraverseFinishCallBack(frame);
-
+		CommandLine.executeCommand("adb install -r "+path);
 //		frame.enableStdinMonitor(true);
 		//NOTE: right now it does require apk installed on the device manually
 		//		and please close the app if previous opened
 		frame.setup();//initialize
 		frame.start();//start experiment
+		
+		List<Event> list = frame.rInfo.getEventDeposit();
+		for(Event event : list){
+			System.out.println("Methods:	"+event.getMethodHits());
+		}
+		
 		
 //		frame.terminate();
 		

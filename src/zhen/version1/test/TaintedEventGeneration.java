@@ -66,6 +66,7 @@ public class TaintedEventGeneration {
 			if(events == null || events.isEmpty()) continue;
 			List<Event> copy = new ArrayList<Event>(events);
 			copy.remove(finalEvent);
+			if(copy.isEmpty()) continue;
 			eventMatrix.add(copy.toArray(new Event[0]));
 		}
 		ArrayList<Integer> unsued = new ArrayList<Integer>();
@@ -74,15 +75,17 @@ public class TaintedEventGeneration {
 		}
 		ArrayList<Event> current = new ArrayList<Event>();
 		List<Event[]> deposit = new ArrayList<Event[]>();
-		eventgenerateHelper(eventMatrix,unsued,current, deposit);
+		eventgenerateHelper(eventMatrix,unsued,current, deposit,finalEvent);
 		
 		return deposit;
 	}
 	
 	
-	private static void eventgenerateHelper(ArrayList<Event[]> eventMatrix,ArrayList<Integer> unused,ArrayList<Event> current, List<Event[]> deposit){
+	private static void eventgenerateHelper(ArrayList<Event[]> eventMatrix,ArrayList<Integer> unused,ArrayList<Event> current, List<Event[]> deposit,Event finalEvent){
 		if(unused.isEmpty()){
+			current.add(finalEvent);
 			deposit.add(current.toArray(new Event[0]));
+			current.remove(current.size()-1);
 			return;
 		}
 		
@@ -93,7 +96,7 @@ public class TaintedEventGeneration {
 			
 			for(Event e : eventMatrix.get(beingUsed)){
 				current.add(e);
-				eventgenerateHelper(eventMatrix, unused, current,deposit);
+				eventgenerateHelper(eventMatrix, unused, current,deposit,finalEvent);
 				current.remove(current.size()-1);
 			}
 //			eventgenerateHelper

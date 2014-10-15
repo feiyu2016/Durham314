@@ -86,6 +86,7 @@ public class Framework {
 		CommandLine.executeShellCommand(
 				CommandLine.unlockScreenShellCommand, 
 				this.rInfo.getParimaryDevice().getSerialNumber());
+		
 	}
 	
 	/**
@@ -161,7 +162,7 @@ public class Framework {
 		}
 		this.apkPath = (String) attributes.get(Common.apkPath);
 		File apkFile = new File(apkPath);
-		if(!apkFile.exists())throw new IllegalArgumentException("Require apk path.");
+		if(!apkFile.exists())throw new IllegalArgumentException("!apkFile.exists");
 		this.attributes.put(Common.apkFile, apkFile);
 	}
 	

@@ -26,7 +26,8 @@ public class WindowInformation {
 	public double width, height, startx, starty;
 	
 	private static final String shellCommand = "dumpsys window visible | grep -E  'Window #|mAttachedWindow=|package=|mFrame='";
-	
+//	adb shell dumpsys window visible | grep -E  \'Window #|mAttachedWindow=|package=|mFrame=\'
+
 	@Override
 	public boolean equals(Object other){
 		if(other instanceof  WindowInformation){
