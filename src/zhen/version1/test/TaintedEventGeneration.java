@@ -16,17 +16,18 @@ public class TaintedEventGeneration {
 	//output:Event finalEvent
 	//
 	//return frame.rInfo.getMethodEventMap().get(target_method);
-	
-	
+	public TaintedEventGeneration(){
+		
+	}
 	
 	/**
 	 * Find a list of sequence which should be applied
 	 * @param frame			-- the framework object which contains the UI model
 	 * @param methodList	-- the method list from tainted analysis
-	 * @param finalEvent	-- the final event that trigger the target method
+	 * @param finalEvent	-- the final event that triggered the target method
 	 * @return
 	 */
-	public static List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
+	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
 		List<String> sourceHandler = getSourceHandler(methodList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
@@ -34,7 +35,7 @@ public class TaintedEventGeneration {
 	}
 	
 	
-	private static List<Event[]> expandToRealSequence(Framework frame, List<Event[]> input){
+	private List<Event[]> expandToRealSequence(Framework frame, List<Event[]> input){
 		List<Event[]> result = new ArrayList<Event[]>();
 		for(Event[] el: input){
 			ArrayList<Event> list = new ArrayList<Event>();
@@ -55,7 +56,7 @@ public class TaintedEventGeneration {
 		return result;
 	}
 	
-	private static ArrayList<String> getSourceHandler(ArrayList<String> methodList, StaticApp testApp){
+	private ArrayList<String> getSourceHandler(ArrayList<String> methodList, StaticApp testApp){
 		ArrayList<String> result = new ArrayList<String>();
 		for(String msg:methodList){
 			StaticMethod method = testApp.findMethodByFullSignature(msg);
@@ -65,7 +66,7 @@ public class TaintedEventGeneration {
 		return result;
 	}
 	
-	private static List<Event[]> generateEventWithTaint(Framework frame, List<String> methodList,Event finalEvent){
+	private List<Event[]> generateEventWithTaint(Framework frame, List<String> methodList,Event finalEvent){
 		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>(); 
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
 		for(int j=0;j<methodList.size();j++){
@@ -87,7 +88,7 @@ public class TaintedEventGeneration {
 	}
 	
 	
-	private static void eventgenerateHelper(ArrayList<Event[]> eventMatrix,ArrayList<Integer> unused,ArrayList<Event> current, List<Event[]> deposit){
+	private void eventgenerateHelper(ArrayList<Event[]> eventMatrix,ArrayList<Integer> unused,ArrayList<Event> current, List<Event[]> deposit){
 		if(unused.isEmpty()){
 			deposit.add(current.toArray(new Event[0]));
 			return;

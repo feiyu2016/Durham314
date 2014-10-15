@@ -1,11 +1,14 @@
 package john.runtimeValidation;
 
-import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+import main.Paths;
 import staticFamily.StaticApp;
 import staticFamily.StaticMethod;
+import zhen.version1.component.Event;
+import zhen.version1.framework.Framework;
 
 public class DualWielding {
 
@@ -20,12 +23,16 @@ public class DualWielding {
 	public ArrayList<Integer> tcpPorts = new ArrayList<Integer>();
 	public ArrayList<StaticMethod> methods = new ArrayList<StaticMethod>();
 	public StaticApp appUnderTest;
+	public Framework frame;
+	public Event finalEvent;
+	private Integer[] targetLines;
 	
-	public DualWielding(File appUnderTest) {
-		this.appUnderTest = new StaticApp(appUnderTest);
+	public DualWielding(StaticApp staticAppUnderTest, Framework frame) {
+		this.appUnderTest = staticAppUnderTest;
+		this.frame = frame;
 	}
 	
-	public void addNewDevice(String deviceID, String methodSig, String scriptName, Integer tcpPort)
+	public void addNewDevice(String deviceID, String methodSig, Integer[] targetLines, String scriptName, Integer tcpPort)
 	{
 		//overall_result.add(new ArrayList<String>());
 		result_hit.add(new ArrayList<Integer>());
@@ -35,6 +42,18 @@ public class DualWielding {
 		methods.add(appUnderTest.findMethodByFullSignature(methodSig));
 		tcpPorts.add(tcpPort);
 		scriptNames.add(scriptName);
+		this.targetLines = targetLines;
+		Process pc = null;
+		
+		try {
+			pc = Runtime.getRuntime().exec(Paths.adbPath +" -s " + deviceID + " uninstall " + this.appUnderTest.getPackageName());
+			pc.waitFor();
+			System.out.println("SOOT APP UNINSTALLED!");
+			pc = Runtime.getRuntime().exec(Paths.adbPath +" -s " + deviceID + " install " + this.appUnderTest.getSmaliInstrumentedAppPath());
+			pc.waitFor();
+			System.out.println("SMALI APP INSTALLED!");
+		} catch (IOException | InterruptedException e) { e.printStackTrace(); }
+		
 	}
 	
 	public int getDeviceNumber(String ID)
@@ -47,7 +66,7 @@ public class DualWielding {
 	{
 		for (int i = 0; i < deviceIDs.size(); i++) {
 			rtv.add(new RuntimeValidation(scriptNames.get(i), i, methods.get(i), 
-					appUnderTest, deviceIDs.get(i), tcpPorts.get(i)));
+					appUnderTest, deviceIDs.get(i), tcpPorts.get(i), this.frame, targetLines));
 			
 			threads.add(new Thread(rtv.get(i)));
 			threads.get(i).start();

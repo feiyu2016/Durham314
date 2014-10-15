@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import main.Paths;
+import staticAnalysis.StaticInfo;
+import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
 import john.runtimeValidation.DualWielding;
 import john.runtimeValidation.GenerateValidationScripts;
@@ -27,14 +30,11 @@ public class MainMain {
 	{
 		//choose the name of apk file
 		String[] targetApp = {
-				"backupHelper.apk",
-				"Butane.apk",
-				"signed_CalcA.apk",
-				"signed_KitteyKittey.apk",
-				"tippytipper.apk"
-				
+				"CalcA.apk",
+				"KitteyKittey.apk",
+				"TippyTipper.apk"
 		};
-		int appSelect = 2;
+		int appSelect = 0;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
@@ -44,12 +44,16 @@ public class MainMain {
 				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
 		};
 		
+		Integer[] targetLines = {
+			616,485,480, 614	
+		};
+		
 		System.out.println(appPath);
 		Framework frame = traversalStep(appPath);
 		System.out.println("Traversal Complete");
-		heuristicGenerationStep(frame, targetMethods);
+		//heuristicGenerationStep(frame, targetMethods);
 		System.out.println("Heuristic Generation Complete");
-		heuristicValidationStep(new File(appPath), targetMethods);
+		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
 		
 	}
 	
@@ -72,6 +76,7 @@ public class MainMain {
 		//and please close the app if previous opened
 		frame.setup();//initialize
 		frame.start();//start experiment
+		frame.terminate();
 		
 		return frame;
 	}
@@ -105,13 +110,15 @@ public class MainMain {
 		//}
 	}
 	
-	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, String[] targets)
+	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, Framework frame, String[] targets, Integer[] targetLines)
 	{
-		DualWielding dw = new DualWielding(appUnderTest);
+		
+		DualWielding dw = new DualWielding(StaticInfo.initAnalysis(new StaticApp(appUnderTest), false), frame);
+		
 		int tcpPort = 7772;
 		for (int i = 0; i < targets.length; i++) {
 			String scriptName = targets[i].trim().split(" ")[2].trim().split("\\(")[0];
-			dw.addNewDevice(device1, targets[i], scriptName, tcpPort++);
+			dw.addNewDevice(device1, targets[i], targetLines, scriptName, tcpPort++);
 		}
 		
 		return dw.runTest();
