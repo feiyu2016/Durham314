@@ -1,6 +1,7 @@
 package zhen.version1.framework;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,7 +51,7 @@ public class RunTimeInformation{
 	/**
 	 * Map between method name and event
 	 */
-	private final Map<String,List<Event>> methodEventMap = new HashMap<String,List<Event>>();
+	private Map<String,List<Event>> methodEventMap = new HashMap<String,List<Event>>();
 	
 	private List<Event> eventDeposit = new ArrayList<Event>();
 	
@@ -93,6 +94,15 @@ public class RunTimeInformation{
 		return UIModel;
 	}
 	
+	/**
+	 * set the UIModel 
+	 * this method should be used only for restoration
+	 * @param input
+	 */
+	void setUIModel(UIModelGraph input){
+		this.UIModel = input;
+	}
+	
 	public List<IDevice> getDeviceList(){
 		return this.deviceLayout.getDeviceList();
 	}
@@ -104,6 +114,49 @@ public class RunTimeInformation{
 	public List<Event> getEventDeposit() {
 		return eventDeposit;
 	}
+	
+	void setEventDeposit(List<Event> input){
+		this.eventDeposit = input;
+	}
+	
+	
+	/**
+	 * dump UIModel, methodEventMap and eventDeposit to file
+	 * @param tag		-- used to distinguish between different situations/APK
+	 * @param force		-- forect to override existed object files
+	 */
+	public void dumpeData(String tag, boolean force){
+		String path = Configuration.AppDataDir+"object/"+tag+"/";
+		path = path.replace("//", "");
+		File folder = new File(path);
+		boolean existed = true;
+		if(!folder.exists()){
+			folder.mkdirs();
+			existed = false;
+		}
+		
+		if(force || !existed){
+			Utility.dumpData(this.UIModel, path+"object1");
+			Utility.dumpData(this.methodEventMap, path+"object2");
+			Utility.dumpData(this.eventDeposit, path+"object3");
+		}
+	}
+	
+	/**
+	 * 
+	 * @param tag	-- same as the dumpData tag
+	 * @return		--if the objects are sucessfully resotred
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean restoreData(String tag){
+		String path = Configuration.AppDataDir+"object/"+tag+"/";
+		this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
+		this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
+		this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
+		
+		return (this.UIModel!=null) && (this.methodEventMap!=null) && (this.eventDeposit!=null);
+	}
+	
 	/**
 	 * Synchronize with the device
 	 * and Update necessary information 
@@ -262,6 +315,11 @@ public class RunTimeInformation{
 	public Map<String, List<Event>> getMethodEventMap() {
 		return methodEventMap;
 	}
+	
+	void setMethodEventMap(Map<String,List<Event>> input){
+		this.methodEventMap = input;
+	}
+	
 	/**
 	 * get the sequence of events that applied on the device by far
 	 * Note: OnBack due to keyboard is not included
