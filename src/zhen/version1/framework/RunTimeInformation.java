@@ -123,7 +123,7 @@ public class RunTimeInformation{
 	/**
 	 * dump UIModel, methodEventMap and eventDeposit to file
 	 * @param tag		-- used to distinguish between different situations/APK
-	 * @param force		-- forect to override existed object files
+	 * @param force		-- force to override existed object files
 	 */
 	public void dumpeData(String tag, boolean force){
 		String path = Configuration.AppDataDir+"object/"+tag+"/";
@@ -136,9 +136,9 @@ public class RunTimeInformation{
 		}
 		
 		if(force || !existed){
-			Utility.dumpData(this.UIModel, path+"object1");
+			Utility.dumpData(new UIModelGraph(this.UIModel,false), path+"object1");
 			Utility.dumpData(this.methodEventMap, path+"object2");
-			Utility.dumpData(this.eventDeposit, path+"object3");
+//			Utility.dumpData(this.eventDeposit, path+"object3");
 		}
 	}
 	

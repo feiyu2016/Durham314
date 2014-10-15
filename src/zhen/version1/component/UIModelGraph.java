@@ -7,6 +7,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
@@ -39,15 +40,52 @@ public class UIModelGraph implements Serializable{
 	private final static String TAG = "UIModelGraph";
 	private UIState lastState;
 	private ListenableDirectedMultigraph graph;
-	
+	private boolean isInited = false;
 	private List<UIState> knownVertices = new ArrayList<UIState>();
+	
+	public UIModelGraph(){}
+	
+	public UIModelGraph(UIModelGraph other, boolean copyViewTree){
+		graph = new ListenableDirectedMultigraph(Event.class);
+		graph.addVertex(UIState.Launcher);
+		knownVertices.add(UIState.Launcher);
+		lastState = UIState.Launcher;
+		
+		Set<Event> eventSet = graph.edgeSet();
+		for(Event event:eventSet){
+			UIState source = event.getSource();
+			UIState target = event.getTarget();
+			
+			UIState actualSource, actualTarget;
+			if(copyViewTree){
+				actualSource = source;
+				actualTarget = target;
+			}else{
+				actualSource = new UIState(source,false);
+				actualTarget = new UIState(target,false);;
+			}
+			if(!this.knownVertices.contains(actualSource)){
+				this.knownVertices.add(actualSource);
+				this.graph.addVertex(actualSource);
+			}
+			if(!this.knownVertices.contains(actualTarget)){
+				this.knownVertices.add(actualTarget);
+				this.graph.addVertex(actualTarget);
+			}
+			
+			Event newEvent = new Event(event);
+			newEvent.setVertices(actualSource, actualTarget);
+			this.graph.addEdge(actualSource, actualTarget, event);
+		}
+		
+		isInited = true;
+	}
 	
 	public UIState getOrBuildState(String appName, String actName, ViewNode root, WindowInformation topWindowInfo){
 		
 		if(DEBUG) Utility.log(TAG, "getOrBuildState input,"+appName);
 		if(DEBUG) Utility.log(TAG, "getOrBuildState input,"+actName);
 		if(DEBUG) Utility.log(TAG, "------------------------------");
-		
 		int i = actName.indexOf(":");
 		if(i > 0) actName= actName.substring(0,i);
 		
@@ -66,10 +104,12 @@ public class UIModelGraph implements Serializable{
 	}
 	
 	public void init() {
+		if(isInited) return;
 		graph = new ListenableDirectedMultigraph(Event.class);
 		graph.addVertex(UIState.Launcher);
 		knownVertices.add(UIState.Launcher);
 		lastState = UIState.Launcher;
+		isInited = true;
 	}
 	
 	public void addLaunch(Event event, UIState newState){
