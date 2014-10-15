@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import main.Paths;
 import staticAnalysis.StaticInfo;
 import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
@@ -32,27 +31,34 @@ public class MainMain {
 		String[] targetApp = {
 				"CalcA.apk",
 				"KitteyKittey.apk",
-				"TippyTipper.apk"
+				"net.mandaria.tippytipper.apk"
 		};
-		int appSelect = 0;
+		int appSelect = 2;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
 //				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
 //				"<com.bae.drape.gui.calculator.CalculatorActivity: "
 //						+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
-				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
+//				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
+//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>"
+				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)>"
 		};
 		
 		Integer[] targetLines = {
-			616,485,480, 614	
+			//287, 321, 322 // addBillAmount
+			431,247,438,443,257,258,262 // onOptionsItemSelected
 		};
 		
 		System.out.println(appPath);
-		Framework frame = traversalStep(appPath);
+		//Framework frame = traversalStep(appPath);
 		System.out.println("Traversal Complete");
 		//heuristicGenerationStep(frame, targetMethods);
 		System.out.println("Heuristic Generation Complete");
+		// TODO Remove
+		Map<String,Object> att = new HashMap<String,Object>();
+		att.put(Common.apkPath, appPath);
+		Framework frame = new Framework(att);
 		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
 		
 	}

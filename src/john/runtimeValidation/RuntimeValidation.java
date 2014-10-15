@@ -45,8 +45,8 @@ public class RuntimeValidation implements Runnable{
 	
 	public void run() {
 		this.runAllScripts();
-		this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
-		this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
+		//this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
+		//this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
 	}
 
 	private ArrayList<String> getAllScripts()
@@ -149,8 +149,13 @@ public class RuntimeValidation implements Runnable{
 		for (Integer target : targetLines) {
 			if (!overallInt.contains(target)) {
 				for (Event event : getFinalEvents()) {
-					for (Event[] array : teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event)) {
+					ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
+					for (Event[] array : tegOut) {
 						startApp();
+//						JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
+//						jdb.initJDB();
+//						jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
+//						jdb.setMonitorStatus(true);
 						for (Event event2 : array) {
 							String x = event2.getValue(Common.event_att_click_x).toString();
 							String y = event2.getValue(Common.event_att_click_y).toString();

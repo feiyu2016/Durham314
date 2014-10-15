@@ -219,7 +219,7 @@ public class GenerateSequences {
 		
 		for (String string: in) {
 			String temp = string.split("%")[1].trim();
-			if (!temp.contains("."))
+			if (!temp.contains(".") && !temp.contains("keycode"))
 				input.add(temp);
 		}
 		
