@@ -2,9 +2,15 @@ package zhen.version1.Support;
  
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +41,7 @@ public class Utility {
 			Thread.sleep(20);
 			while(true){
 				int count = in.available();
-				if(count < 0) break;
+				if(count <= 0) break;
 				byte[] buf = new byte[count];
 				in.read(buf);
 				sb.append(new String(buf));
@@ -65,7 +71,7 @@ public class Utility {
 	}
 	
 	public static String getUid(String appName){
-		String command = "adb shell dumpsys "+appName+" | grep userId=";
+		String command = Configuration.ADBPath+ " shell dumpsys "+appName+" | grep userId=";
 		try {
 			Process exec = Runtime.getRuntime().exec(command);
 			exec.waitFor();
@@ -170,5 +176,47 @@ public class Utility {
 			canUse = false;
 		}
 		return canUse;
+	}
+
+	public static void dumpData(Object towrite, String path){
+		FileOutputStream fout;
+		ObjectOutputStream oos;
+		try {
+			fout = new FileOutputStream(path);
+			oos = new ObjectOutputStream(fout);
+			oos.writeObject(towrite);
+			oos.close();
+			fout.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+			Utility.info(TAG, "dumpDataHelper FileNotFoundException,"+path);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Utility.info(TAG, "dumpDataHelper IOException,"+path);
+		}
+	}
+	
+	public static Object restoreData(String path){
+		try {
+			FileInputStream fin = new FileInputStream(path);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			Object result  = ois.readObject();
+			ois.close();
+			fin.close();
+			return result;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OptionalDataException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

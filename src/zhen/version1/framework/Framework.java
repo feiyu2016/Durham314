@@ -1,6 +1,13 @@
 package zhen.version1.framework;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import zhen.version1.Support.CommandLine;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
+import zhen.version1.component.UIModelGraph;
 import zhen.version1.component.UIState;
 import zhen.version1.framework.UIExplorer.StepControlCallBack;
 
@@ -86,6 +94,7 @@ public class Framework {
 		CommandLine.executeShellCommand(
 				CommandLine.unlockScreenShellCommand, 
 				this.rInfo.getParimaryDevice().getSerialNumber());
+		
 	}
 	
 	/**
@@ -121,24 +130,6 @@ public class Framework {
 		enableStdinMonitor = input;
 	}
 	
-//	public void startValidation(List<List<Event>> sequenceList, List<String> targetMethods){
-//		if(traverseExecuter != null) traverseExecuter.terminate();
-//
-//		try { Thread.sleep(500);
-//		} catch (InterruptedException e1) { }
-//		List<Thread> list = new ArrayList<Thread>();
-//		for(IDevice device : this.rInfo.getDeviceList()){
-//			list.add(new Thread(new RunExecuter(device.getSerialNumber(), sequenceList)));
-//		}
-//		
-//		for(Thread thread : list){ thread.start(); }
-//		for(Thread thread : list){ try { thread.join(); } catch (InterruptedException e) {  e.printStackTrace(); } }
-//	
-//	
-//	
-//	}
-//	
-	
 	private Thread stdinMonitor = new Thread(new Runnable(){
 		private Scanner sc = new Scanner(System.in);
 		@Override
@@ -161,7 +152,7 @@ public class Framework {
 		}
 		this.apkPath = (String) attributes.get(Common.apkPath);
 		File apkFile = new File(apkPath);
-		if(!apkFile.exists())throw new IllegalArgumentException("Require apk path.");
+		if(!apkFile.exists())throw new IllegalArgumentException("!apkFile.exists");
 		this.attributes.put(Common.apkFile, apkFile);
 	}
 	
