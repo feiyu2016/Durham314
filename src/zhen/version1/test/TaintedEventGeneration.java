@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import android.view.KeyEvent;
 import staticFamily.StaticApp;
 import staticFamily.StaticMethod;
 import zhen.version1.component.Event;
@@ -42,13 +43,14 @@ public class TaintedEventGeneration {
 			UIState previous = UIState.Launcher;
 			for(Event e:el){
 				UIState source = e.getSource();
-				if(source.equals(previous)){
+				if(source.isLauncher){
+					list.add(Event.getPressEvent(KeyEvent.KEYCODE_HOME+""));
+				}else if(source.equals(previous)){
 					//no need to find path
-					list.add(e);
 				}else{
 					list.addAll(frame.rInfo.getEventSequence(previous, source));
-					list.add(e);
 				}
+				list.add(e);
 				previous = e.getTarget();
 			}
 			result.add(list.toArray(new Event[0]));
