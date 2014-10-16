@@ -105,8 +105,9 @@ public class RuntimeValidation implements Runnable{
 	
 	private void startApp() {
 		try {
-			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am start -n " + packageName + "/" + mainActivity);
+			final Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am start -n " + packageName + "/" + mainActivity);
 			pc.waitFor();
+			pc.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -114,8 +115,9 @@ public class RuntimeValidation implements Runnable{
 	
 	private void stopApp() {
 		try {
-			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am force-stop " + packageName);
+			final Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " shell am force-stop " + packageName);
 			pc.waitFor();
+			pc.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -139,6 +141,7 @@ public class RuntimeValidation implements Runnable{
 			if (!result.contains(entry.getValue().get(entry.getValue().size()-1)))
 				result.add(entry.getValue().get(entry.getValue().size()-1));
 		}
+		System.out.println("results " + result.size());
 		return result;
 	}
 	
@@ -150,28 +153,41 @@ public class RuntimeValidation implements Runnable{
 		
 		TaintedEventGeneration teg = new TaintedEventGeneration();
 		ValidationExecutor ve = new ValidationExecutor(deviceID);
+		StaticClass c = targetMethod.getDeclaringClass(staticApp);
 		ve.init();
-		
+		System.out.println("SADFASDGHASH");
 		for (Integer target : targetLines) {
 			if (!overallInt.contains(target)) {
 				System.out.println(target);
 				for (Event event : getFinalEvents()) {
-					ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
-					for (Event[] array : tegOut) {
+					try {
+						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
 						startApp();
-//						JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
-//						jdb.initJDB();
-//						jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
-//						jdb.setMonitorStatus(true);
-						for (Event event2 : array) {
-							String x = event2.getValue(Common.event_att_click_x).toString();
-							String y = event2.getValue(Common.event_att_click_y).toString();
-							ve.touch(x, y);
-							System.out.print("(" + x + "," + y + ")");
+						JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
+						jdb.initJDB();
+						jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
+						jdb.setMonitorStatus(true);
+						Thread.sleep(1000);
+						for (Event[] array : tegOut) {
+							for (Event event2 : array) {
+								try {
+									String x = event2.getValue(Common.event_att_click_x).toString();
+									String y = event2.getValue(Common.event_att_click_y).toString();
+									ve.touch(x, y);
+									Thread.sleep(1000);
+									System.out.print("Zhen touch: (" + x + "," + y + ")");
+								} catch (NullPointerException | InterruptedException e) {}
+							}
+							System.out.println();
 						}
-						System.out.println();
+						Thread.sleep(1000);
+						jdb.exitJDB();
 						stopApp();
-					}
+						
+						for (String bp: jdb.getBPsHit()) {
+							System.out.println("    " + bp);
+						}
+					} catch (Exception e) {}
 				}
 			}
 		}

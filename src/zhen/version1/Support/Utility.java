@@ -66,7 +66,7 @@ public class Utility {
 			if(tmp.trim().equals("")) return result;
 			String[] parts = tmp.split("\n");
 			for(String part: parts){
-				System.out.println("part:"+part);
+				//System.out.println("part:"+part);
 				if(part.contains("METHOD_STARTING")){
 					String methodName = part.split("METHOD_STARTING,")[1];
 					result.add(methodName.trim());
