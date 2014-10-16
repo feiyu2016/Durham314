@@ -23,7 +23,7 @@ public class SampleTestClass {
 	public static void main(String[] args) {
 		//choose the name of apk file
 		String[] name = { 
-				"CalcA.apk", 
+				"CalcA_soot.apk", 
 		};
 
 		
@@ -39,6 +39,7 @@ public class SampleTestClass {
 		
 		//setup input parameters
 		Map<String,Object> att = new HashMap<String,Object>();
+		att.put(Common.originalApkPath, "Calc_A.apk");
 		att.put(Common.apkPath	, path);
 		
 		Framework frame = new Framework(att);

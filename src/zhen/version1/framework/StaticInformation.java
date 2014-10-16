@@ -31,9 +31,12 @@ public class StaticInformation {
 	}
 	
 	public void init(Map<String, Object> attributes, boolean forceAllSteps){
-		File apkFile = (File)attributes.get(Common.apkFile);
+//		File apkFile = (File)attributes.get(Common.originalApkPath);
 		
-		StaticApp app = new StaticApp(apkFile);
+		File original = new File(attributes.get(Common.originalApkPath).toString());
+		
+		
+		StaticApp app = new StaticApp(original);
 		app = StaticInfo.initAnalysis(app, true);
 		
 		List<StaticClass> classList =  app.getActivityList(); 

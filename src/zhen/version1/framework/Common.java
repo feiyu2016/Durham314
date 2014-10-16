@@ -15,7 +15,7 @@ public class Common {
 	public static final String event_att_click_x = "event_clickx";
 	public static final String event_att_click_y = "event_clicky";
 	
-//	public static final String apkSm
+	public static final String originalApkPath = "apkPahtOriginal";
 	
 	public static final String apkPath = "apkPath";
 	public static final String packageName = "packageName";
