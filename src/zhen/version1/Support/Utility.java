@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,10 +70,12 @@ public class Utility {
 					String methodName = part.split("METHOD_STARTING,")[1].trim();
 					int i = methodName.lastIndexOf(">") + 1;
 					i = Math.min(i, methodName.length());
-					result.add(methodName.substring(0,i));
+					String tmp1 = methodName.substring(0,i);
+					result.add(tmp1);
+					log(tmp1);
 				}
 			}
-			
+			log("\n");
 			pc.destroy();
 		}catch(Exception e){}
 		return result;
@@ -241,5 +244,18 @@ public class Utility {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	PrintWriter pw = null;
+	void log(Object o ){
+		if(pw == null){
+			try {
+				pw = new PrintWriter(new File("Utility_log"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		pw.println(o.toString());
 	}
 }
