@@ -26,18 +26,20 @@ public class StaticInformation {
 	protected Framework frame;
 	public List<String> activityList;
 	public String packageName;
+	public StaticApp app;
 	public StaticInformation(Framework frame){
 		this.frame = frame;
 	}
 	
 	public void init(Map<String, Object> attributes, boolean forceAllSteps){
-//		File apkFile = (File)attributes.get(Common.originalApkPath);
-		
-		File original = new File(attributes.get(Common.originalApkPath).toString());
+		String path = attributes.get(Common.apkPath).toString();
 		
 		
-		StaticApp app = new StaticApp(original);
-		app = StaticInfo.initAnalysis(app, true);
+		File apkFile = new File(path);
+		attributes.put(Common.apkFile, apkFile);
+		
+		app = new StaticApp(apkFile);
+		app = StaticInfo.initAnalysis(app, false);
 		
 		List<StaticClass> classList =  app.getActivityList(); 
 		

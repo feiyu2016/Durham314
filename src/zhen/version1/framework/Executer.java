@@ -25,7 +25,7 @@ public class Executer {
 	public static final String UP = "MonkeyDevice.UP";
 	public static final String DOWN = "MonkeyDevice.DOWN";
 	public static final String DOWN_AND_UP = "MonkeyDevice.DOWN_AND_UP";
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 	
 	private Process monkeyProcess = null;
 	private BufferedOutputStream ostream = null;

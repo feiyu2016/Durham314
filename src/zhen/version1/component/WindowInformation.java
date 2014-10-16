@@ -18,6 +18,10 @@ import zhen.version1.framework.Configuration;
  *
  */
 public class WindowInformation implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2453441461452121134L;
 	public String name; 
 	public String encode;
 	public String uid;

@@ -86,7 +86,7 @@ public class Framework {
 		Utility.log(TAG, "Serial: "+serial);
 		traverseExecuter.setSerial(serial);
 		traverseExecuter.init(attributes);
-		
+		Utility.log(TAG, "wakeDeviceup");
 		traverseExecuter.wakeDeviceup();
 		try { Thread.sleep(500);
 		} catch (InterruptedException e) { }
@@ -94,7 +94,7 @@ public class Framework {
 		CommandLine.executeShellCommand(
 				CommandLine.unlockScreenShellCommand, 
 				this.rInfo.getParimaryDevice().getSerialNumber());
-		
+		Utility.log(TAG, "setup complete");
 	}
 	
 	/**

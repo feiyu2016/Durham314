@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import main.Paths;
 
@@ -137,7 +138,21 @@ public class RunTimeInformation{
 		
 		if(force || !existed){
 			Utility.dumpData(new UIModelGraph(this.UIModel,false), path+"object1");
-			Utility.dumpData(this.methodEventMap, path+"object2");
+			
+			Map<String, List<Event>> copyMap = new HashMap<String, List<Event>>();
+			for(Entry<String, List<Event>> entry: methodEventMap.entrySet()){
+				String msg = entry.getKey();
+				List<Event> list = entry.getValue();
+				List<Event> copy = new ArrayList<Event>();
+				for(Event e : list){
+					Event newEvent = new Event(e,false);
+					System.out.println(newEvent.getSource().root == null);
+					copy.add(newEvent);
+				}
+				copyMap.put(msg, copy);
+			}
+			
+			Utility.dumpData(copyMap, path+"object2");
 //			Utility.dumpData(this.eventDeposit, path+"object3");
 		}
 	}
@@ -149,12 +164,20 @@ public class RunTimeInformation{
 	 */
 	@SuppressWarnings("unchecked")
 	public boolean restoreData(String tag){
-		String path = Configuration.AppDataDir+"object/"+tag+"/";
-		this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
-		this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
-		//this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
-		
-		return (this.UIModel!=null) && (this.methodEventMap!=null)/* && (this.eventDeposit!=null)*/;
+		try{
+			String path = Configuration.AppDataDir+"object/"+tag+"/";
+			this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
+			this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
+			//this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
+			
+			return (this.UIModel!=null) && (this.methodEventMap!=null)/* && (this.eventDeposit!=null)*/;
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}catch(Error e){
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	/**

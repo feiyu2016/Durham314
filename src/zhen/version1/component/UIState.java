@@ -24,6 +24,10 @@ import com.android.hierarchyviewerlib.models.ViewNode;
  *
  */
 public class UIState implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3389217797718326049L;
 	public static String TAG = "UIState";
 	public static boolean DEBUG = true;
 	

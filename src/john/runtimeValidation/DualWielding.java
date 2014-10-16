@@ -64,6 +64,8 @@ public class DualWielding {
 	@SuppressWarnings("unchecked")
 	public ArrayList<ArrayList<Integer>> runTest()
 	{
+		
+		System.out.println("DualWielding runTest, deviceIDs.size():"+deviceIDs.size());
 		for (int i = 0; i < deviceIDs.size(); i++) {
 			rtv.add(new RuntimeValidation(scriptNames.get(i), i, methods.get(i), 
 					appUnderTest, deviceIDs.get(i), tcpPorts.get(i), this.frame, targetLines));

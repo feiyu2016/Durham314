@@ -22,6 +22,10 @@ import zhen.version1.framework.Executer;
  */
 public class Event extends DefaultEdge implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6904639332119650622L;
 	public final static String EMPTY = "empty";
 	public final static String UPDATE = "update";
 	public final static String UNDEFINED = "undefined";
@@ -66,6 +70,17 @@ public class Event extends DefaultEdge implements Serializable{
 		this.attributes = new HashMap<String, Object>(other.attributes);
 		this.index = avaliableIndex;
 		avaliableIndex += 1;
+	}
+	
+	public Event(Event other,boolean copytree){
+		this.eventType = other.eventType;
+		//seems that shallow copy is sufficient at this point
+		this.attributes = new HashMap<String, Object>(other.attributes);
+		this.index = avaliableIndex;
+		avaliableIndex += 1;
+		
+		this.source =  new UIState(other.source,copytree);
+		this.target =  new UIState(other.target,copytree);
 	}
 	
 	public void setVertices(UIState source, UIState target){
@@ -114,6 +129,8 @@ public class Event extends DefaultEdge implements Serializable{
 		if(other instanceof Event){
 			Event otherEvent = (Event)other;
 			if(otherEvent.eventType != this.eventType) return false;
+			
+			if(this.index == otherEvent.index) return true;
 			
 			switch(this.eventType){
 			case iONCLICK:{

@@ -13,6 +13,7 @@ import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
 import john.runtimeValidation.DualWielding;
 import john.runtimeValidation.GenerateValidationScripts;
+import zhen.version1.Support.CommandLine;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -22,11 +23,14 @@ import zhen.version1.framework.RunTimeInformation;
 
 public class MainMain {
 	
-	static String device1 = "015d3c26c9540809";
-	static String device2 = "015d3f1936080c05";
+	static String device1 = "0794aad2";
 	
 	public static void main(String args[])
 	{
+		
+		String tmp = "/home/zhenxu/git/Durham314/generated/CalcA.apk/InstrumentedApps/CalcA_soot.apk";
+		CommandLine.executeADBCommand("install -r "+tmp, device1);
+		
 		//choose the name of apk file
 		String[] targetApp = {
 				"CalcA.apk",
@@ -70,6 +74,7 @@ public class MainMain {
  		System.out.println("Heuristic Generation Complete");
 		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
 		
+		
 	}
 	
 	private static Framework traversalStep(String path) 
@@ -92,6 +97,7 @@ public class MainMain {
 		frame.setup();//initialize
 		frame.start();//start experiment
 		frame.terminate();
+		
 		
 		return frame;
 	}
