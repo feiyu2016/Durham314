@@ -23,13 +23,13 @@ import zhen.version1.framework.RunTimeInformation;
 
 public class MainMain {
 	
-	static String device1 = "0794aad2";
+	static String device1 = "015d3c26c9540809";
 	
 	public static void main(String args[])
 	{
 		
-		String tmp = "/home/zhenxu/git/Durham314/generated/CalcA.apk/InstrumentedApps/CalcA_soot.apk";
-		CommandLine.executeADBCommand("install -r "+tmp, device1);
+//		String tmp = "/home/zhenxu/git/Durham314/generated/CalcA.apk/InstrumentedApps/CalcA_soot.apk";
+//		CommandLine.executeADBCommand("install -r "+tmp, device1);
 		
 		//choose the name of apk file
 		String[] targetApp = {
@@ -133,8 +133,7 @@ public class MainMain {
 	
 	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, Framework frame, String[] targets, Integer[] targetLines)
 	{
-		
-		DualWielding dw = new DualWielding(StaticInfo.initAnalysis(new StaticApp(appUnderTest), false), frame);
+		DualWielding dw = new DualWielding(frame.sInfo.app, frame);
 		
 		int tcpPort = 7772;
 		for (int i = 0; i < targets.length; i++) {
