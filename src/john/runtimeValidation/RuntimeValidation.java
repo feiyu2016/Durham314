@@ -1,6 +1,8 @@
 package john.runtimeValidation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -158,10 +160,16 @@ public class RuntimeValidation implements Runnable{
 		System.out.println("SADFASDGHASH");
 		for (Integer target : targetLines) {
 			if (!overallInt.contains(target)) {
-				System.out.println(target);
+				log("target line: " +target);
 				for (Event event : getFinalEvents()) {
 					try {
+						log("event method: " + event.getMethodHits());
 						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
+						log("findSequence checking:");
+                        log("findTaintedMethods"+th.findTaintedMethods(target));
+                        log("finalEvent"+event);
+                        log("tegOut:\t"+tegOut);
+                        log("\n");
 						startApp();
 						JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
 						jdb.initJDB();
@@ -192,5 +200,21 @@ public class RuntimeValidation implements Runnable{
 			}
 		}
 	}
+	
+	 
+	PrintWriter pw = null;
+    private void log(Object o){
+        if(o == null) return;
+        if(pw == null)
+            try {
+                pw = new PrintWriter(new File("log"));
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        
+        
+        pw.println(o.toString());
+    }
 	
 }

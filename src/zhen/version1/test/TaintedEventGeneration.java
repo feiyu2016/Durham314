@@ -1,6 +1,10 @@
 package zhen.version1.test;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +33,11 @@ public class TaintedEventGeneration {
 	 * @return
 	 */
 	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
+		if(methodList.isEmpty()){
+			System.out.println("methodList is empty");
+			return new ArrayList<Event[]>();
+		}
+		
 		List<String> sourceHandler = getSourceHandler(methodList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
@@ -55,6 +64,12 @@ public class TaintedEventGeneration {
 			}
 			result.add(list.toArray(new Event[0]));
 		}
+		log("expandToRealSequence");
+		for(Event[] eve : result){
+			log(Arrays.toString(eve));
+		}
+		log("\n");
+		
 		return result;
 	}
 	
@@ -64,6 +79,11 @@ public class TaintedEventGeneration {
 			StaticMethod method = testApp.findMethodByFullSignature(msg);
 			result.addAll(testApp.getCallSequenceForMethod(method));
 		}
+		
+		log("getSourceHandler");
+		log(result);
+		log("\n");
+		log("\n");
 		
 		return result;
 	}
@@ -86,6 +106,12 @@ public class TaintedEventGeneration {
 		ArrayList<Event> current = new ArrayList<Event>();
 		List<Event[]> deposit = new ArrayList<Event[]>();
 		eventgenerateHelper(eventMatrix,unsued,current, deposit,finalEvent);
+		
+		log("generateEventWithTaint");
+		for(Event[] eve : deposit){
+			log(Arrays.toString(eve));
+		}
+		log("\n");
 		
 		return deposit;
 	}
@@ -136,6 +162,21 @@ public class TaintedEventGeneration {
 		eventgenerateHelper(eventMatrix,unsued,current, deposit,finalEvent);
 
 		System.out.println(deposit.size());
+		for(Event[] eve : deposit){
+			System.out.println(Arrays.toString(eve));
+		}
+		
+	}
+	PrintWriter pw = null;
+	void log(Object o ){
+		if(pw == null){
+			try {
+				pw = new PrintWriter(new File("TaintedEventGeneration_log"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		pw.println(o.toString());
 	}
 }
-
