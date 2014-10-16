@@ -33,6 +33,7 @@ public class Utility {
 		/**
 		 * Situation that the process never terminated happened.
 		 */
+//		System.out.println("Input serail: "+serial);
 		try{
 			String command = Configuration.ADBPath + " -s "+serial+" logcat -v thread -d  -s "+Configuration.InstrumentationTag;
 			final Process pc = Runtime.getRuntime().exec(command);
@@ -64,7 +65,6 @@ public class Utility {
 			if(tmp.trim().equals("")) return result;
 			String[] parts = tmp.split("\n");
 			for(String part: parts){
-				System.out.println("part:"+part);
 				if(part.contains("METHOD_STARTING")){
 					String methodName = part.split("METHOD_STARTING,")[1];
 					result.add(methodName.trim());

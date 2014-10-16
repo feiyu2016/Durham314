@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import main.Paths;
 import staticAnalysis.StaticInfo;
 import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
@@ -32,27 +31,43 @@ public class MainMain {
 		String[] targetApp = {
 				"CalcA.apk",
 				"KitteyKittey.apk",
-				"TippyTipper.apk"
+				"net.mandaria.tippytipper.apk"
 		};
 		int appSelect = 0;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
 //				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
-//				"<com.bae.drape.gui.calculator.CalculatorActivity: "
-//						+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
-				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
+				"<com.bae.drape.gui.calculator.CalculatorActivity: "
+						+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
+//				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
+//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>"
+//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)>"
 		};
 		
 		Integer[] targetLines = {
-			616,485,480, 614	
+			//287,321,322, // addBillAmount
+			//431,247,438,443,257,258,262, // onOptionsItemSelected
+			649,430,475,656,436,455,459, // handleOperation
 		};
 		
+//		System.out.println(main.Paths.adbPath);
+//		Framework frame = traversalStep(appPath);
+////		frame.rInfo.dumpeData(appPath, true);
+//		System.out.println("Traversal Complete");
+//		
+////		frame.setup();
+////		frame.rInfo.restoreData(appPath);
+//		heuristicGenerationStep(frame, targetMethods);
+//		System.out.println("Heuristic Generation Complete");
+////
+////		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
+		
 		System.out.println(appPath);
-		Framework frame = traversalStep(appPath);
-		System.out.println("Traversal Complete");
-		//heuristicGenerationStep(frame, targetMethods);
-		System.out.println("Heuristic Generation Complete");
+ 		Framework frame = traversalStep(appPath);
+ 		System.out.println("Traversal Complete");
+//		heuristicGenerationStep(frame, targetMethods);
+ 		System.out.println("Heuristic Generation Complete");
 		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
 		
 	}
@@ -118,6 +133,7 @@ public class MainMain {
 		int tcpPort = 7772;
 		for (int i = 0; i < targets.length; i++) {
 			String scriptName = targets[i].trim().split(" ")[2].trim().split("\\(")[0];
+			scriptName = "handleOperationUE";
 			dw.addNewDevice(device1, targets[i], targetLines, scriptName, tcpPort++);
 		}
 		

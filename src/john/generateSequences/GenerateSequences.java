@@ -76,12 +76,16 @@ public class GenerateSequences {
 	{
 		ArrayList<String> sequences = new ArrayList<String>();
 		for (String target: targetMethods) {
+			System.out.println("Target Methods");
 			for (UIState vertex: knownVertices) {
+				System.out.println("Vertex");
 				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
 				
 				for (Event event: el) {
+					System.out.println("Effective Event");
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
 							break;
@@ -90,7 +94,10 @@ public class GenerateSequences {
 				}
 				
 				for (Event event: ieel) {
+					System.out.println("Ineffective Event");
+					System.out.println(event.getMethodHits());
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
 							break;
@@ -138,6 +145,7 @@ public class GenerateSequences {
 				
 				for (Event event: el) {
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (hasSeen.containsKey(string.trim())) {
 							try {
 								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
@@ -159,6 +167,7 @@ public class GenerateSequences {
 				
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (hasSeen.containsKey(string.trim())) {
 							try {
 								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
@@ -219,7 +228,7 @@ public class GenerateSequences {
 		
 		for (String string: in) {
 			String temp = string.split("%")[1].trim();
-			if (!temp.contains("."))
+			if (!temp.contains(".") && !temp.contains("keycode"))
 				input.add(temp);
 		}
 		
@@ -246,6 +255,7 @@ public class GenerateSequences {
         }
         
         if (debugMode) {
+        	System.out.println("----MERGED METHOD GROUPS:");
 	        for (String string: result) {
 	        	System.out.println(string);
 	        }

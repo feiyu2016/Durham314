@@ -152,9 +152,9 @@ public class RunTimeInformation{
 		String path = Configuration.AppDataDir+"object/"+tag+"/";
 		this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
 		this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
-		this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
+		//this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
 		
-		return (this.UIModel!=null) && (this.methodEventMap!=null) && (this.eventDeposit!=null);
+		return (this.UIModel!=null) && (this.methodEventMap!=null)/* && (this.eventDeposit!=null)*/;
 	}
 	
 	/**
