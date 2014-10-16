@@ -28,17 +28,21 @@ public class TaintedEventGeneration {
 	/**
 	 * Find a list of sequence which should be applied
 	 * @param frame			-- the framework object which contains the UI model
-	 * @param methodList	-- the method list from tainted analysis
+	 * @param methodGroupList	-- the method list from tainted analysis
 	 * @param finalEvent	-- the final event that triggered the target method
 	 * @return
 	 */
-	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<ArrayList<String>>  methodList,Event finalEvent){
-		if(methodList.isEmpty()){
+	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<ArrayList<String>>  methodGroupList,Event finalEvent){
+		if(methodGroupList.isEmpty()){
 			System.out.println("methodList is empty");
 			return new ArrayList<Event[]>();
 		}
 		System.out.println("findSequence");
-		ArrayList<ArrayList<String>> sourceHandler = getSourceHandler(methodList,testApp);
+		for(ArrayList<String> group:methodGroupList){
+			log("elements: "+group);
+		}
+		log("\n");
+		ArrayList<ArrayList<String>> sourceHandler = getSourceHandler(methodGroupList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
 		return expandToRealSequence(frame, relatedEventSequence);
@@ -90,9 +94,6 @@ public class TaintedEventGeneration {
 			result.add(arr);
 		}
 		
-	
-		
-		
 //		System.out.println("getSourceHandler:"+methodList.size());
 //		for(String msg:methodList){
 //			System.out.println("msg:"+msg);
@@ -107,7 +108,9 @@ public class TaintedEventGeneration {
 //		}
 		
 		log("getSourceHandler");
-		log(result);
+		for(ArrayList<String> group : result){
+			log("elements: "+group);
+		}
 		log("\n");
 		log("\n");
 		
