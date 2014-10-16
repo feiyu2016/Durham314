@@ -77,13 +77,12 @@ public class TaintedEventGeneration {
 		ArrayList<String> result = new ArrayList<String>();
 		for(String msg:methodList){
 			StaticMethod method = testApp.findMethodByFullSignature(msg);
-			ArrayList<String>  tmp = testApp.getCallSequenceForMethod(method);
-			log("getCallSequenceForMethod:"+tmp.size()+"");
-			for(String single:tmp){
-				log("getCallSequenceForMethod, element:"+single);
+			ArrayList<String> sequences = testApp.getCallSequenceForMethod(method);
+			for(String sequence : sequences){
+				String[] parts = sequence.split(";");
+				String source = parts[parts.length-1];
+				result.add(source);
 			}
-			
-			result.addAll(tmp);
 		}
 		
 		log("getSourceHandler");
