@@ -28,17 +28,21 @@ public class TaintedEventGeneration {
 	/**
 	 * Find a list of sequence which should be applied
 	 * @param frame			-- the framework object which contains the UI model
-	 * @param methodList	-- the method list from tainted analysis
+	 * @param methodGroupList	-- the method list from tainted analysis
 	 * @param finalEvent	-- the final event that triggered the target method
 	 * @return
 	 */
-	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<String> methodList,Event finalEvent){
-		if(methodList.isEmpty()){
+	public List<Event[]> findSequence(Framework frame,StaticApp testApp, ArrayList<ArrayList<String>>  methodGroupList,Event finalEvent){
+		if(methodGroupList.isEmpty()){
 			System.out.println("methodList is empty");
 			return new ArrayList<Event[]>();
 		}
 		System.out.println("findSequence");
-		List<String> sourceHandler = getSourceHandler(methodList,testApp);
+		for(ArrayList<String> group:methodGroupList){
+			log("elements: "+group);
+		}
+		log("\n");
+		ArrayList<ArrayList<String>> sourceHandler = getSourceHandler(methodGroupList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
 		return expandToRealSequence(frame, relatedEventSequence);
@@ -73,48 +77,81 @@ public class TaintedEventGeneration {
 		return result;
 	}
 	
-	private ArrayList<String> getSourceHandler(ArrayList<String> methodList, StaticApp testApp){
-		ArrayList<String> result = new ArrayList<String>();
-		System.out.println("getSourceHandler:"+methodList.size());
-		for(String msg:methodList){
-			System.out.println("msg:"+msg);
-			StaticMethod method = testApp.findMethodByFullSignature(msg);
-			ArrayList<String> sequences = testApp.getCallSequenceForMethod(method);
-			for(String sequence : sequences){
-				System.out.println("sequence:"+sequence);
-				String[] parts = sequence.split(";");
-				String source = parts[parts.length-1];
-				result.add(source);
+	private ArrayList<ArrayList<String>> getSourceHandler(ArrayList<ArrayList<String>> methodGroupList, StaticApp testApp){
+		ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+		//find the source
+		for(ArrayList<String> group:methodGroupList){
+			ArrayList<String> arr = new ArrayList<String>();
+			for(String method:group){
+				StaticMethod methodSig = testApp.findMethodByFullSignature(method);
+				ArrayList<String> sequences = testApp.getCallSequenceForMethod(methodSig);
+				for(String sequence : sequences){ 
+					String[] parts = sequence.split(";");
+					String source = parts[parts.length-1];
+					if(!arr.contains(source))arr.add(source);
+				}
 			}
+			result.add(arr);
 		}
 		
+//		System.out.println("getSourceHandler:"+methodList.size());
+//		for(String msg:methodList){
+//			System.out.println("msg:"+msg);
+//			StaticMethod method = testApp.findMethodByFullSignature(msg);
+//			ArrayList<String> sequences = testApp.getCallSequenceForMethod(method);
+//			for(String sequence : sequences){
+//				System.out.println("sequence:"+sequence);
+//				String[] parts = sequence.split(";");
+//				String source = parts[parts.length-1];
+//				result.add(source);
+//			}
+//		}
+		
 		log("getSourceHandler");
-		log(result);
+		for(ArrayList<String> group : result){
+			log("elements: "+group);
+		}
 		log("\n");
 		log("\n");
 		
 		return result;
 	}
 	
-	private List<Event[]> generateEventWithTaint(Framework frame, List<String> methodList,Event finalEvent){
+	private List<Event[]> generateEventWithTaint(Framework frame, ArrayList<ArrayList<String>> methodGroupList,Event finalEvent){
 		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>(); 
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
-		for(int j=0;j<methodList.size();j++){
-			List<Event> events = map.get(methodList.get(j));
-			if(events == null || events.isEmpty()){
-				log("cannot find events for:"+methodList.get(j));
-				continue;
+		
+		//find relevant event
+		for(ArrayList<String> group : methodGroupList){
+			ArrayList<Event> column = new ArrayList<Event>();
+			for(String source:group){
+				List<Event> events = map.get(source);
+				for(Event event : events){
+					if(!column.contains(event))column.add(event);
+				}
 			}
-			List<Event> copy = new ArrayList<Event>(events);
-//			copy.remove(finalEvent);
-//			if(copy.isEmpty()){
-//				log("empty event set for:"+methodList.get(j));
+			if(column.isEmpty()) continue;
+			
+			eventMatrix.add(column.toArray(new Event[0]));
+		}
+		
+		
+//		for(int j=0;j<methodList.size();j++){
+//			List<Event> events = map.get(methodList.get(j));
+//			if(events == null || events.isEmpty()){
+//				log("cannot find events for:"+methodList.get(j));
 //				continue;
 //			}
-			Event[] set= copy.toArray(new Event[0]);
-			eventMatrix.add(set);
-			log(methodList.get(j)+" has "+Arrays.toString(set));
-		}
+//			List<Event> copy = new ArrayList<Event>(events);
+////			copy.remove(finalEvent);
+////			if(copy.isEmpty()){
+////				log("empty event set for:"+methodList.get(j));
+////				continue;
+////			}
+//			Event[] set= copy.toArray(new Event[0]);
+//			eventMatrix.add(set);
+//			log(methodList.get(j)+" has "+Arrays.toString(set));
+//		}
 		ArrayList<Integer> unsued = new ArrayList<Integer>();
 		for(int i=0;i<eventMatrix.size();i++){
 			unsued.add(i);
