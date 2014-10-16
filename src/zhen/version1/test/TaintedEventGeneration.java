@@ -37,11 +37,10 @@ public class TaintedEventGeneration {
 			System.out.println("methodList is empty");
 			return new ArrayList<Event[]>();
 		}
-		System.out.println("findSequence");
+		log("findSequence");
 		for(ArrayList<String> group:methodGroupList){
 			log("elements: "+group);
 		}
-		log("\n");
 		ArrayList<ArrayList<String>> sourceHandler = getSourceHandler(methodGroupList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
@@ -121,7 +120,6 @@ public class TaintedEventGeneration {
 		log("generateEventWithTaint1");
 		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>(); 
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
-		
 		//find relevant event
 		for(ArrayList<String> group : methodGroupList){
 			ArrayList<Event> column = new ArrayList<Event>();
@@ -132,10 +130,12 @@ public class TaintedEventGeneration {
 				}
 			}
 			if(column.isEmpty()) continue;
-			
-			eventMatrix.add(column.toArray(new Event[0]));
+			Event[] tmp = column.toArray(new Event[0]);
+			eventMatrix.add(tmp);
+			log(Arrays.toString(tmp));
 		}
 		
+		log("generateEventWithTaint1.1");
 		
 //		for(int j=0;j<methodList.size();j++){
 //			List<Event> events = map.get(methodList.get(j));
