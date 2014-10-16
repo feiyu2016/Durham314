@@ -118,6 +118,7 @@ public class TaintedEventGeneration {
 	}
 	
 	private List<Event[]> generateEventWithTaint(Framework frame, ArrayList<ArrayList<String>> methodGroupList,Event finalEvent){
+		log("generateEventWithTaint");
 		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>(); 
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
 		
