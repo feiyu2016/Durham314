@@ -72,10 +72,10 @@ public class Utility {
 					i = Math.min(i, methodName.length());
 					String tmp1 = methodName.substring(0,i);
 					result.add(tmp1);
-					log(tmp1);
+					Utilitylog(tmp1);
 				}
 			}
-			log("\n");
+			Utilitylog("\n");
 			pc.destroy();
 		}catch(Exception e){}
 		return result;
@@ -246,8 +246,8 @@ public class Utility {
 		return null;
 	}
 	
-	PrintWriter pw = null;
-	void log(Object o ){
+	static PrintWriter pw = null;
+	static void Utilitylog(Object o ){
 		if(pw == null){
 			try {
 				pw = new PrintWriter(new File("Utility_log"));
