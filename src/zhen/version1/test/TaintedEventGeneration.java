@@ -118,7 +118,7 @@ public class TaintedEventGeneration {
 	}
 	
 	private List<Event[]> generateEventWithTaint(Framework frame, ArrayList<ArrayList<String>> methodGroupList,Event finalEvent){
-		log("generateEventWithTaint");
+		log("generateEventWithTaint1");
 		ArrayList<Event[]> eventMatrix = new ArrayList<Event[]>(); 
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
 		
@@ -168,7 +168,7 @@ public class TaintedEventGeneration {
 		List<Event[]> deposit = new ArrayList<Event[]>();
 		eventgenerateHelper(eventMatrix,unsued,current, deposit,finalEvent);
 		
-		log("generateEventWithTaint");
+		log("generateEventWithTaint2");
 		for(Event[] eve : deposit){
 			log(Arrays.toString(eve));
 		}
