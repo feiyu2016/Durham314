@@ -98,11 +98,11 @@ public class TaintedEventGeneration {
 				continue;
 			}
 			List<Event> copy = new ArrayList<Event>(events);
-			copy.remove(finalEvent);
-			if(copy.isEmpty()){
-				log("empty event set for:"+methodList.get(j));
-				continue;
-			}
+//			copy.remove(finalEvent);
+//			if(copy.isEmpty()){
+//				log("empty event set for:"+methodList.get(j));
+//				continue;
+//			}
 			Event[] set= copy.toArray(new Event[0]);
 			eventMatrix.add(set);
 			log(methodList.get(j)+" has "+Arrays.toString(set));
