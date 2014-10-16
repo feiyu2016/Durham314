@@ -44,9 +44,13 @@ public class RuntimeValidation implements Runnable{
 	}
 	
 	public void run() {
+		System.out.println("run");
 		this.runAllScripts();
-		//this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
-		//this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
+		System.out.println("done");
+		this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
+		System.out.println("donedone");
+		this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
+		System.out.println("donedonedone");
 	}
 
 	private ArrayList<String> getAllScripts()
@@ -56,10 +60,9 @@ public class RuntimeValidation implements Runnable{
 		ArrayList<String> ret = new ArrayList<String>();
 		  
 		for (File file: files)  {  
-		   String string = file.getAbsolutePath();
-		   System.out.println("found SCRIPT " + string);
-		  if (string.contains(scriptName))
-			   ret.add(string); 
+			String string = file.getAbsolutePath();
+			if (string.contains(scriptName + "_"))
+				ret.add(string); 
 		}
 		
 		return ret;
@@ -123,6 +126,9 @@ public class RuntimeValidation implements Runnable{
 		for (String string : overall_result) {
 			overallInt.add(Integer.parseInt(string.trim().split(",")[2]));
 		}
+		
+		for (Integer integer : overallInt)
+			System.out.println(integer);
 	}
 	
 	private ArrayList<Event> getFinalEvents() 
@@ -148,6 +154,7 @@ public class RuntimeValidation implements Runnable{
 		
 		for (Integer target : targetLines) {
 			if (!overallInt.contains(target)) {
+				System.out.println(target);
 				for (Event event : getFinalEvents()) {
 					ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
 					for (Event[] array : tegOut) {

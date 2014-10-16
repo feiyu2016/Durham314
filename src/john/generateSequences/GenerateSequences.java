@@ -82,6 +82,7 @@ public class GenerateSequences {
 				
 				for (Event event: el) {
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
 							break;
@@ -91,6 +92,7 @@ public class GenerateSequences {
 				
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
 							break;
@@ -138,6 +140,7 @@ public class GenerateSequences {
 				
 				for (Event event: el) {
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (hasSeen.containsKey(string.trim())) {
 							try {
 								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
@@ -159,6 +162,7 @@ public class GenerateSequences {
 				
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
+						System.out.println(string);
 						if (hasSeen.containsKey(string.trim())) {
 							try {
 								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
@@ -246,6 +250,7 @@ public class GenerateSequences {
         }
         
         if (debugMode) {
+        	System.out.println("----MERGED METHOD GROUPS:");
 	        for (String string: result) {
 	        	System.out.println(string);
 	        }
