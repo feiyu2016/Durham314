@@ -37,7 +37,7 @@ public class TaintedEventGeneration {
 			System.out.println("methodList is empty");
 			return new ArrayList<Event[]>();
 		}
-		
+		System.out.println("findSequence");
 		List<String> sourceHandler = getSourceHandler(methodList,testApp);
 		List<Event[]> relatedEventSequence = generateEventWithTaint(frame, sourceHandler,finalEvent);
 		System.out.println("TaintedEventGeneration, relatedEventSequence size:"+relatedEventSequence.size());
@@ -75,10 +75,13 @@ public class TaintedEventGeneration {
 	
 	private ArrayList<String> getSourceHandler(ArrayList<String> methodList, StaticApp testApp){
 		ArrayList<String> result = new ArrayList<String>();
+		System.out.println("getSourceHandler:"+methodList.size());
 		for(String msg:methodList){
+			System.out.println("msg:"+msg);
 			StaticMethod method = testApp.findMethodByFullSignature(msg);
 			ArrayList<String> sequences = testApp.getCallSequenceForMethod(method);
 			for(String sequence : sequences){
+				System.out.println("sequence:"+sequence);
 				String[] parts = sequence.split(";");
 				String source = parts[parts.length-1];
 				result.add(source);
