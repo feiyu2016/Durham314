@@ -257,5 +257,6 @@ public class Utility {
 			}
 		}
 		pw.println(o.toString());
+		pw.flush();
 	}
 }
