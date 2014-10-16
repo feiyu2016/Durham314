@@ -66,8 +66,10 @@ public class Utility {
 			String[] parts = tmp.split("\n");
 			for(String part: parts){
 				if(part.contains("METHOD_STARTING")){
-					String methodName = part.split("METHOD_STARTING,")[1];
-					result.add(methodName.trim());
+					String methodName = part.split("METHOD_STARTING,")[1].trim();
+					int i = methodName.lastIndexOf(">") + 1;
+					i = Math.min(i, methodName.length());
+					result.add(methodName.substring(0,i));
 				}
 			}
 			
