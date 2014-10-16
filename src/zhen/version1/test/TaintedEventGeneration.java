@@ -93,11 +93,19 @@ public class TaintedEventGeneration {
 		Map<String, List<Event>>  map = frame.rInfo.getMethodEventMap();
 		for(int j=0;j<methodList.size();j++){
 			List<Event> events = map.get(methodList.get(j));
-			if(events == null || events.isEmpty()) continue;
+			if(events == null || events.isEmpty()){
+				log("cannot find events for:"+methodList.get(j));
+				continue;
+			}
 			List<Event> copy = new ArrayList<Event>(events);
 			copy.remove(finalEvent);
-			if(copy.isEmpty()) continue;
-			eventMatrix.add(copy.toArray(new Event[0]));
+			if(copy.isEmpty()){
+				log("empty event set for:"+methodList.get(j));
+				continue;
+			}
+			Event[] set= copy.toArray(new Event[0]);
+			eventMatrix.add(set);
+			log(methodList.get(j)+" has "+Arrays.toString(set));
 		}
 		ArrayList<Integer> unsued = new ArrayList<Integer>();
 		for(int i=0;i<eventMatrix.size();i++){
