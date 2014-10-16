@@ -163,10 +163,12 @@ public class RuntimeValidation implements Runnable{
 		for (Integer target : targetLines) {
 			
 			if (!overallInt.contains(target)) {
-				System.out.println(target);
+				log("target line: " +target);
 				for (Event event : getFinalEvents()) {
 					try {
+						log("event method: " + event.getMethodHits());
 						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
+
 						System.out.println("tegOut,size:"+tegOut.size());
 						log("findSequence checking:");
 						log("target line:"+target);
@@ -175,6 +177,7 @@ public class RuntimeValidation implements Runnable{
 						log("tegOut:\t"+tegOut);
 						log("\n");
 						
+
 						startApp();
 						JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
 						jdb.initJDB();
@@ -206,19 +209,20 @@ public class RuntimeValidation implements Runnable{
 		}
 	}
 	
+	 
 	PrintWriter pw = null;
-	private void log(Object o){
-		if(o == null) return;
-		if(pw == null)
-			try {
-				pw = new PrintWriter(new File("log"));
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		
-		
-		pw.println(o.toString());
-		pw.flush();
-	}
+    private void log(Object o){
+        if(o == null) return;
+        if(pw == null)
+            try {
+                pw = new PrintWriter(new File("log"));
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        
+        
+        pw.println(o.toString());
+    }
+	
 }

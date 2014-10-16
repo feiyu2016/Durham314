@@ -187,4 +187,3 @@ public class TaintedEventGeneration {
 		pw.println(o.toString());
 	}
 }
-
