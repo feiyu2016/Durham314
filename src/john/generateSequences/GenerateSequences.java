@@ -76,11 +76,14 @@ public class GenerateSequences {
 	{
 		ArrayList<String> sequences = new ArrayList<String>();
 		for (String target: targetMethods) {
+			System.out.println("Target Methods");
 			for (UIState vertex: knownVertices) {
+				System.out.println("Vertex");
 				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
 				
 				for (Event event: el) {
+					System.out.println("Effective Event");
 					for (String string: event.getMethodHits()) {
 						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
@@ -91,6 +94,8 @@ public class GenerateSequences {
 				}
 				
 				for (Event event: ieel) {
+					System.out.println("Ineffective Event");
+					System.out.println(event.getMethodHits());
 					for (String string: event.getMethodHits()) {
 						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {

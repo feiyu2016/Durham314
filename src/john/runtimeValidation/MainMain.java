@@ -66,9 +66,9 @@ public class MainMain {
 		System.out.println(appPath);
  		Framework frame = traversalStep(appPath);
  		System.out.println("Traversal Complete");
-//		heuristicGenerationStep(frame, targetMethods);
+		heuristicGenerationStep(frame, targetMethods);
  		System.out.println("Heuristic Generation Complete");
-		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
+//		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
 		
 	}
 	

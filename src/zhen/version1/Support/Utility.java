@@ -33,12 +33,17 @@ public class Utility {
 		/**
 		 * Situation that the process never terminated happened.
 		 */
+//		System.out.println("Input serail: "+serial);
 		try{
-			final Process pc = Runtime.getRuntime().exec(Configuration.ADBPath + " -s "+serial+" logcat -v thread -d  -s "+Configuration.InstrumentationTag);
+			String command = Configuration.ADBPath + " -s "+serial+" logcat -v thread -d  -s "+Configuration.InstrumentationTag;
+//			System.out.println(command);
+			final Process pc = Runtime.getRuntime().exec(command);
 			InputStream in = pc.getInputStream();
-			long point1 = System.currentTimeMillis();
+			InputStream err = pc.getErrorStream();
+			
 			StringBuilder sb = new StringBuilder();
-			Thread.sleep(20);
+			Thread.sleep(300);
+			long point1 = System.currentTimeMillis();
 			while(true){
 				int count = in.available();
 				if(count <= 0) break;
@@ -46,18 +51,29 @@ public class Utility {
 				in.read(buf);
 				sb.append(new String(buf));
 				long point2 = System.currentTimeMillis();
-				if(point2 - point1 > 100) break;
+				if(point2 - point1 > 500) break;
 			}
-			pc.destroy();
+			String errMsg = null;
+			if(err.available()>0){
+				int count = in.available();
+				byte[] buf = new byte[count];
+				in.read(buf);
+				errMsg = new String(buf);
+			}
+			if(errMsg!=null) System.out.println("DEBUG:errMsg,  "+errMsg);
+			
 			String tmp = sb.toString();
 			if(tmp.trim().equals("")) return result;
 			String[] parts = tmp.split("\n");
 			for(String part: parts){
+				System.out.println("part:"+part);
 				if(part.contains("METHOD_STARTING")){
 					String methodName = part.split("METHOD_STARTING,")[1];
 					result.add(methodName.trim());
 				}
 			}
+			
+			pc.destroy();
 		}catch(Exception e){}
 		return result;
 	}
