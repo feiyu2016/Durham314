@@ -67,6 +67,27 @@ public class UIState implements Serializable{
 		if(this.winInfo != null) EventSetGenerater.build(this);
 	}
 	
+	public UIState(UIState other, boolean copyRoot){
+		this.index = other.index;
+		this.actName = other.actName; 
+		this.appName = other.appName;
+		this.winInfo = other.winInfo;
+		if(copyRoot){ 
+			this.root = other.root;
+			this.linearReference = other.linearReference;
+		}else {
+			this.root = null;
+			this.linearReference = null;
+		}
+		this.visitCount = other.visitCount;
+		this.isInScopeUI = other.isInScopeUI;
+		this.isLauncher = other.isLauncher;
+		this.isReachable = other.isReachable;
+		this.isOnBackTried = other.isOnBackTried;
+		this.ineffectiveEventList = other.ineffectiveEventList;
+		this.eventIndex = other.eventIndex;
+		this.possibleEventLsit = other.possibleEventLsit;
+	}
 	/**
 	 * add an event which does not change layout into list 
 	 * @param event

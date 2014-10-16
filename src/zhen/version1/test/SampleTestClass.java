@@ -55,6 +55,8 @@ public class SampleTestClass {
 		frame.setup();//initialize
 		frame.start();//start experiment
 		
+		frame.rInfo.dumpeData("file1", false);
+		
 		List<Event> list = frame.rInfo.getEventDeposit();
 		for(Event event : list){
 			System.out.println("Methods:	"+event.getMethodHits());

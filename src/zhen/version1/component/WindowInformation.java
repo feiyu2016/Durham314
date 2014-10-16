@@ -2,6 +2,7 @@ package zhen.version1.component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -16,7 +17,7 @@ import zhen.version1.framework.Configuration;
  * @author zhenxu
  *
  */
-public class WindowInformation {
+public class WindowInformation implements Serializable{
 	public String name; 
 	public String encode;
 	public String uid;

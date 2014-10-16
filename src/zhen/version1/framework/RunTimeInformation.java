@@ -123,7 +123,7 @@ public class RunTimeInformation{
 	/**
 	 * dump UIModel, methodEventMap and eventDeposit to file
 	 * @param tag		-- used to distinguish between different situations/APK
-	 * @param force		-- forect to override existed object files
+	 * @param force		-- force to override existed object files
 	 */
 	public void dumpeData(String tag, boolean force){
 		String path = Configuration.AppDataDir+"object/"+tag+"/";
@@ -136,9 +136,9 @@ public class RunTimeInformation{
 		}
 		
 		if(force || !existed){
-			//Utility.dumpData(this.UIModel, path+"object1");
+			Utility.dumpData(new UIModelGraph(this.UIModel,false), path+"object1");
 			Utility.dumpData(this.methodEventMap, path+"object2");
-			//Utility.dumpData(this.eventDeposit, path+"object3");
+//			Utility.dumpData(this.eventDeposit, path+"object3");
 		}
 	}
 	
@@ -150,11 +150,11 @@ public class RunTimeInformation{
 	@SuppressWarnings("unchecked")
 	public boolean restoreData(String tag){
 		String path = Configuration.AppDataDir+"object/"+tag+"/";
-		//this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
+		this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
 		this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
 		//this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
 		
-		return /*(this.UIModel!=null) &&*/ (this.methodEventMap!=null)/* && (this.eventDeposit!=null)*/;
+		return (this.UIModel!=null) && (this.methodEventMap!=null)/* && (this.eventDeposit!=null)*/;
 	}
 	
 	/**
