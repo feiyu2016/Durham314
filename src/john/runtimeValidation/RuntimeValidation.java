@@ -52,13 +52,10 @@ public class RuntimeValidation implements Runnable{
 	}
 	
 	public void run() {
-		System.out.println("run");
 		this.runAllScripts();
+		this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
+		this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
 		System.out.println("done");
-		//this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
-		System.out.println("donedone");
-		//this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
-		System.out.println("donedonedone");
 	}
 
 	private ArrayList<String> getAllScripts()
@@ -100,14 +97,45 @@ public class RuntimeValidation implements Runnable{
 					x = line.split(",")[0];
 					y = line.split(",")[1];
 					cuter.closeKeyboard(deviceID);
+					Thread.sleep(900);
 					cuter.touch(x, y);
-					Thread.sleep(600);
+					Thread.sleep(900);
 				}
 				
 				br.close();
 			} catch (Exception e) { e.printStackTrace(); }
 			
 			
+		}
+	}
+	
+	private class SetUpJDB implements Runnable {
+		
+		StaticClass c;
+		JDBInterface jdb;
+		
+		public SetUpJDB(StaticClass c) {
+			this.c = c;
+			jdb = new JDBInterface(deviceID, packageName, tcpPort);
+		}
+		
+		@Override
+		public void run() {
+			doit();
+		}
+		
+		private void doit()
+		{
+			try {
+				jdb.initJDB();
+				jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
+				jdb.setMonitorStatus(true);
+			} catch (Exception e) {}
+		}
+		
+		public void exit() 
+		{
+			jdb.exitJDB();
 		}
 	}
 	
@@ -122,22 +150,20 @@ public class RuntimeValidation implements Runnable{
 			for (String script:scripts) {
 				System.out.println("\nscript " + scriptCounter++ + "/" + scripts.size() + " running on Device " + deviceID + " ...");
 				startApp();
-				
-				JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
-				Thread.sleep(100);
-				jdb.initJDB();
-				Thread.sleep(100);
-				jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
-				Thread.sleep(100);
-				jdb.setMonitorStatus(true);
-				Thread.sleep(100);
-				Thread nt = new Thread(new RunOneSequence(script));
-				nt.start();
-				nt.join();
-				jdb.exitJDB();
+				Thread.sleep(450);
+				SetUpJDB suj = new SetUpJDB(c);
+				Thread jdbThread = new Thread(suj);
+				jdbThread.start();
+				Thread.sleep(900);
+				Thread seqThread = new Thread(new RunOneSequence(script));
+				seqThread.start();
+				seqThread.join();
+				Thread.sleep(900);
+				suj.exit();
+				jdbThread.join();
 				stopApp();
 				
-				for (String bp: jdb.getBPsHit()) {
+				for (String bp: suj.jdb.getBPsHit()) {
 					if (!overall_result.contains(bp))
 						overall_result.add(bp);
 					
@@ -223,27 +249,32 @@ public class RuntimeValidation implements Runnable{
 
 						for (Event[] array : tegOut) {
 							startApp();
-							JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
-							jdb.initJDB();
-							jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
-							jdb.setMonitorStatus(true);
-							Thread.sleep(1000);
+							Thread.sleep(450);
+							SetUpJDB suj = new SetUpJDB(c);
+							Thread jdbThread = new Thread(suj);
+							jdbThread.start();
+							Thread.sleep(900);
 							for (Event event2 : array) {
 								try {
 									String x = event2.getValue(Common.event_att_click_x).toString();
 									String y = event2.getValue(Common.event_att_click_y).toString();
 									cuter.closeKeyboard(deviceID);
+									Thread.sleep(900);
 									cuter.touch(x, y);
-									Thread.sleep(1000);
-									System.out.print("Zhen touch: (" + x + "," + y + ")");
+									Thread.sleep(9000);
+									System.out.print(x + "," + y + " ");
 								} catch (NullPointerException | InterruptedException e) {}
 							}
 							System.out.println();
-							Thread.sleep(1000);
-							jdb.exitJDB();
+							Thread.sleep(900);
+							suj.exit();
+							jdbThread.join();
 							stopApp();
 							
-							for (String bp: jdb.getBPsHit()) {
+							for (String bp: suj.jdb.getBPsHit()) {
+								if (!overall_result.contains(bp))
+									overall_result.add(bp);
+								
 								System.out.println("    " + bp);
 							}
 						}

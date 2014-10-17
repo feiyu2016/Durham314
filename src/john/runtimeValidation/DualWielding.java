@@ -87,7 +87,7 @@ public class DualWielding {
 			
 			System.out.println("\nOverall break points hit for " + scriptNames.get(i) + ": " + hitCount + "/" + total + "," +
 					new DecimalFormat("#.##").format(100*(double)hitCount/(double)total) + "%");
-			//System.out.println("    Missed targets:");
+			System.out.println("    Missed targets:");
 			
 			ArrayList<Integer> lines = (ArrayList<Integer>) methods.get(i).getAllSourceLineNumbers();
 			ArrayList<String> hits = overall_result.get(i);
@@ -99,14 +99,14 @@ public class DualWielding {
 			
 			for (Integer integer: lines) {
 				if (!intHits.contains(integer)) {
-				//	System.out.println("    line:" + integer);
+					System.out.println("    line:" + integer);
 					result_nohit.get(i).add(integer);
 				}
 			}
-			//System.out.println("    Hit targets:");
+			System.out.println("    Hit targets:");
 			for (Integer integer: lines) {
 				if (intHits.contains(integer)) {
-				//	System.out.println("    line:" + integer);
+					System.out.println("    line:" + integer);
 					result_hit.get(i).add(integer);
 				}
 			}
