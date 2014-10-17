@@ -125,6 +125,7 @@ public class TaintedEventGeneration {
 			ArrayList<Event> column = new ArrayList<Event>();
 			for(String source:group){
 				List<Event> events = map.get(source);
+				if(events == null) continue;
 				for(Event event : events){
 					if(!column.contains(event))column.add(event);
 				}

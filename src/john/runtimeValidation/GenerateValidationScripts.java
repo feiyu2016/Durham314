@@ -34,7 +34,7 @@ public class GenerateValidationScripts {
 	private void createFile()
 	{
 		try {
-			writer = new PrintWriter(ScriptPath.scriptPath + scriptName + "_" + sequenceNumber + ".py", "UTF-8");
+			writer = new PrintWriter(ScriptPath.scriptPath + scriptName + "_" + sequenceNumber + ".seq", "UTF-8");
 			sequenceNumber++;
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			System.out.println("Exception while creating file.");
@@ -42,23 +42,23 @@ public class GenerateValidationScripts {
 		}
 	}
 	
-	private void generateScriptTemplate()
-	{
-		if (writer == null) {
-			System.out.println("No File Opened.");
-			return;
-		}
-		else {
-			writer.println("#!/usr/bin/python");
-			writer.println("from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice");
-			writer.println("device = MonkeyRunner.waitForConnection(10.0,'" + deviceID + "')");
-//			writer.println("package = '" + packageName + "'");
-//			writer.println("activity = '" + activityName + "'");
-//			writer.println("runComponent = package + '/.' + activity");
-//			writer.println("device.startActivity(component=runComponent)");
-			writer.println("MonkeyRunner.sleep(1)");
-		}
-	}
+//	private void generateScriptTemplate()
+//	{
+//		if (writer == null) {
+//			System.out.println("No File Opened.");
+//			return;
+//		}
+//		else {
+//			writer.println("#!/usr/bin/python");
+//			writer.println("from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice");
+//			writer.println("device = MonkeyRunner.waitForConnection(10.0,'" + deviceID + "')");
+////			writer.println("package = '" + packageName + "'");
+////			writer.println("activity = '" + activityName + "'");
+////			writer.println("runComponent = package + '/.' + activity");
+////			writer.println("device.startActivity(component=runComponent)");
+//			writer.println("MonkeyRunner.sleep(1)");
+//		}
+//	}
 	
 	private void closeFile()
 	{
@@ -83,7 +83,7 @@ public class GenerateValidationScripts {
 			for(String sequence : eventSequences){
 				createFile();
 				//writer.println("# " + method);
-				generateScriptTemplate();
+				//generateScriptTemplate();
 				
 				String string[] = sequence.trim().split("\\|");
 				
@@ -91,8 +91,7 @@ public class GenerateValidationScripts {
 					String x = string[i].trim().split("\\,")[0];
 					String y = string[i].trim().split("\\,")[1];
 					
-					writer.println("device.touch(" + x + "," + y + "," + click + ")");
-					writer.println("MonkeyRunner.sleep(1)");
+					writer.println(x + "," + y);
 				}
 				//writer.println("device.shell('am force-stop " + packageName + "')");
 				closeFile();

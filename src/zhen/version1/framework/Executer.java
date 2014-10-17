@@ -68,6 +68,7 @@ public class Executer {
 	 * @param event	
 	 */
 	public void applyEvent(Event event){
+		System.out.println("Applying Event");
 		if(DEBUG){ Utility.log(TAG, event.toString()); }
 		Utility.clearLogcat(serial);
 		int type = event.getEventType();
@@ -129,7 +130,7 @@ public class Executer {
 	 * It tries to close the keyboard each time after an event is applied 
 	 * @param events
 	 */
-	public void applyEventSequence(Event... events){
+	public void applyEventSequence(Event[] events){
 		
 		for(Event singleEvnet: events){
 			if(!jdb.isConnected())jdb.connect();

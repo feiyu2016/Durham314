@@ -1,7 +1,9 @@
 package john.runtimeValidation;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
 import zhen.version1.component.Event;
 import zhen.version1.framework.Common;
+import zhen.version1.framework.Executer;
 import zhen.version1.framework.Framework;
 import zhen.version1.test.TaintedEventGeneration;
 
@@ -26,6 +29,7 @@ public class RuntimeValidation implements Runnable{
 	private StaticApp staticApp;
 	private StaticMethod targetMethod;
 	private Framework frame;
+	private ValidationExecutor cuter;
 	
 	private String deviceID;
 	private int tcpPort;
@@ -43,15 +47,17 @@ public class RuntimeValidation implements Runnable{
 		this.tcpPort = tcpPort;
 		this.frame = frame;
 		this.targetLines = targetLines;
+		this.cuter = new ValidationExecutor(deviceID);
+		this.cuter.init();
 	}
 	
 	public void run() {
 		System.out.println("run");
 		this.runAllScripts();
 		System.out.println("done");
-		this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
+		//this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
 		System.out.println("donedone");
-		this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
+		//this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
 		System.out.println("donedonedone");
 	}
 
@@ -69,6 +75,41 @@ public class RuntimeValidation implements Runnable{
 		
 		return ret;
 	}
+	private class RunOneSequence implements Runnable {
+		
+		String script;
+		
+		public RunOneSequence(String script) {
+			this.script = script;
+		}
+		@Override
+		public void run() {
+			runOneSequence(script);
+		}
+		
+		private void runOneSequence(String script)
+		{
+			BufferedReader br = null;
+			
+			try {
+				br = new BufferedReader(new FileReader(script));
+				String line;
+				String x, y;
+				
+				while ((line = br.readLine()) != null ){
+					x = line.split(",")[0];
+					y = line.split(",")[1];
+					cuter.closeKeyboard(deviceID);
+					cuter.touch(x, y);
+					Thread.sleep(600);
+				}
+				
+				br.close();
+			} catch (Exception e) { e.printStackTrace(); }
+			
+			
+		}
+	}
 	
 	public void runAllScripts()
 	{
@@ -83,12 +124,16 @@ public class RuntimeValidation implements Runnable{
 				startApp();
 				
 				JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
+				Thread.sleep(100);
 				jdb.initJDB();
+				Thread.sleep(100);
 				jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
+				Thread.sleep(100);
 				jdb.setMonitorStatus(true);
-				Process PC = Runtime.getRuntime().exec(Paths.androidToolPath + "monkeyrunner " + script);
-				System.out.println("-HERE " + Paths.androidToolPath + "monkeyrunner " + script);
-				PC.waitFor();
+				Thread.sleep(100);
+				Thread nt = new Thread(new RunOneSequence(script));
+				nt.start();
+				nt.join();
 				jdb.exitJDB();
 				stopApp();
 				
@@ -154,9 +199,8 @@ public class RuntimeValidation implements Runnable{
 		th.setBPsHit(overallInt);
 		
 		TaintedEventGeneration teg = new TaintedEventGeneration();
-		ValidationExecutor ve = new ValidationExecutor(deviceID);
 		StaticClass c = targetMethod.getDeclaringClass(staticApp);
-		ve.init();
+		
 		System.out.println("SADFASDGHASH");
 		this.log("getNewEventSequencesAndRunThemImmediatelyAfterwards\n");
 		
@@ -176,32 +220,32 @@ public class RuntimeValidation implements Runnable{
 						log("finalEvent"+event);
 						log("tegOut:\t"+tegOut);
 						log("\n");
-						
 
-						startApp();
-						JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
-						jdb.initJDB();
-						jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
-						jdb.setMonitorStatus(true);
-						Thread.sleep(1000);
 						for (Event[] array : tegOut) {
+							startApp();
+							JDBInterface jdb = new JDBInterface(deviceID, packageName, tcpPort);
+							jdb.initJDB();
+							jdb.setBreakPointsAtLines(c.getName(), (ArrayList<Integer>) targetMethod.getAllSourceLineNumbers());
+							jdb.setMonitorStatus(true);
+							Thread.sleep(1000);
 							for (Event event2 : array) {
 								try {
 									String x = event2.getValue(Common.event_att_click_x).toString();
 									String y = event2.getValue(Common.event_att_click_y).toString();
-									ve.touch(x, y);
+									cuter.closeKeyboard(deviceID);
+									cuter.touch(x, y);
 									Thread.sleep(1000);
 									System.out.print("Zhen touch: (" + x + "," + y + ")");
 								} catch (NullPointerException | InterruptedException e) {}
 							}
 							System.out.println();
-						}
-						Thread.sleep(1000);
-						jdb.exitJDB();
-						stopApp();
-						
-						for (String bp: jdb.getBPsHit()) {
-							System.out.println("    " + bp);
+							Thread.sleep(1000);
+							jdb.exitJDB();
+							stopApp();
+							
+							for (String bp: jdb.getBPsHit()) {
+								System.out.println("    " + bp);
+							}
 						}
 					} catch (Exception e) {}
 				}
@@ -224,5 +268,4 @@ public class RuntimeValidation implements Runnable{
         
         pw.println(o.toString());
     }
-	
 }
