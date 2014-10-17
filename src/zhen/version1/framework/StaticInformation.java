@@ -40,6 +40,7 @@ public class StaticInformation {
 		
 		app = new StaticApp(apkFile);
 		app = StaticInfo.initAnalysis(app, false);
+		installSootApp(app);
 		
 		List<StaticClass> classList =  app.getActivityList(); 
 		
@@ -79,5 +80,13 @@ public class StaticInformation {
 		return "-1";
 	}
 	
-	
+	public static void installSootApp(StaticApp app) {
+		try {
+			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " uninstall " + app.getPackageName());
+			pc.waitFor();
+			pc = Runtime.getRuntime().exec(Paths.adbPath + " install " + app.getSootInstrumentedAppPath());
+			pc.waitFor();
+			System.out.println("SOOT APP INSTALLED");
+		}	catch (Exception e) {e.printStackTrace();}
+	}
 }

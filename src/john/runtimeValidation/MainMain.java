@@ -1,19 +1,18 @@
 package john.runtimeValidation;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import staticAnalysis.StaticInfo;
-import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
-import john.runtimeValidation.DualWielding;
-import john.runtimeValidation.GenerateValidationScripts;
-import zhen.version1.Support.CommandLine;
+import main.Paths;
+import staticFamily.StaticApp;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -52,28 +51,16 @@ public class MainMain {
 		Integer[] targetLines = {
 			//287,321,322, // addBillAmount
 			//431,247,438,443,257,258,262, // onOptionsItemSelected
-			649,430,475,656,436,455,459, // handleOperation
+			649,430,475,656,436,455,459,442,445,448 // handleOperation
 		};
 		
-//		System.out.println(main.Paths.adbPath);
-//		Framework frame = traversalStep(appPath);
-////		frame.rInfo.dumpeData(appPath, true);
-//		System.out.println("Traversal Complete");
-//		
-////		frame.setup();
-////		frame.rInfo.restoreData(appPath);
-//		heuristicGenerationStep(frame, targetMethods);
-//		System.out.println("Heuristic Generation Complete");
-////
-////		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
-		
 		System.out.println(appPath);
- 		Framework frame = traversalStep(appPath);
+ 		//Framework frame = traversalStep(appPath);
  		System.out.println("Traversal Complete");
-//		heuristicGenerationStep(frame, targetMethods);
+		//heuristicGenerationStep(frame, targetMethods);
  		System.out.println("Heuristic Generation Complete");
-		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
-		
+		//heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
+		//getConnectedDeviceIDs();
 		
 	}
 	
@@ -138,7 +125,7 @@ public class MainMain {
 		int tcpPort = 7772;
 		for (int i = 0; i < targets.length; i++) {
 			String scriptName = targets[i].trim().split(" ")[2].trim().split("\\(")[0];
-			scriptName = "handleOperationUE";
+			scriptName = "handleOperation";
 			dw.addNewDevice(device1, targets[i], targetLines, scriptName, tcpPort++);
 		}
 		
@@ -224,36 +211,22 @@ public class MainMain {
 			}
 		});
 	}
-}
-
-/*
- 
- staticAnalysis.StaticInfo.initAnalysis(appUnderTest, true);
-
-		//String methodSig1 = "<com.bae.drape.gui.calculator.CalculatorActivity: "
-				//+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>";
-		//String methodSig2 = "<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>";
-		String methodSig1 = "<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>";
-		String device1 = "015d3c26c9540809";
-		//String device2 = "015d3f1936080c05";
-		
-		addNewDevice(device1, methodSig1, "nextButtonUE", 7772);
-		//addNewDevice(device2, methodSig2, "nextButton", 7773);
-		
-		
-		TaintHelper th = new TaintHelper(appUnderTest);
-		
-		for (int i = 0; i < deviceIDs.size(); i++) {
-			th.setMethod(methods.get(i));
-			th.setBPsHit(result_hit.get(i));
-			
-			for (int j : result_nohit.get(i)) {
-				ArrayList<String> strings = th.findTaintedMethods(j);
-				System.out.println("Line : " + j);
-				for (String string: strings) 
-					System.out.println(string);
+	
+	public ArrayList<String> getConnectedDeviceIDs() {
+		ArrayList<String> result = new ArrayList<String>();
+		try {
+			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " devices");
+			String line;
+			BufferedReader in = new BufferedReader(new InputStreamReader(pc.getInputStream()));
+			while ((line = in.readLine())!= null) {
+				if (line.startsWith("List of devices attached") || !line.contains("\t") || !line.contains("device"))
+					continue;
+				String id = line.substring(0, line.indexOf("\t"));
+				System.out.println(id);
+				result.add(id);
 			}
-				
-		}
- 
- */
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return result;
+	}
+}

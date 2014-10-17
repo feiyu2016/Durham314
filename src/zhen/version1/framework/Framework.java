@@ -56,7 +56,7 @@ public class Framework {
 	 */
 	public Framework(Map<String, Object> attributes){
 		this.attributes = attributes;
-		checkArguments();
+		//checkArguments();
 
 		sInfo = new StaticInformation(this);
 		explorer = new UIExplorer(this);

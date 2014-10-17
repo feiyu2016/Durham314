@@ -3,6 +3,7 @@ package john.runtimeValidation;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 
+import zhen.version1.component.WindowInformation;
 import zhen.version1.framework.Configuration;
 
 public class ValidationExecutor {
@@ -39,6 +40,22 @@ public class ValidationExecutor {
 			sleepForMonekyReady();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void closeKeyboard(String serial) {
+		String toWrite = "device.press(\"KEYCODE_BACK\",\"DOWN_AND_UP\")\n";
+		WindowInformation[]  visibleWindows = WindowInformation.getVisibleWindowInformation(serial);
+		for(WindowInformation vwin : visibleWindows){
+			//TODO to improve
+			if(vwin.name.toLowerCase().contains("inputmethod")){
+				try {
+					ostream.write(toWrite.getBytes());
+					ostream.flush();
+					sleepForMonekyReady();
+				} catch(IOException e) {}
+				break;
+			}
 		}
 	}
 	
