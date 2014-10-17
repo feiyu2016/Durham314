@@ -1,20 +1,18 @@
 package john.runtimeValidation;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import main.Paths;
-import staticAnalysis.StaticInfo;
-import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
-import john.runtimeValidation.DualWielding;
-import john.runtimeValidation.GenerateValidationScripts;
-import zhen.version1.Support.CommandLine;
+import main.Paths;
+import staticFamily.StaticApp;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -69,12 +67,12 @@ public class MainMain {
 ////		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
 		
 		System.out.println(appPath);
- 		Framework frame = traversalStep(appPath);
+ 		//Framework frame = traversalStep(appPath);
  		System.out.println("Traversal Complete");
 //		heuristicGenerationStep(frame, targetMethods);
  		System.out.println("Heuristic Generation Complete");
-		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
-		
+		//heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
+		//getConnectedDeviceIDs();
 		
 	}
 	
@@ -236,6 +234,23 @@ public class MainMain {
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
+	public ArrayList<String> getConnectedDeviceIDs() {
+		ArrayList<String> result = new ArrayList<String>();
+		try {
+			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " devices");
+			String line;
+			BufferedReader in = new BufferedReader(new InputStreamReader(pc.getInputStream()));
+			while ((line = in.readLine())!= null) {
+				if (line.startsWith("List of devices attached") || !line.contains("\t") || !line.contains("device"))
+					continue;
+				String id = line.substring(0, line.indexOf("\t"));
+				System.out.println(id);
+				result.add(id);
+			}
+			in.close();
+		}	catch (Exception e) {e.printStackTrace();}
+		return result;
+	}
 	
 }
 
