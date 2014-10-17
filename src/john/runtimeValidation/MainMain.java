@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import main.Paths;
 import staticAnalysis.StaticInfo;
 import staticFamily.StaticApp;
 import john.generateSequences.GenerateSequences;
@@ -212,6 +213,18 @@ public class MainMain {
 			}
 		});
 	}
+	
+	
+	public void installSootApp(StaticApp app, String deviceID) {
+		try {
+			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " uninstall " + app.getPackageName());
+			pc.waitFor();
+			pc = Runtime.getRuntime().exec(Paths.adbPath + " -s " + deviceID + " install " + app.getSootInstrumentedAppPath());
+			pc.waitFor();
+		}	catch (Exception e) {e.printStackTrace();}
+	}
+	
+	
 }
 
 /*
