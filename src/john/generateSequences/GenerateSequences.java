@@ -25,7 +25,7 @@ public class GenerateSequences {
 		this.debugMode = debugMode;
 		knownVertices = this.getKnownVertices();
 		unenhancedSequences = this.generateUnenhancedSequences();
-		//enhancedSequences = this.generateEnhancedSequences();
+		enhancedSequences = this.generateEnhancedSequences();
 	}
 	
 	public ArrayList<ArrayList<Event>> getUnenhancedSequences()
@@ -42,68 +42,76 @@ public class GenerateSequences {
 	{
 		ArrayList<ArrayList<Event>> uS = new ArrayList<ArrayList<Event>>();
 		uS.addAll(this.unenhancedSequences);
+		ArrayList<ArrayList<Event>> eG = new ArrayList<ArrayList<Event>>();
+		ArrayList<ArrayList<Event>> ret = new ArrayList<ArrayList<Event>>();
+		for (ArrayList<Event> s : uS) {
+			ArrayList<ArrayList<Event>> allSequences = new ArrayList<ArrayList<Event>>();
+			ArrayList<UIState> seen = new ArrayList<UIState>();
+			for (int i = 0; i < s.size(); i++) {
+				ArrayList<ArrayList<Event>> newAllSequences = new ArrayList<ArrayList<Event>>();
+				Event e = s.get(i);
+				if (seen.contains(e.getSource())) continue;
+				ArrayList<ArrayList<Event>> eg = generateEventGroups(e.getSource());
+				ArrayList<Event> candidates = new ArrayList<Event>();
+				for (ArrayList<Event> g : eg) {
+					candidates.add(g.get(0));
+				}
+				for (ArrayList<Event> existingS : allSequences) {
+					for (Event candidate : candidates) {
+						ArrayList<Event> newOne = new ArrayList<Event>();
+						newOne.addAll(existingS);
+						newOne.add(candidate);
+						newOne.add(e);
+						newAllSequences.add(newOne);
+					}
+				}
+				if (allSequences.size() < 1) {
+					for (Event candidate : candidates) {
+						ArrayList<Event> newOne = new ArrayList<Event>();
+						newOne.add(candidate);
+						newOne.add(e);
+						if (!newAllSequences.contains(newOne))
+							newAllSequences.add(newOne);
+					}
+				}
+				seen.add(e.getSource());
+				allSequences = newAllSequences;
+			}
+			for (ArrayList<Event> ssss: allSequences)
+				if (!ret.contains(ssss))
+					ret.add(ssss);
+		}
+		
+		if (debugMode) {
+			System.out.println("There are " + ret.size() + " enhanced sequences.");
+			for (ArrayList<Event> sequence: ret) {
+				for (Event event: sequence) {
+					try {
+						String x = event.getValue(Common.event_att_click_x).toString();
+						String y = event.getValue(Common.event_att_click_y).toString();
+						System.out.print("(" + x + "," + y + ")");
+					} catch (Exception e) {};
+				}
+				System.out.println();
+			}
+		}
+		
+		return ret;
 	}
-	
-//	private ArrayList<String> generateEnhancedSequences()
-//	{
-//		ArrayList<String> uS = new ArrayList<String>();
-//		ArrayList<String> ret = new ArrayList<String>();
-//		ArrayList<String> mG = methodGroups;
-//		
-//		for (String string: unenhancedSequences) {
-//			String[] split = string.trim().split("\\|");
-//			for (int i = 1; i < split.length; i++) {
-//				uS.add(split[i]);
-//			}
-//		}
-//		
-//		for (String string: uS) {
-//			String combo = "";
-//			for (String group: mG) {
-//				if (group.contains(string)) {
-//					ret.add(string);
-//				}
-//				else {
-//					String temp = group.trim().split("\\|")[0] + "|";
-//					ret.add(temp + string);
-//					combo += temp;
-//				}
-//			}
-//			ret.add(combo + string);
-//		}
-//		
-//		return ret;
-//	}
 	
 	private ArrayList<ArrayList<Event>> generateUnenhancedSequences()
 	{
 		ArrayList<ArrayList<Event>> sequences = new ArrayList<ArrayList<Event>>();
-		int i = 1;
 		for (String target: targetMethods) {
 			for (UIState vertex: knownVertices) {
-				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
+				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(knownVertices.get(1), vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
-				System.out.println("UIState " + i++ + " " + vertex.actName);
-				if (vertex.isReachable)
-					System.out.println(" this UIState is reachable");
-				
+
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							ArrayList<Event> temp = new ArrayList<Event>();
 							temp.addAll(el);
-							for (Event print : el) {
-								try {
-									String x = print.getValue(Common.event_att_click_x).toString();
-									String y = print.getValue(Common.event_att_click_y).toString();
-									System.out.print("(" + x + "," + y + ")");
-								} catch (Exception e) {}
-							}
-							try {
-								String x = event.getValue(Common.event_att_click_x).toString();
-								String y = event.getValue(Common.event_att_click_y).toString();
-								System.out.println("(" + x + "," + y + ")");
-							} catch (Exception e) {}
 							temp.add(event);
 							sequences.add(temp);
 							break;
@@ -130,9 +138,8 @@ public class GenerateSequences {
 		return sequences;
 	}
 	
-	private ArrayList<ArrayList<Event>> generateEventGroups(Event currentEvent)
+	private ArrayList<ArrayList<Event>> generateEventGroups(UIState uis)
 	{
-		UIState uis = currentEvent.getTarget();
 		HashMap<String, ArrayList<Event>> hasSeen = new HashMap<String, ArrayList<Event>>();
 		ArrayList<ArrayList<Event>> ret = new ArrayList<ArrayList<Event>>();
 		ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, uis);

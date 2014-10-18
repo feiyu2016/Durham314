@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 
 import john.generateSequences.GenerateSequences;
 import main.Paths;
-import staticFamily.StaticApp;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -38,26 +38,27 @@ public class MainMain {
 				"backupHelper.apk",
 				"TheApp.apk",
 		};
-		int appSelect = 0;
+		int appSelect = 2;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
 //				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
-				"<com.bae.drape.gui.calculator.CalculatorActivity: "
-					+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
+//				"<com.bae.drape.gui.calculator.CalculatorActivity: "
+//					+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
 //				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>",
 //				"<com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)>", // 138 159 177 
-//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>",
+				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>",
 //				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)>",
-//				"<net.mandaria.tippytipperlibrary.activities.SplitBill: void removePerson()>",
+				"<net.mandaria.tippytipperlibrary.activities.SplitBill: void removePerson()>",
 //				"<the.app.Irwin: void doTheThing()>", // 71
 		};
 		
 		Integer[][] targetLines = {
-			//{287,321,322}, // addBillAmount
+			{287,321,322}, // addBillAmount
 			//{431,247,438,443,257,258,262}, // onOptionsItemSelected
-			{649,430,475,656,436,455,459,442,445,448} // handleOperation
-			//{129,133}, // removePerson
+			//{649,430,475,656,436,455,459,442,445,448}, // handleOperation
+			//{482}, // handleNumber
+			{129,133}, // removePerson
 			//{138,159,177}, // onMenuItemSelected
 			//{71}, // doTheThing
 		};
@@ -67,9 +68,15 @@ public class MainMain {
 		System.out.println(appPath);
  		Framework frame = traversalStep(appPath);
  		System.out.println("Traversal Complete");
+ 		Scanner scanner = new Scanner(System.in);
+ 		System.out.println("Paused right now. Input 'go on' to continue.");
+ 		String input = "";
+ 		while (!input.equals("goon")) {
+ 			input = scanner.next();
+ 		}
 		heuristicGenerationStep(frame, targetMethods);
  		System.out.println("Heuristic Generation Complete");
-		//heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines, connectedDevices);
+		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines, connectedDevices);
 		//getConnectedDeviceIDs();
 		
 	}
@@ -101,38 +108,21 @@ public class MainMain {
 	
 	private static void heuristicGenerationStep(Framework frame, String[] targets) 
 	{
-		for (String target : targets) {
-			//String target = targets[0];
-			/*String scriptName = target.trim().split(" ")[2].trim().split("\\(")[0];
+		//for (String target : targets) {
+			String target = targets[0];
+			String scriptName = target.trim().split(" ")[2].trim().split("\\(")[0];
 			String packageName = parsepackageName(target);
-			String activityName = parseActivityName(target);*/
+			String activityName = parseActivityName(target);
 			
-			GenerateSequences gs = new GenerateSequences(frame, targets, false);
-			//GenerateValidationScripts gvs = new GenerateValidationScripts(scriptName, packageName, activityName, device1);
-			
-			System.out.println("Unenhanced Sequences:");
-			for (ArrayList<Event> eventSequences : gs.getUnenhancedSequences()) {
-				for (Event event : eventSequences) {
-					try {
-						String x = event.getValue(Common.event_att_click_x).toString();
-						String y = event.getValue(Common.event_att_click_y).toString();
-						System.out.print("(" + x + "," + y + ")");
-					} catch (Exception e) {};
-				}
-				System.out.println();
-			}
-			
-			/*System.out.println("Enhanced Sequences:");
-			for (String string : gs.getEnhancedSequences()) {
-				System.out.println(string);
-			}
+			GenerateSequences gs = new GenerateSequences(frame, targets, true);
+			GenerateValidationScripts gvs = new GenerateValidationScripts(scriptName, packageName, activityName, device1);
 			
 			gvs.setEventSequences(gs.getEnhancedSequences());
 			
 			try {
 				gvs.generateScripts();
-			} catch (IOException e) { e.printStackTrace(); }*/
-		}
+			} catch (IOException e) { e.printStackTrace(); }
+		//}
 	}
 	
 	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, Framework frame, String[] targets, Integer[][] targetLines, ArrayList<String> connectedDevices)
