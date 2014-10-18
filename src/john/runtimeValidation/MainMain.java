@@ -36,27 +36,30 @@ public class MainMain {
 				"KitteyKittey.apk",
 				"net.mandaria.tippytipper.apk",
 				"backupHelper.apk",
+				"TheApp.apk",
 		};
-		int appSelect = 3;
+		int appSelect = 0;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
 //				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
-//				"<com.bae.drape.gui.calculator.CalculatorActivity: "
-//					+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
+				"<com.bae.drape.gui.calculator.CalculatorActivity: "
+					+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
 //				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>",
-				"<com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)>", // 138 159 177 
+//				"<com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)>", // 138 159 177 
 //				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>",
 //				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)>",
 //				"<net.mandaria.tippytipperlibrary.activities.SplitBill: void removePerson()>",
+//				"<the.app.Irwin: void doTheThing()>", // 71
 		};
 		
 		Integer[][] targetLines = {
 			//{287,321,322}, // addBillAmount
 			//{431,247,438,443,257,258,262}, // onOptionsItemSelected
-			//{649,430,475,656,436,455,459,442,445,448} // handleOperation
-			//{129,133} // removePerson
-			{138,159,177} // onMenuItemSelected
+			{649,430,475,656,436,455,459,442,445,448} // handleOperation
+			//{129,133}, // removePerson
+			//{138,159,177}, // onMenuItemSelected
+			//{71}, // doTheThing
 		};
 		
 		ArrayList<String> connectedDevices = getConnectedDeviceIDs();

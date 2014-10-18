@@ -38,6 +38,12 @@ public class GenerateSequences {
 		return enhancedSequences;
 	}
 	
+	private ArrayList<ArrayList<Event>> generateEnhancedSequences()
+	{
+		ArrayList<ArrayList<Event>> uS = new ArrayList<ArrayList<Event>>();
+		uS.addAll(this.unenhancedSequences);
+	}
+	
 //	private ArrayList<String> generateEnhancedSequences()
 //	{
 //		ArrayList<String> uS = new ArrayList<String>();
@@ -72,23 +78,38 @@ public class GenerateSequences {
 	private ArrayList<ArrayList<Event>> generateUnenhancedSequences()
 	{
 		ArrayList<ArrayList<Event>> sequences = new ArrayList<ArrayList<Event>>();
+		int i = 1;
 		for (String target: targetMethods) {
 			for (UIState vertex: knownVertices) {
 				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
+				System.out.println("UIState " + i++ + " " + vertex.actName);
+				if (vertex.isReachable)
+					System.out.println(" this UIState is reachable");
 				
 				for (Event event: ieel) {
 					for (String string: event.getMethodHits()) {
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
 							ArrayList<Event> temp = new ArrayList<Event>();
 							temp.addAll(el);
+							for (Event print : el) {
+								try {
+									String x = print.getValue(Common.event_att_click_x).toString();
+									String y = print.getValue(Common.event_att_click_y).toString();
+									System.out.print("(" + x + "," + y + ")");
+								} catch (Exception e) {}
+							}
+							try {
+								String x = event.getValue(Common.event_att_click_x).toString();
+								String y = event.getValue(Common.event_att_click_y).toString();
+								System.out.println("(" + x + "," + y + ")");
+							} catch (Exception e) {}
 							temp.add(event);
 							sequences.add(temp);
 							break;
 						}
 					}
 				}
-				
 			}
 		}
 		
@@ -109,89 +130,85 @@ public class GenerateSequences {
 		return sequences;
 	}
 	
-	private ArrayList<ArrayList<Event>> generateEventGroups(Event event)
+	private ArrayList<ArrayList<Event>> generateEventGroups(Event currentEvent)
 	{
-				HashMap<String, String> hasSeen = new HashMap<String, String>();
-				ArrayList<String> ret = new ArrayList<String>();
-				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
-				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
-				
-				for (Event event: ieel) {
-					for (String string: event.getMethodHits()) {
-						System.out.println(string);
-						if (hasSeen.containsKey(string.trim())) {
-							try {
-								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
-								hasSeen.put(string.trim(), newString);
-							} catch (ArrayIndexOutOfBoundsException e){
-								continue;
-							}
-						}
-						else {
-							try {
-								String newString = event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
-								hasSeen.put(string.trim(), newString);
-							} catch (ArrayIndexOutOfBoundsException e){
-								continue;
-							}
-						}
+		UIState uis = currentEvent.getTarget();
+		HashMap<String, ArrayList<Event>> hasSeen = new HashMap<String, ArrayList<Event>>();
+		ArrayList<ArrayList<Event>> ret = new ArrayList<ArrayList<Event>>();
+		ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, uis);
+		ArrayList<Event> ieel = (ArrayList<Event>) uis.getIneffectiveEventList();
+		
+		for (Event event: ieel) {
+			for (String string: event.getMethodHits()) {
+				System.out.println(string);
+				if (hasSeen.containsKey(string.trim())) {
+					try {
+						ArrayList<Event> newList = new ArrayList<Event>();
+						newList.addAll(hasSeen.get(string.trim()));
+						newList.add(event);
+						hasSeen.put(string.trim(), newList);
+					} catch (ArrayIndexOutOfBoundsException e){
+						continue;
 					}
 				}
-				
-				for(Entry<String, String> entry: hasSeen.entrySet()) {
-					ret.add(entry.getKey() + "%" + entry.getValue());
+				else {
+					try {
+						ArrayList<Event> newList = new ArrayList<Event>();
+						newList.add(event);
+						hasSeen.put(string.trim(), newList);
+					} catch (ArrayIndexOutOfBoundsException e){
+						continue;
+					}
 				}
 			}
-		
-			
-			
-			return mergeEventGroups(ret);
-	}
-	
-	private ArrayList<String> mergeEventGroups(ArrayList<String> in) {
-		ArrayList<String> input = new ArrayList<String>();
-		
-		for (String string: in) {
-			String temp = string.split("%")[1].trim();
-			if (!temp.contains(".") && !temp.contains("keycode"))
-				input.add(temp);
 		}
 		
+		for(Entry<String, ArrayList<Event>> entry: hasSeen.entrySet()) {
+			ret.add(entry.getValue());
+		}
+		
+		return mergeEventGroups(ret);
+	}
+	
+	private ArrayList<ArrayList<Event>> mergeEventGroups(ArrayList<ArrayList<Event>> input) {
 		boolean isIncluded[] = new boolean[input.size()];
-        for(int i=0;i<isIncluded.length;i++){
+        
+		for (int i = 0; i < isIncluded.length; i++) {
             isIncluded[i] = false;
         }
         
-        for(int i=0;i<input.size()-1;i++){
-            if(isIncluded[i]) continue;
-            String criteria = input.get(i);
-            for(int j=0;j<input.size();j++){
-                if(i == j || isIncluded[j]){
+        for ( int i = 0; i < input.size()-1; i++){
+            if (isIncluded[i]) continue;
+            
+            ArrayList<Event> criteria = input.get(i);
+            
+            for ( int j = 0; j < input.size(); j++) {
+                if (i == j || isIncluded[j]) {
                     continue;
                 }
-                String parts[] = input.get(j).split("\\|");
-                isIncluded[j] = containsAll(criteria,parts);
+                
+                isIncluded[j] = containsAll(criteria, input);
             }
         }
         
-        ArrayList<String> result = new ArrayList<String>();
-        for(int i=0;i<input.size();i++){
-            if(!isIncluded[i]) result.add(input.get(i));
+        ArrayList<ArrayList<Event>> result = new ArrayList<ArrayList<Event>>();
+        for (int i = 0; i < input.size(); i++) {
+            if (!isIncluded[i]) result.add(input.get(i));
         }
         
         if (debugMode) {
         	System.out.println("----MERGED METHOD GROUPS:");
-	        for (String string: result) {
-	        	System.out.println(string);
-	        }
+//	       for (String string: result) {
+//	        	System.out.println(string);
+//	        }
         }
         
         return result;
     }
 
-    private boolean containsAll(String pointer, String[] list) {
-        for (String msg : list) {
-            if (!pointer.contains(msg)) {
+    private boolean containsAll(ArrayList<Event> pointer, ArrayList<ArrayList<Event>> list) {
+        for (ArrayList<Event> sequence : list) {
+            if (!pointer.contains(sequence)) {
                 return false;
             }
         }
