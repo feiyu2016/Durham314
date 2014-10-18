@@ -42,12 +42,13 @@ public class UIModelGraph implements Serializable{
 	private ListenableDirectedMultigraph graph;
 	private boolean isInited = false;
 	private List<UIState> knownVertices = new ArrayList<UIState>();
+	private LayoutRelationViewer applet;
 	
 	public UIModelGraph(){}
 	
 	public UIModelGraph(UIModelGraph other, boolean copyViewTree){
 		graph = new ListenableDirectedMultigraph(Event.class);
-		graph.addVertex(UIState.Launcher);
+		this.graph.addVertex(UIState.Launcher);
 		knownVertices.add(UIState.Launcher);
 		lastState = UIState.Launcher;
 		
@@ -106,7 +107,7 @@ public class UIModelGraph implements Serializable{
 	public void init() {
 		if(isInited) return;
 		graph = new ListenableDirectedMultigraph(Event.class);
-		graph.addVertex(UIState.Launcher);
+		this.graph.addVertex(UIState.Launcher);
 		knownVertices.add(UIState.Launcher);
 		lastState = UIState.Launcher;
 		isInited = true;
@@ -116,6 +117,7 @@ public class UIModelGraph implements Serializable{
 		if(newState.visitCount == 0){ 
 			knownVertices.add(newState); 
 			this.graph.addVertex(newState);
+			applet.positionVertex(newState);
 		}
 		event.setVertices(UIState.Launcher, newState);
 		this.graph.addEdge(UIState.Launcher, newState, event);
@@ -126,6 +128,7 @@ public class UIModelGraph implements Serializable{
 		if(newState.visitCount == 0){ 
 			knownVertices.add(newState); 
 			this.graph.addVertex(newState);
+			applet.positionVertex(newState);
 		}
 		event.setVertices(lastState, newState);
 		this.graph.addEdge(lastState, newState, event);
@@ -144,17 +147,27 @@ public class UIModelGraph implements Serializable{
 		return knownVertices;
 	}
 
+	private JFrame frame;
 	public void enableGUI(){
-		JFrame frame = new JFrame();
+		if(frame != null){
+			frame.setVisible(true);
+			return;
+		}
+		frame = new JFrame();
 		this.enableGUI(frame.getContentPane());
         frame.setTitle("LayoutRelationViewer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+        this.applet.positionVertexAt(UIState.Launcher, LayoutRelationViewer.launcherX, LayoutRelationViewer.launcherY);
+	}
+	
+	public void disableGUI(){
+		if(frame != null) frame.setVisible(false);
 	}
 	
 	public void enableGUI(Container jContainer) {
-		LayoutRelationViewer applet = new LayoutRelationViewer(graph);
+		applet = new LayoutRelationViewer(graph);
 		applet.init();
 		jContainer.add(applet);
 	}
@@ -214,7 +227,12 @@ public class UIModelGraph implements Serializable{
 			jg.setBackground(c);
 		}
 		
-	    private void positionVertexAt(Object vertex, int x, int y){
+		public void positionVertex(Object vertex){
+			int[] pos = nextAvailablePosition();
+			this.positionVertexAt(vertex, pos[0], pos[1]);
+		}
+		
+	    public void positionVertexAt(Object vertex, int x, int y){
 	        DefaultGraphCell cell = jgAdapter.getVertexCell(vertex);
 	        AttributeMap attr = cell.getAttributes();
 	        Rectangle2D bounds = GraphConstants.getBounds(attr);
@@ -232,6 +250,21 @@ public class UIModelGraph implements Serializable{
 	        AttributeMap cellAttr = new AttributeMap();
 	        cellAttr.put(cell, attr);
 	        jgAdapter.edit(cellAttr, null, null, null);
+	    }
+	    
+	    private static int startx = 50, starty = 100;
+	    private static int diffx = 150, diffy = 100;
+	    private static int maxI = 6;
+	    private static int count = 0;
+	    private static int launcherX = 150, launcherY = 50;
+	    
+	    private int[] nextAvailablePosition(){
+	    	int[] result = new int[2];
+	    	int row = count/maxI;
+	    	int col = count%maxI;
+	    	result[0] = startx + row*diffx;
+	    	result[1] = starty + col*diffy;
+	    	return result;
 	    }
 	}
 }

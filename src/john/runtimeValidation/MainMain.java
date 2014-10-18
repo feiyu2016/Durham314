@@ -34,7 +34,8 @@ public class MainMain {
 		String[] targetApp = {
 				"CalcA.apk",
 				"KitteyKittey.apk",
-				"net.mandaria.tippytipper.apk"
+				"net.mandaria.tippytipper.apk",
+				"signed_backupHelper.apk"
 		};
 		int appSelect = 0;
 		String appPath = "APK/" + targetApp[appSelect];
@@ -55,7 +56,7 @@ public class MainMain {
 		};
 		
 		System.out.println(appPath);
- 		//Framework frame = traversalStep(appPath);
+ 		Framework frame = traversalStep(appPath);
  		System.out.println("Traversal Complete");
 		//heuristicGenerationStep(frame, targetMethods);
  		System.out.println("Heuristic Generation Complete");
@@ -82,6 +83,7 @@ public class MainMain {
 		//NOTE: right now it does require apk installed on the device manually
 		//and please close the app if previous opened
 		frame.setup();//initialize
+		frame.rInfo.enableGUI();
 		frame.start();//start experiment
 		frame.terminate();
 		

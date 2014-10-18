@@ -39,7 +39,7 @@ public class SampleTestClass {
 		
 		//setup input parameters
 		Map<String,Object> att = new HashMap<String,Object>();
-		att.put(Common.originalApkPath, "Calc_A.apk");
+		att.put(Common.originalApkPath, "CalcA.apk");
 		att.put(Common.apkPath	, path);
 		
 		Framework frame = new Framework(att);
@@ -54,6 +54,7 @@ public class SampleTestClass {
 		//NOTE: right now it does require apk installed on the device manually
 		//		and please close the app if previous opened
 		frame.setup();//initialize
+		frame.rInfo.enableGUI();
 		frame.start();//start experiment
 		
 		frame.rInfo.dumpeData("file1", false);

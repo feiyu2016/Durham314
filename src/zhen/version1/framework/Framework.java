@@ -66,9 +66,6 @@ public class Framework {
 		validation = new Validation(this);
 	}
 	
-	
-
-
 	/**
 	 * setup the environment, including install APP
 	 */
