@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 
 import john.generateSequences.GenerateSequences;
 import main.Paths;
-import staticFamily.StaticApp;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -35,32 +35,48 @@ public class MainMain {
 				"CalcA.apk",
 				"KitteyKittey.apk",
 				"net.mandaria.tippytipper.apk",
-				"signed_backupHelper.apk"
+				"backupHelper.apk",
+				"TheApp.apk",
 		};
-		int appSelect = 0;
+		int appSelect = 2;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {
 //				"<com.cs141.kittey.kittey.MainKitteyActivity: void nextButton(android.view.View)>",
-				"<com.bae.drape.gui.calculator.CalculatorActivity: "
-						+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
-//				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>"
-//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>"
-//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)>"
+//				"<com.bae.drape.gui.calculator.CalculatorActivity: "
+//					+ "void handleOperation(com.bae.drape.gui.calculator.CalculatorActivity$Operation)>",
+//				"<com.bae.drape.gui.calculator.CalculatorActivity: void handleNumber(int)>",
+//				"<com.example.backupHelper.BackupActivity: boolean onMenuItemSelected(int android.view.MenuItem)>", // 138 159 177 
+				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: void addBillAmount(java.lang.String)>",
+//				"<net.mandaria.tippytipperlibrary.activities.TippyTipper: boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem)>",
+				"<net.mandaria.tippytipperlibrary.activities.SplitBill: void removePerson()>",
+//				"<the.app.Irwin: void doTheThing()>", // 71
 		};
 		
-		Integer[] targetLines = {
-			//287,321,322, // addBillAmount
-			//431,247,438,443,257,258,262, // onOptionsItemSelected
-			649,430,475,656,436,455,459,442,445,448 // handleOperation
+		Integer[][] targetLines = {
+			{287,321,322}, // addBillAmount
+			//{431,247,438,443,257,258,262}, // onOptionsItemSelected
+			//{649,430,475,656,436,455,459,442,445,448}, // handleOperation
+			//{482}, // handleNumber
+			{129,133}, // removePerson
+			//{138,159,177}, // onMenuItemSelected
+			//{71}, // doTheThing
 		};
+		
+		ArrayList<String> connectedDevices = getConnectedDeviceIDs();
 		
 		System.out.println(appPath);
  		Framework frame = traversalStep(appPath);
  		System.out.println("Traversal Complete");
-		//heuristicGenerationStep(frame, targetMethods);
+ 		Scanner scanner = new Scanner(System.in);
+ 		System.out.println("Paused right now. Input 'go on' to continue.");
+ 		String input = "";
+ 		while (!input.equals("goon")) {
+ 			input = scanner.next();
+ 		}
+		heuristicGenerationStep(frame, targetMethods);
  		System.out.println("Heuristic Generation Complete");
-		//heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines);
+		heuristicValidationStep(new File(appPath), frame, targetMethods, targetLines, connectedDevices);
 		//getConnectedDeviceIDs();
 		
 	}
@@ -102,16 +118,6 @@ public class MainMain {
 			GenerateSequences gs = new GenerateSequences(frame, targets, true);
 			GenerateValidationScripts gvs = new GenerateValidationScripts(scriptName, packageName, activityName, device1);
 			
-			System.out.println("Unenhanced Sequences:");
-			for (String string : gs.getUnenhancedSequences()) {
-				System.out.println(string);
-			}
-			
-			System.out.println("Enhanced Sequences:");
-			for (String string : gs.getEnhancedSequences()) {
-				System.out.println(string);
-			}
-			
 			gvs.setEventSequences(gs.getEnhancedSequences());
 			
 			try {
@@ -120,15 +126,16 @@ public class MainMain {
 		//}
 	}
 	
-	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, Framework frame, String[] targets, Integer[] targetLines)
+	private static ArrayList<ArrayList<Integer>> heuristicValidationStep(File appUnderTest, Framework frame, String[] targets, Integer[][] targetLines, ArrayList<String> connectedDevices)
 	{
 		DualWielding dw = new DualWielding(frame.sInfo.app, frame);
 		
 		int tcpPort = 7772;
-		for (int i = 0; i < targets.length; i++) {
+		for (int i = 0; i < connectedDevices.size(); i++) {
 			String scriptName = targets[i].trim().split(" ")[2].trim().split("\\(")[0];
-			scriptName = "handleOperation";
-			dw.addNewDevice(device1, targets[i], targetLines, scriptName, tcpPort++);
+			Integer[] lines = targetLines[i];
+			String device = connectedDevices.get(i);
+			dw.addNewDevice(device, targets[i], lines, scriptName, tcpPort++);
 		}
 		
 		return dw.runTest();
@@ -214,7 +221,7 @@ public class MainMain {
 		});
 	}
 	
-	public ArrayList<String> getConnectedDeviceIDs() {
+	public static ArrayList<String> getConnectedDeviceIDs() {
 		ArrayList<String> result = new ArrayList<String>();
 		try {
 			Process pc = Runtime.getRuntime().exec(Paths.adbPath + " devices");

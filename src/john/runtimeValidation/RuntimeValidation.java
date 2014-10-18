@@ -11,13 +11,12 @@ import java.util.Map;
 
 import john.jdb.JDBInterface;
 import main.Paths;
-import smali.TaintAnalysis.TaintHelper;
+import smali.BackTrackAnalysis.BackTrackHelper;
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
 import zhen.version1.component.Event;
 import zhen.version1.framework.Common;
-import zhen.version1.framework.Executer;
 import zhen.version1.framework.Framework;
 import zhen.version1.test.TaintedEventGeneration;
 
@@ -48,7 +47,6 @@ public class RuntimeValidation implements Runnable{
 		this.frame = frame;
 		this.targetLines = targetLines;
 		this.cuter = new ValidationExecutor(deviceID);
-		this.cuter.init();
 	}
 	
 	public void run() {
@@ -92,11 +90,10 @@ public class RuntimeValidation implements Runnable{
 				br = new BufferedReader(new FileReader(script));
 				String line;
 				String x, y;
-				
 				while ((line = br.readLine()) != null ){
 					x = line.split(",")[0];
 					y = line.split(",")[1];
-					cuter.closeKeyboard(deviceID);
+					cuter.closeKeyboard();
 					Thread.sleep(900);
 					cuter.touch(x, y);
 					Thread.sleep(900);
@@ -220,14 +217,13 @@ public class RuntimeValidation implements Runnable{
 	
 	private void getNewEventSequencesAndRunThemImmediatelyAfterwards()
 	{
-		TaintHelper th = new TaintHelper(staticApp);
-		th.setMethod(targetMethod);
-		th.setBPsHit(overallInt);
+		BackTrackHelper bth = new BackTrackHelper(staticApp);
+		bth.setMethod(targetMethod);
+		bth.setBPsHit(overallInt);
 		
 		TaintedEventGeneration teg = new TaintedEventGeneration();
 		StaticClass c = targetMethod.getDeclaringClass(staticApp);
 		
-		System.out.println("SADFASDGHASH");
 		this.log("getNewEventSequencesAndRunThemImmediatelyAfterwards\n");
 		
 		for (Integer target : targetLines) {
@@ -237,12 +233,12 @@ public class RuntimeValidation implements Runnable{
 				for (Event event : getFinalEvents()) {
 					try {
 						log("event method: " + event.getMethodHits());
-						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
+						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, bth.findResponsibleMethods(target), event);
 
 						System.out.println("tegOut,size:"+tegOut.size());
 						log("findSequence checking:");
 						log("target line:"+target);
-						log("findTaintedMethods"+th.findTaintedMethods(target));
+						log("findTaintedMethods"+bth.findResponsibleMethods(target));
 						log("finalEvent"+event);
 						log("tegOut:\t"+tegOut);
 						log("\n");
@@ -258,10 +254,10 @@ public class RuntimeValidation implements Runnable{
 								try {
 									String x = event2.getValue(Common.event_att_click_x).toString();
 									String y = event2.getValue(Common.event_att_click_y).toString();
-									cuter.closeKeyboard(deviceID);
+									cuter.closeKeyboard();
 									Thread.sleep(900);
 									cuter.touch(x, y);
-									Thread.sleep(9000);
+									Thread.sleep(900);
 									System.out.print(x + "," + y + " ");
 								} catch (NullPointerException | InterruptedException e) {}
 							}

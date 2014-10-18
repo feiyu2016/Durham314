@@ -6,6 +6,9 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import zhen.version1.component.Event;
+import zhen.version1.framework.Common;
+
 public class GenerateValidationScripts {
 	
 	private final String click = "MonkeyDevice.DOWN_AND_UP";
@@ -15,7 +18,7 @@ public class GenerateValidationScripts {
 	private String activityName;
 	private String deviceID;
 	
-	private ArrayList<String> eventSequences;
+	private ArrayList<ArrayList<Event>> eventSequences;
 	private boolean eventSequencesAreSet = false;
 	
 	private int sequenceNumber;
@@ -42,31 +45,13 @@ public class GenerateValidationScripts {
 		}
 	}
 	
-//	private void generateScriptTemplate()
-//	{
-//		if (writer == null) {
-//			System.out.println("No File Opened.");
-//			return;
-//		}
-//		else {
-//			writer.println("#!/usr/bin/python");
-//			writer.println("from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice");
-//			writer.println("device = MonkeyRunner.waitForConnection(10.0,'" + deviceID + "')");
-////			writer.println("package = '" + packageName + "'");
-////			writer.println("activity = '" + activityName + "'");
-////			writer.println("runComponent = package + '/.' + activity");
-////			writer.println("device.startActivity(component=runComponent)");
-//			writer.println("MonkeyRunner.sleep(1)");
-//		}
-//	}
-	
 	private void closeFile()
 	{
 		if (writer != null)
 			writer.close();
 	}
 	
-	public void setEventSequences(ArrayList<String> eventSequences)
+	public void setEventSequences(ArrayList<ArrayList<Event>> eventSequences)
 	{
 		this.eventSequences = eventSequences;
 		this.eventSequencesAreSet = true;
@@ -80,18 +65,17 @@ public class GenerateValidationScripts {
 		}
 			
 		try {
-			for(String sequence : eventSequences){
+			for(ArrayList<Event> sequence : eventSequences){
 				createFile();
 				//writer.println("# " + method);
 				//generateScriptTemplate();
 				
-				String string[] = sequence.trim().split("\\|");
-				
-				for (int i = 0; i < string.length; i++) {
-					String x = string[i].trim().split("\\,")[0];
-					String y = string[i].trim().split("\\,")[1];
-					
-					writer.println(x + "," + y);
+				for (Event event : sequence) {
+					try {
+						String x = event.getValue(Common.event_att_click_x).toString();
+						String y = event.getValue(Common.event_att_click_y).toString();
+						writer.println(x + "," + y);
+					} catch (Exception e) {}
 				}
 				//writer.println("device.shell('am force-stop " + packageName + "')");
 				closeFile();

@@ -19,7 +19,7 @@ public class Common {
 	public static final String apkPath = "apkPath";
 	public static final String packageName = "packageName";
 	public static final String apkFile = "apkFile";
-
+	public static final String originalApkPath = "originalApkPath";
 	/**
 	 * Strings used for ViewNode attributes
 	 */

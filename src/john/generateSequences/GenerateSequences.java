@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import zhen.version1.framework.Common;
 import zhen.version1.framework.Framework;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIState;
@@ -13,9 +14,8 @@ public class GenerateSequences {
 	private Framework fw;
 	private ArrayList<UIState> knownVertices;
 	private String[] targetMethods;
-	private ArrayList<String> methodGroups;
-	private ArrayList<String> unenhancedSequences;
-	private ArrayList<String> enhancedSequences;
+	private ArrayList<ArrayList<Event>> unenhancedSequences;
+	private ArrayList<ArrayList<Event>> enhancedSequences;
 	
 	public boolean debugMode;
 	
@@ -24,249 +24,198 @@ public class GenerateSequences {
 		this.targetMethods = targetMethods;
 		this.debugMode = debugMode;
 		knownVertices = this.getKnownVertices();
-		methodGroups = this.generateMethodGroups();
 		unenhancedSequences = this.generateUnenhancedSequences();
 		enhancedSequences = this.generateEnhancedSequences();
 	}
 	
-	public ArrayList<String> getMethodGroups()
-	{
-		return methodGroups;
-	}
-	
-	public ArrayList<String> getUnenhancedSequences()
+	public ArrayList<ArrayList<Event>> getUnenhancedSequences()
 	{
 		return unenhancedSequences;
 	}
 	
-	public ArrayList<String> getEnhancedSequences()
+	public ArrayList<ArrayList<Event>> getEnhancedSequences()
 	{
 		return enhancedSequences;
 	}
 	
-	private ArrayList<String> generateEnhancedSequences()
+	private ArrayList<ArrayList<Event>> generateEnhancedSequences()
 	{
-		ArrayList<String> uS = new ArrayList<String>();
-		ArrayList<String> ret = new ArrayList<String>();
-		ArrayList<String> mG = methodGroups;
-		
-		for (String string: unenhancedSequences) {
-			uS.add(string.trim().split("\\|")[1].trim());
+		ArrayList<ArrayList<Event>> uS = new ArrayList<ArrayList<Event>>();
+		uS.addAll(this.unenhancedSequences);
+		ArrayList<ArrayList<Event>> eG = new ArrayList<ArrayList<Event>>();
+		ArrayList<ArrayList<Event>> ret = new ArrayList<ArrayList<Event>>();
+		for (ArrayList<Event> s : uS) {
+			ArrayList<ArrayList<Event>> allSequences = new ArrayList<ArrayList<Event>>();
+			ArrayList<UIState> seen = new ArrayList<UIState>();
+			for (int i = 0; i < s.size(); i++) {
+				ArrayList<ArrayList<Event>> newAllSequences = new ArrayList<ArrayList<Event>>();
+				Event e = s.get(i);
+				if (seen.contains(e.getSource())) continue;
+				ArrayList<ArrayList<Event>> eg = generateEventGroups(e.getSource());
+				ArrayList<Event> candidates = new ArrayList<Event>();
+				for (ArrayList<Event> g : eg) {
+					candidates.add(g.get(0));
+				}
+				for (ArrayList<Event> existingS : allSequences) {
+					for (Event candidate : candidates) {
+						ArrayList<Event> newOne = new ArrayList<Event>();
+						newOne.addAll(existingS);
+						newOne.add(candidate);
+						newOne.add(e);
+						newAllSequences.add(newOne);
+					}
+				}
+				if (allSequences.size() < 1) {
+					for (Event candidate : candidates) {
+						ArrayList<Event> newOne = new ArrayList<Event>();
+						newOne.add(candidate);
+						newOne.add(e);
+						if (!newAllSequences.contains(newOne))
+							newAllSequences.add(newOne);
+					}
+				}
+				seen.add(e.getSource());
+				allSequences = newAllSequences;
+			}
+			for (ArrayList<Event> ssss: allSequences)
+				if (!ret.contains(ssss))
+					ret.add(ssss);
 		}
 		
-		for (String string: uS) {
-			String combo = "";
-			for (String group: mG) {
-				if (group.contains(string)) {
-					ret.add(string);
+		if (debugMode) {
+			System.out.println("There are " + ret.size() + " enhanced sequences.");
+			for (ArrayList<Event> sequence: ret) {
+				for (Event event: sequence) {
+					try {
+						String x = event.getValue(Common.event_att_click_x).toString();
+						String y = event.getValue(Common.event_att_click_y).toString();
+						System.out.print("(" + x + "," + y + ")");
+					} catch (Exception e) {};
 				}
-				else {
-					String temp = group.trim().split("\\|")[0] + "|";
-					ret.add(temp + string);
-					combo += temp;
-				}
+				System.out.println();
 			}
-			ret.add(combo + string);
 		}
 		
 		return ret;
 	}
 	
-	private ArrayList<String> generateUnenhancedSequences()
+	private ArrayList<ArrayList<Event>> generateUnenhancedSequences()
 	{
-		ArrayList<String> sequences = new ArrayList<String>();
+		ArrayList<ArrayList<Event>> sequences = new ArrayList<ArrayList<Event>>();
 		for (String target: targetMethods) {
-			System.out.println("Target Methods");
 			for (UIState vertex: knownVertices) {
-				System.out.println("Vertex");
-				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
+				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(knownVertices.get(1), vertex);
 				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
-				
-				for (Event event: el) {
-					System.out.println("Effective Event");
-					for (String string: event.getMethodHits()) {
-						System.out.println(string);
-						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
-							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
-							break;
-						}
-					}
-				}
-				
+
 				for (Event event: ieel) {
-					System.out.println("Ineffective Event");
-					System.out.println(event.getMethodHits());
 					for (String string: event.getMethodHits()) {
-						System.out.println(string);
 						if (string.contains(target.trim().replace("<","").replace(">", ""))) {
-							sequences.add(target + "|" + eventSequenceToString(el) + event.toString().trim().split("in")[0].trim());
+							ArrayList<Event> temp = new ArrayList<Event>();
+							temp.addAll(el);
+							temp.add(event);
+							sequences.add(temp);
 							break;
 						}
 					}
 				}
-				
-			}
-		}
-		
-		ArrayList<String> ret = new ArrayList<String>();
-		for (String sequence: sequences) {
-			//sequence = sequence.replace("<", "").replace(">", "");
-			sequence = sequence.split("\\>")[1];
-			String temp = "|";
-			for (int i = 2; i < sequence.split("\\|").length; i++) {
-				temp += sequence.split("\\|")[i] + "|";
-			}
-			sequence = temp;
-			if (sequence.trim().contains("|android:onClick ")) {
-				ret.add(sequence.trim().replace("|android:onClick ", "|"));
-			}
-			else {
-				ret.add(sequence.trim());
 			}
 		}
 		
 		if (debugMode) {
-			for (String sequence: ret)
-				System.out.println(sequence);
+			System.out.println("There are " + sequences.size() + " baseline sequences.");
+			for (ArrayList<Event> sequence: sequences) {
+				for (Event event: sequence) {
+					try {
+						String x = event.getValue(Common.event_att_click_x).toString();
+						String y = event.getValue(Common.event_att_click_y).toString();
+						System.out.print("(" + x + "," + y + ")");
+					} catch (Exception e) {};
+				}
+				System.out.println();
+			}
 		}
 			
-		return ret;
+		return sequences;
 	}
 	
-	private ArrayList<String> generateMethodGroups()
+	private ArrayList<ArrayList<Event>> generateEventGroups(UIState uis)
 	{
-		HashMap<String, String> hasSeen = new HashMap<String, String>();
-		ArrayList<String> ret = new ArrayList<String>();
+		HashMap<String, ArrayList<Event>> hasSeen = new HashMap<String, ArrayList<Event>>();
+		ArrayList<ArrayList<Event>> ret = new ArrayList<ArrayList<Event>>();
+		ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, uis);
+		ArrayList<Event> ieel = (ArrayList<Event>) uis.getIneffectiveEventList();
 		
-		//for (String target: targetMethods) {
-			for (UIState vertex: knownVertices) {
-				ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(UIState.Launcher, vertex);
-				ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
-				
-				for (Event event: el) {
-					for (String string: event.getMethodHits()) {
-						System.out.println(string);
-						if (hasSeen.containsKey(string.trim())) {
-							try {
-								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
-								hasSeen.put(string.trim(), newString);
-							} catch (ArrayIndexOutOfBoundsException e){
-								continue;
-							}
-						}
-						else {
-							try {	
-								String newString = event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
-								hasSeen.put(string.trim(), newString);
-							} catch (ArrayIndexOutOfBoundsException e){
-								continue;
-							}
-						}
+		for (Event event: ieel) {
+			for (String string: event.getMethodHits()) {
+				System.out.println(string);
+				if (hasSeen.containsKey(string.trim())) {
+					try {
+						ArrayList<Event> newList = new ArrayList<Event>();
+						newList.addAll(hasSeen.get(string.trim()));
+						newList.add(event);
+						hasSeen.put(string.trim(), newList);
+					} catch (ArrayIndexOutOfBoundsException e){
+						continue;
 					}
 				}
-				
-				for (Event event: ieel) {
-					for (String string: event.getMethodHits()) {
-						System.out.println(string);
-						if (hasSeen.containsKey(string.trim())) {
-							try {
-								String newString = hasSeen.get(string.trim()) + "|" + event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
-								hasSeen.put(string.trim(), newString);
-							} catch (ArrayIndexOutOfBoundsException e){
-								continue;
-							}
-						}
-						else {
-							try {
-								String newString = event.toString().trim().split("in")[0].trim().split(" ")[1].trim();
-								hasSeen.put(string.trim(), newString);
-							} catch (ArrayIndexOutOfBoundsException e){
-								continue;
-							}
-						}
+				else {
+					try {
+						ArrayList<Event> newList = new ArrayList<Event>();
+						newList.add(event);
+						hasSeen.put(string.trim(), newList);
+					} catch (ArrayIndexOutOfBoundsException e){
+						continue;
 					}
 				}
 			}
-		
-			for(Entry<String, String> entry: hasSeen.entrySet()) {
-				ret.add(entry.getKey() + "%" + entry.getValue());
-			}
-			
-			return mergeMethodGroups(ret);
-	}
-	
-	public void printKnownVertices()
-	{	
-		for (UIState vertex: knownVertices) {
-			@SuppressWarnings("static-access")
-			ArrayList<Event> el = (ArrayList<Event>) fw.rInfo.getEventSequence(vertex.Launcher, vertex);
-			ArrayList<Event> ieel = (ArrayList<Event>) vertex.getIneffectiveEventList();
-			
-			System.out.println(vertex.actName);
-			System.out.print("EVENTS{");
-			
-			for (Event event: el) {
-				System.out.print(event.toString().trim().split("in")[0].trim() + "|");
-			}
-			System.out.println("}");
-			System.out.print("INEFFECTIVE EVENTS{");
-			
-			for (Event event: ieel) {
-				System.out.print(event.toString().trim().split("in")[0].trim() + "|");
-				System.out.print("(");
-				for (String string: event.getMethodHits()) {
-					System.out.print(string + ",");
-				}
-				System.out.print(")");
-			}
-			System.out.println("}");
-		}
-	}
-	
-	private ArrayList<String> mergeMethodGroups(ArrayList<String> in) {
-		ArrayList<String> input = new ArrayList<String>();
-		
-		for (String string: in) {
-			String temp = string.split("%")[1].trim();
-			if (!temp.contains(".") && !temp.contains("keycode"))
-				input.add(temp);
 		}
 		
+		for(Entry<String, ArrayList<Event>> entry: hasSeen.entrySet()) {
+			ret.add(entry.getValue());
+		}
+		
+		return mergeEventGroups(ret);
+	}
+	
+	private ArrayList<ArrayList<Event>> mergeEventGroups(ArrayList<ArrayList<Event>> input) {
 		boolean isIncluded[] = new boolean[input.size()];
-        for(int i=0;i<isIncluded.length;i++){
+        
+		for (int i = 0; i < isIncluded.length; i++) {
             isIncluded[i] = false;
         }
         
-        for(int i=0;i<input.size()-1;i++){
-            if(isIncluded[i]) continue;
-            String criteria = input.get(i);
-            for(int j=0;j<input.size();j++){
-                if(i == j || isIncluded[j]){
+        for ( int i = 0; i < input.size()-1; i++){
+            if (isIncluded[i]) continue;
+            
+            ArrayList<Event> criteria = input.get(i);
+            
+            for ( int j = 0; j < input.size(); j++) {
+                if (i == j || isIncluded[j]) {
                     continue;
                 }
-                String parts[] = input.get(j).split("\\|");
-                isIncluded[j] = containsAll(criteria,parts);
+                
+                isIncluded[j] = containsAll(criteria, input);
             }
         }
         
-        ArrayList<String> result = new ArrayList<String>();
-        for(int i=0;i<input.size();i++){
-            if(!isIncluded[i]) result.add(input.get(i));
+        ArrayList<ArrayList<Event>> result = new ArrayList<ArrayList<Event>>();
+        for (int i = 0; i < input.size(); i++) {
+            if (!isIncluded[i]) result.add(input.get(i));
         }
         
         if (debugMode) {
         	System.out.println("----MERGED METHOD GROUPS:");
-	        for (String string: result) {
-	        	System.out.println(string);
-	        }
+//	       for (String string: result) {
+//	        	System.out.println(string);
+//	        }
         }
         
         return result;
     }
 
-    private boolean containsAll(String pointer, String[] list) {
-        for (String msg : list) {
-            if (!pointer.contains(msg)) {
+    private boolean containsAll(ArrayList<Event> pointer, ArrayList<ArrayList<Event>> list) {
+        for (ArrayList<Event> sequence : list) {
+            if (!pointer.contains(sequence)) {
                 return false;
             }
         }
@@ -277,16 +226,5 @@ public class GenerateSequences {
 	private ArrayList<UIState> getKnownVertices()
 	{
 		return (ArrayList<UIState>) fw.rInfo.getUIModel().getKnownVertices();
-	}
-	
-	private String eventSequenceToString(ArrayList<Event> el)
-	{
-		String string = "";
-		
-		for (Event event: el) {
-			string += event.toString().trim().split("in")[0].trim() + "|";
-		}
-		
-		return string;
 	}
 }
