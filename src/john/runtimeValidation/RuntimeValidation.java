@@ -11,13 +11,12 @@ import java.util.Map;
 
 import john.jdb.JDBInterface;
 import main.Paths;
-import smali.TaintAnalysis.TaintHelper;
+import smali.BackTrackAnalysis.BackTrackHelper;
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
 import zhen.version1.component.Event;
 import zhen.version1.framework.Common;
-import zhen.version1.framework.Executer;
 import zhen.version1.framework.Framework;
 import zhen.version1.test.TaintedEventGeneration;
 
@@ -53,8 +52,8 @@ public class RuntimeValidation implements Runnable{
 	
 	public void run() {
 		this.runAllScripts();
-		this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
-		this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
+		//this.getIntegerLineNumbersFromOverallResultsWhichIsAString();
+		//this.getNewEventSequencesAndRunThemImmediatelyAfterwards();
 		System.out.println("done");
 	}
 
@@ -220,9 +219,9 @@ public class RuntimeValidation implements Runnable{
 	
 	private void getNewEventSequencesAndRunThemImmediatelyAfterwards()
 	{
-		TaintHelper th = new TaintHelper(staticApp);
-		th.setMethod(targetMethod);
-		th.setBPsHit(overallInt);
+		BackTrackHelper bth = new BackTrackHelper(staticApp);
+		bth.setMethod(targetMethod);
+		bth.setBPsHit(overallInt);
 		
 		TaintedEventGeneration teg = new TaintedEventGeneration();
 		StaticClass c = targetMethod.getDeclaringClass(staticApp);
@@ -237,12 +236,12 @@ public class RuntimeValidation implements Runnable{
 				for (Event event : getFinalEvents()) {
 					try {
 						log("event method: " + event.getMethodHits());
-						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, th.findTaintedMethods(target), event);
+						ArrayList<Event[]> tegOut = (ArrayList<Event[]>) teg.findSequence(frame, staticApp, bth.findResponsibleMethods(target), event);
 
 						System.out.println("tegOut,size:"+tegOut.size());
 						log("findSequence checking:");
 						log("target line:"+target);
-						log("findTaintedMethods"+th.findTaintedMethods(target));
+						log("findTaintedMethods"+bth.findResponsibleMethods(target));
 						log("finalEvent"+event);
 						log("tegOut:\t"+tegOut);
 						log("\n");
