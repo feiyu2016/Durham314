@@ -154,7 +154,7 @@ public class RunTimeInformation{
 			}
 			
 			Utility.dumpData(copyMap, path+"object2");
-//			Utility.dumpData(this.eventDeposit, path+"object3");
+			Utility.dumpData(this.eventDeposit, path+"object3");
 		}
 	}
 	
@@ -169,9 +169,9 @@ public class RunTimeInformation{
 			String path = Configuration.AppDataDir+"object/"+tag+"/";
 			this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
 			this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
-			//this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
+			this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
 			
-			return (this.UIModel!=null) && (this.methodEventMap!=null)/* && (this.eventDeposit!=null)*/;
+			return (this.UIModel!=null) && (this.methodEventMap!=null)&& (this.eventDeposit!=null)/* */;
 		}catch(Exception e){
 			e.printStackTrace();
 			return false;
