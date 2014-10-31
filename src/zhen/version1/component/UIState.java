@@ -8,13 +8,12 @@ import java.util.Map;
 
 import zhen.version1.Support.Utility;
 
-import com.android.hierarchyviewerlib.models.ViewNode;
 
 /**
  * The basic block of UI model
  * A UIState represent a unique state during traversal
  * Subcomponents include:
- * 	1.	Layout -- a tree of ViewNode
+ * 	1.	Layout -- a tree of MyViewNode
  * 	2.	Events that have been applied	-- ? to review
  * 	3.	Extra Information
  * 	4.	Activity information
@@ -34,14 +33,14 @@ public class UIState implements Serializable{
 	private static int avaliableIndex = 0;
 	
 	public final int index;
-	public List<ViewNode> linearReference;
+	public List<MyViewNode> linearReference;
 	private List<Event> possibleEventLsit;
 	private int eventIndex = -1; 
 	private boolean isOnBackTried = false;
 	
 	private List<Event> ineffectiveEventList = new ArrayList<Event>();
 	
-	public final ViewNode root;
+	public final MyViewNode root;
 	public final String actName, appName;
 	public final  WindowInformation winInfo;
 	
@@ -60,7 +59,7 @@ public class UIState implements Serializable{
 		Launcher.isLauncher = true; 
 	}
 	
-	public UIState(String appName, String actName, ViewNode root, WindowInformation winInfo){
+	public UIState(String appName, String actName, MyViewNode root, WindowInformation winInfo){
 		this.index = avaliableIndex;
 		avaliableIndex += 1;
 		this.actName = actName;
@@ -118,12 +117,12 @@ public class UIState implements Serializable{
 		if(input instanceof UIState){
 			UIState other = (UIState)input;
 			return this.index == other.index;
-		}else if(input == null||input instanceof ViewNode){
-			return compareViewNode(this.root,(ViewNode) input);
+		}else if(input == null||input instanceof MyViewNode){
+			return compareViewNode(this.root,(MyViewNode) input);
 		}
 		return false;
 	}
-	public boolean theSameAs(ViewNode root, WindowInformation winInfo){
+	public boolean theSameAs(MyViewNode root, WindowInformation winInfo){
 		if(!this.equals(root)) return false;
 		if(this.winInfo == null && winInfo == null){
 			return true;
@@ -133,7 +132,7 @@ public class UIState implements Serializable{
 		return false;
 	}
 	
-	private static boolean compareViewNode(ViewNode r1, ViewNode r2){
+	private static boolean compareViewNode(MyViewNode r1, MyViewNode r2){
 		//check the class name, id, x,y
 		if(r1 == null && r2 == null) return true;
 		if(r1 != null && r2 != null){
@@ -145,13 +144,13 @@ public class UIState implements Serializable{
 //			if(r1.height != r2.height) return false;
 			if(r1.children.size() != r2.children.size()) return false;
 			//check children
-			List<ViewNode> list1 = r1.children;
-			List<ViewNode> list2 = r2.children;
+			List<MyViewNode> list1 = r1.children;
+			List<MyViewNode> list2 = r2.children;
 			
 			//TODO assume the order is the same
 			for(int i=0;i<list1.size();i++){
-				ViewNode v1 = list1.get(i);
-				ViewNode v2 = list2.get(i);
+				MyViewNode v1 = list1.get(i);
+				MyViewNode v2 = list2.get(i);
 				if(compareViewNode(v1,v2) == false){
 					return false;
 				}

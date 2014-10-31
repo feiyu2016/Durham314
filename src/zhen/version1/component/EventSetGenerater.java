@@ -6,8 +6,6 @@ import java.util.List;
 import zhen.version1.Support.BreadthFirstTreeSearch;
 import zhen.version1.Support.Utility;
 import zhen.version1.framework.Common;
-
-import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.ViewNode.Property;
 
 /**
@@ -25,7 +23,7 @@ public class EventSetGenerater {
 	 */
 	public static void build(UIState ui){
 		//Build view Events
-		ViewNode root = ui.root;
+		MyViewNode root = ui.root;
 		if(root == null) return;
 		
 		double actualWidth = ui.winInfo.width;
@@ -37,25 +35,25 @@ public class EventSetGenerater {
 		
 		if(DEBUG) Utility.log(TAG,"Scale:("+xScale+","+yScale+"), Start:("+startx+","+starty+")");
 		
-		final List<ViewNode> linearRefernce = new ArrayList<ViewNode>();
+		final List<MyViewNode> linearRefernce = new ArrayList<MyViewNode>();
 		final List<Event> relatedEvent = new ArrayList<Event>();
-		BreadthFirstTreeSearch.ChildCollecter<ViewNode> collecter= new BreadthFirstTreeSearch.ChildCollecter<ViewNode>(){
+		BreadthFirstTreeSearch.ChildCollecter<MyViewNode> collecter= new BreadthFirstTreeSearch.ChildCollecter<MyViewNode>(){
 			@Override
-			public ViewNode[] collecter(ViewNode parent) {
-				return parent.children.toArray(new ViewNode[0]); 
+			public MyViewNode[] collecter(MyViewNode parent) {
+				return parent.children.toArray(new MyViewNode[0]); 
 			}
 		};
-		BreadthFirstTreeSearch.CriticalPoint<ViewNode> operations = new BreadthFirstTreeSearch.CriticalPoint<ViewNode>(){
+		BreadthFirstTreeSearch.CriticalPoint<MyViewNode> operations = new BreadthFirstTreeSearch.CriticalPoint<MyViewNode>(){
 			@Override
-			public void onEnQueue(ViewNode node) {
+			public void onEnQueue(MyViewNode node) {
 				linearRefernce.add(node);
 			} 
 		};
 		BreadthFirstTreeSearch.search(root, collecter, operations);
 		ui.linearReference = linearRefernce;
 		
-		for(ViewNode node: linearRefernce){
-			ViewNode current = node;
+		for(MyViewNode node: linearRefernce){
+			MyViewNode current = node;
 			
 			int x_toActivity=current.left;
 			int y_toActivity=current.top;
@@ -92,7 +90,7 @@ public class EventSetGenerater {
 		}
 	}
 
-	private static boolean isIgnored(ViewNode node){
+	private static boolean isIgnored(MyViewNode node){
 //		if(DEBUG) Utility.log(TAG, (node.children != null && node.children.size() > 0)+","+(node.height < 3 && node.width <3));
 		
 		if(node.children != null && node.children.size() > 0) return true;

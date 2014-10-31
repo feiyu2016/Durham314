@@ -55,9 +55,9 @@ public class MainMain {
 		
 		Integer[][] targetLines = {
 			{287,321,322}, // addBillAmount
-			//{431,247,438,443,257,258,262}, // onOptionsItemSelected
-			//{649,430,475,656,436,455,459,442,445,448}, // handleOperation
-			//{482}, // handleNumber
+//			{431,247,438,443,257,258,262}, // onOptionsItemSelected
+//			{649,430,475,656,436,455,459,442,445,448}, // handleOperation
+//			{482}, // handleNumber
 			{129,133}, // removePerson
 			//{138,159,177}, // onMenuItemSelected
 			//{71}, // doTheThing

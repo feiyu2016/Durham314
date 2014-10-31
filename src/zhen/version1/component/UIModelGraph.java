@@ -81,7 +81,7 @@ public class UIModelGraph implements Serializable{
 		isInited = true;
 	}
 	
-	public UIState getOrBuildState(String appName, String actName, ViewNode root, WindowInformation topWindowInfo){
+	public UIState getOrBuildState(String appName, String actName, MyViewNode root, WindowInformation topWindowInfo){
 		
 		if(DEBUG) Utility.log(TAG, "getOrBuildState input,"+appName);
 		if(DEBUG) Utility.log(TAG, "getOrBuildState input,"+actName);

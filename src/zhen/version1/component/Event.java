@@ -189,61 +189,6 @@ public class Event extends DefaultEdge implements Serializable{
 		return result;
 	}
 	
-
-	/**
-	 * @param deviceName	-- the NAME of device in the python script, which you defined. It could 
-	 * 						   be "device", "myDevice" or anything you like
-	 * @return	the corresponded python script for the event 
-	 * 			The result could be null if it is not suitable to be transformed into python script. 
-	 * 			This type of event is used for internal use during traverse. 
-	 * 
-	 * 			Launch, Restart and Reinstall are treated as the same.
-	 * 
-	 * 			Note: I am not sure if the launch script works correctly
-	 */
-	public String toPythonScript(String deviceName){
-		String result = "";
-		switch(this.eventType){
-		case iLAUNCH: 		
-		case iRESTART: 	 
-		case iREINSTALL:	{
-			String runComponent = this.getValue(Common.packageName)+"/"+this.getValue(Common.event_att_actname);
-			result = deviceName+".startActivity(component='"+runComponent+"')";
-			break;
-		}
-		case iPRESS: 	 	{
-			result = deviceName+".press('" + this.getValue(Common.event_att_keycode) + "')\n";
-			break;
-		}
-		case iONCLICK: 	 	{
-			String x = this.getValue(Common.event_att_click_x).toString();
-			String y = this.getValue(Common.event_att_click_y).toString();
-			String type = Executer.DOWN_AND_UP;
-			result = deviceName+".touch(" + x + "," + y + "," + type + ")\n";
-			break;
-		}
-		case iEMPTY:	
-		case iUPDATE:	
-		case iUNDEFINED:	{
-			result = null;
-			break;
-		}
-		}
-		return result;
-	}
-	
-	/**
-	 * 
-	 * @return 	the corresponded python script for the event 
-	 * 			The result could be null if it is not suitable to be transformed into python script. 
-	 * 			This type of event is used for internal use during traverse. 
-	 * 
-	 * 			Launch, Restart and Reinstall are treated as the same.
-	 */
-	public String toPythonScript(){
-		return toPythonScript("device");
-	}
-	
 	public static String intToString(int type){
 		switch(type){
 		case iEMPTY:	return EMPTY;

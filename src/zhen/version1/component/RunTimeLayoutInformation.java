@@ -1,7 +1,9 @@
 package zhen.version1.component;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import zhen.version1.Support.BreadthFirstTreeSearch;
 import zhen.version1.Support.Utility;
 import zhen.version1.framework.Configuration;
 
@@ -23,7 +25,6 @@ public class RunTimeLayoutInformation {
 	private IDevice mDevice;
 	private ArrayList<IDevice> deviceList = new ArrayList<IDevice>();
 	private IHvDevice device;
-//	private String path;
 	
 	private Window[] windowList;
 	private int focusedWindowHash;
@@ -58,11 +59,24 @@ public class RunTimeLayoutInformation {
         return null;
     }
     
-    public ViewNode loadWindowData(Window window) {
-        return window==null?null:DeviceBridge.loadWindowData(window);
+    public MyViewNode loadWindowData(Window window) {
+    	ViewNode raw = window==null?null:DeviceBridge.loadWindowData(window);
+    	if(raw == null) return null;
+    	else return helper(raw,null);
     }
     
-    public ViewNode loadFocusedWindowData(){
+    private MyViewNode helper(ViewNode current, MyViewNode parent){
+    	MyViewNode node = new MyViewNode(current);
+    	node.parent = parent;
+    	List<MyViewNode> children = new ArrayList<MyViewNode>();
+    	for(ViewNode child : current.children){
+    		children.add(helper(child,node));
+    	}
+    	node.children = children;
+    	return node;
+    }
+    
+    public MyViewNode loadFocusedWindowData(){
     	return loadWindowData(Window.getFocusedWindow(device));
     }
     

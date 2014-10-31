@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.android.ddmlib.IDevice;
 
-import zhen.version1.component.Event; 
+import zhen.version1.component.Event;
 import zhen.version1.component.JDBControl;
 import zhen.version1.component.Report;
 

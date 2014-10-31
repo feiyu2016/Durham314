@@ -21,6 +21,7 @@ import com.android.hierarchyviewerlib.models.Window;
 
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
+import zhen.version1.component.MyViewNode;
 import zhen.version1.component.RunTimeLayoutInformation;
 import zhen.version1.component.UIModelGraph;
 import zhen.version1.component.UIState;
@@ -240,7 +241,7 @@ public class RunTimeInformation{
 		case Event.iREINSTALL:{
 			UIState newState = null;
 			if(needRetrieveLayout(topWin,targetInfo)){
-				ViewNode root = deviceLayout.loadWindowData(topWin);
+				MyViewNode root = deviceLayout.loadWindowData(topWin);
 				newState = UIModel.getOrBuildState(appName, actName, root,targetInfo);
 			}else{ 
 				newState = UIModel.getOrBuildState(appName, actName, null,targetInfo); 
@@ -261,7 +262,7 @@ public class RunTimeInformation{
 		case Event.iPRESS:{
 			UIState newState = null;
 			if(needRetrieveLayout(topWin,targetInfo)){
-				ViewNode root = deviceLayout.loadWindowData(topWin);
+				MyViewNode root = deviceLayout.loadWindowData(topWin);
 				newState = UIModel.getOrBuildState(appName, actName, root,targetInfo);
 			}else{ 
 				newState = UIModel.getOrBuildState(appName, actName, null,targetInfo); 
