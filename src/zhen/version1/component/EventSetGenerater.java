@@ -5,8 +5,8 @@ import java.util.List;
 
 import zhen.version1.Support.BreadthFirstTreeSearch;
 import zhen.version1.Support.Utility;
+import zhen.version1.component.MyViewNode.Property;
 import zhen.version1.framework.Common;
-import com.android.hierarchyviewerlib.models.ViewNode.Property;
 
 /**
  * Build a list event for a UIState

@@ -118,7 +118,7 @@ public class Framework {
 		//expand knowledge on the UI model
 		explorer.traverse();
 		
-		callback.action(this);
+		if(this.callback != null) callback.action(this);
 	}
 	
 	/**

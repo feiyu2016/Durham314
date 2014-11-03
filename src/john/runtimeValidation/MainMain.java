@@ -38,7 +38,7 @@ public class MainMain {
 				"backupHelper.apk",
 				"TheApp.apk",
 		};
-		int appSelect = 2;
+		int appSelect = 0;
 		String appPath = "APK/" + targetApp[appSelect];
 		
 		String[] targetMethods = {

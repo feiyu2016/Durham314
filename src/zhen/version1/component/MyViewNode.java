@@ -12,7 +12,6 @@ import org.eclipse.swt.graphics.Image;
 
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
-import com.android.hierarchyviewerlib.models.ViewNode.Property;
 
 public class MyViewNode implements Serializable{
 	
@@ -22,8 +21,15 @@ public class MyViewNode implements Serializable{
 		this.id = node.id;
 		this.name = node.name;
 		this.hashCode = node.hashCode;
-		this.properties = node.properties;
-		this.namedProperties = node.namedProperties;
+		this.properties = new ArrayList<Property>();
+		for(com.android.hierarchyviewerlib.models.ViewNode.Property p : node.properties){
+			this.properties.add(new Property(p));
+		}
+		
+		Set<String> keys = node.namedProperties.keySet();
+		for(String key : keys){
+			this.namedProperties.put(key, new Property(node.namedProperties.get(key)));
+		}
 		
 		this.left = node.left;
 		this.top = node.top;
@@ -124,5 +130,24 @@ public class MyViewNode implements Serializable{
     @Override
     public String toString() {
         return name + "@" + hashCode; //$NON-NLS-1$
+    }
+    
+    public static class Property implements Serializable{
+    	public Property(){}
+    	
+    	
+    	public Property(com.android.hierarchyviewerlib.models.ViewNode.Property p){
+    		this.name = p.name;
+    		this.value = p.value;
+    	}
+    	
+        public String name;
+
+        public String value;
+
+        @Override
+        public String toString() {
+            return name + '=' + value;
+        }
     }
 }

@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.hierarchyviewerlib.models.ViewNode;
 import com.android.hierarchyviewerlib.models.Window;
 
+import zhen.version1.Support.Bundle;
 import zhen.version1.Support.Utility;
 import zhen.version1.component.Event;
 import zhen.version1.component.MyViewNode;
@@ -138,23 +139,24 @@ public class RunTimeInformation{
 		}
 		
 		if(force || !existed){
-			Utility.dumpData(new UIModelGraph(this.UIModel,false), path+"object1");
-			
-			Map<String, List<Event>> copyMap = new HashMap<String, List<Event>>();
-			for(Entry<String, List<Event>> entry: methodEventMap.entrySet()){
-				String msg = entry.getKey();
-				List<Event> list = entry.getValue();
-				List<Event> copy = new ArrayList<Event>();
-				for(Event e : list){
-					Event newEvent = new Event(e,false);
-					System.out.println(newEvent.getSource().root == null);
-					copy.add(newEvent);
-				}
-				copyMap.put(msg, copy);
-			}
-			
-			Utility.dumpData(copyMap, path+"object2");
-			Utility.dumpData(this.eventDeposit, path+"object3");
+			Bundle bundle = new Bundle(this.UIModel,this.methodEventMap,this.eventDeposit);
+			Utility.dumpData(bundle,path+"bundle1");
+//			Utility.dumpData(new UIModelGraph(this.UIModel,false), path+"object1");
+//			
+//			Map<String, List<Event>> copyMap = new HashMap<String, List<Event>>();
+//			for(Entry<String, List<Event>> entry: methodEventMap.entrySet()){
+//				String msg = entry.getKey();
+//				List<Event> list = entry.getValue();
+//				List<Event> copy = new ArrayList<Event>();
+//				for(Event e : list){
+//					Event newEvent = new Event(e,false);
+//					copy.add(newEvent);
+//				}
+//				copyMap.put(msg, copy);
+//			}
+//			
+//			Utility.dumpData(copyMap, path+"object2");
+//			Utility.dumpData(this.eventDeposit, path+"object3");
 		}
 	}
 	
@@ -167,9 +169,13 @@ public class RunTimeInformation{
 	public boolean restoreData(String tag){
 		try{
 			String path = Configuration.AppDataDir+"object/"+tag+"/";
-			this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
-			this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
-			this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
+			Bundle bundle = (Bundle) Utility.restoreData(path+"bundle1");
+			this.UIModel = (UIModelGraph) bundle.os[0];
+			this.methodEventMap = (Map<String, List<Event>>) bundle.os[1];
+			this.eventDeposit = (List<Event>) bundle.os[2];
+//			this.UIModel = (UIModelGraph) Utility.restoreData(path+"object1");
+//			this.methodEventMap = (Map<String, List<Event>>) Utility.restoreData(path+"object2");
+//			this.eventDeposit = (List<Event>) Utility.restoreData(path+"object3");
 			
 			return (this.UIModel!=null) && (this.methodEventMap!=null)&& (this.eventDeposit!=null)/* */;
 		}catch(Exception e){
